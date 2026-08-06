@@ -1,0 +1,96 @@
+name: Release
+
+# Both packages version in lockstep, because botchart-grammy peers on botchart
+# at 0.x, so one v* tag releases both.
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install --frozen-lockfile
+      - run: bun run build
+      - run: bun test
+
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      # A tag that disagrees with either manifest would publish a version
+      # nobody asked for, and npm never lets a version be republished.
+      - name: Check both manifests match the tag
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          for pkg in botchart botchart-grammy; do
+            manifest=$(node -p "require('./packages/$pkg/package.json').version")
+            if [ "$version" != "$manifest" ]; then
+              echo "Tag is $GITHUB_REF_NAME but packages/$pkg/package.json is $manifest."
+              echo "Fix: set both manifests to $version, or retag as v$manifest."
+              exit 1
+            fi
+          done
+
+      - run: bun install --frozen-lockfile
+      - run: bun run build
+
+      # npm pack rather than bun pm pack: the tarball this produces is the exact
+      # artifact the publish job stages, and npm is what unpacks it.
+      - name: Pack both packages
+        run: |
+          npm pack --ignore-scripts ./packages/botchart ./packages/botchart-grammy
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: package-tarballs
+          path: "*.tgz"
+          retention-days: 1
+
+  # No dependency install, no cache, and no action beyond the three below:
+  # anything else running here could publish the packages.
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: [test, build]
+    environment: release
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: package-tarballs
+          path: package/
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24.19.0"
+          registry-url: "https://registry.npmjs.org"
+          package-manager-cache: false
+
+      # stage rather than publish: this uploads without 2FA, and a maintainer
+      # runs `npm stage approve <stage-id>` to ship it. The trusted publisher
+      # allows staging only, so no run of this workflow can ship on its own.
+      - name: Stage both packages
+        run: |
+          for tarball in package/*.tgz; do
+            npm stage publish "$tarball" --ignore-scripts
+          done
