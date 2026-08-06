@@ -1,0 +1,19 @@
+{
+  "name": "botchart-workspace",
+  "private": true,
+  "type": "module",
+  "workspaces": ["packages/*"],
+  "scripts": {
+    "build": "tsc -p packages/botchart && tsc -p packages/botchart-grammy",
+    "test": "bun test",
+    "clean": "rm -rf packages/*/dist packages/*/*.tsbuildinfo"
+  },
+  "devDependencies": {
+    "botchart": "workspace:*",
+    "botchart-grammy": "workspace:*",
+    "typescript": "^7.0.2"
+  },
+  "engines": {
+    "bun": ">=1.3.0"
+  }
+}

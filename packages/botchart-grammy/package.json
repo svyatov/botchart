@@ -1,0 +1,42 @@
+{
+  "name": "botchart-grammy",
+  "version": "0.0.0",
+  "description": "grammY adapter for botchart: executes the intents the pure interpreter emits and feeds events back into it.",
+  "license": "MIT",
+  "author": "Leonid Svyatov <leonid@svyatov.com>",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": ["dist"],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=22"
+  },
+  "keywords": ["telegram", "telegram-bot", "grammy", "grammy-plugin", "botchart"],
+  "peerDependencies": {
+    "botchart": "0.x",
+    "grammy": "^1.0.0"
+  },
+  "devDependencies": {
+    "botchart": "workspace:*",
+    "grammy": "^1.45.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/svyatov/botchart.git",
+    "directory": "packages/botchart-grammy"
+  },
+  "bugs": "https://github.com/svyatov/botchart/issues",
+  "homepage": "https://github.com/svyatov/botchart#readme",
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc -p ."
+  }
+}

@@ -1,3 +1,8 @@
+# Private planning artifacts: the map, its tickets, research, and prototypes.
+# A global gitignore also covers this. Repeat it here so a clone on another
+# machine cannot commit it by accident.
+/.scratch/
+
 # Agent skill config. Describes the private .scratch/ workflow.
 /docs/agents/
 

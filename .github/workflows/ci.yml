@@ -1,0 +1,59 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  # The floor and the ceiling of the supported TypeScript range. The library's
+  # value is the quality of its type errors, so a version it does not compile
+  # under is a version it cannot claim to support.
+  typecheck:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        typescript: ["5.9", "latest"]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install --frozen-lockfile
+      - run: bun add --dev --exact typescript@${{ matrix.typescript }}
+      - run: bun run build
+
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install --frozen-lockfile
+      - run: bun run build
+      - run: bun test
+
+      # The suite runs under bun, so nothing in it would catch output that only
+      # bun can load. This imports the built packages by name under Node, which
+      # resolves them through their exports maps the way a consumer does.
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+      - name: Import the built packages under Node
+        run: |
+          node --input-type=module -e "
+            await import('botchart');
+            await import('botchart/simulator');
+            await import('botchart-grammy');
+          "

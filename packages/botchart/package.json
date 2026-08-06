@@ -1,0 +1,45 @@
+{
+  "name": "botchart",
+  "version": "0.0.0",
+  "description": "Describe a Telegram bot as one portable, serializable statechart document, and run it with a pure interpreter.",
+  "license": "MIT",
+  "author": "Leonid Svyatov <leonid@svyatov.com>",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./simulator": {
+      "types": "./dist/simulator.d.ts",
+      "default": "./dist/simulator.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": ["dist"],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=22"
+  },
+  "keywords": [
+    "telegram",
+    "telegram-bot",
+    "statechart",
+    "state-machine",
+    "grammy",
+    "typescript"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/svyatov/botchart.git",
+    "directory": "packages/botchart"
+  },
+  "bugs": "https://github.com/svyatov/botchart/issues",
+  "homepage": "https://github.com/svyatov/botchart#readme",
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc -p ."
+  }
+}
