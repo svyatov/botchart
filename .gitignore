@@ -1,0 +1,8 @@
+# Agent skill config. Describes the private .scratch/ workflow.
+/docs/agents/
+
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+.env
