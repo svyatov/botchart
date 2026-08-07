@@ -11,7 +11,8 @@ The canonical statechart document for one bot. It is data, it is executed direct
 _Avoid_: config, definition, schema
 
 **Kernel**:
-The frozen part of the spec vocabulary. Once frozen, new capability arrives as a feature pack rather than as a kernel change. A field belongs in the kernel only if the interpreter's transition semantics depend on it, or if it is an extension point. Everything else starts in a feature pack.
+The frozen part of the spec vocabulary. A field belongs in the kernel only if the interpreter's transition semantics depend on it, or if it is an extension point. Everything else starts in a feature pack.
+The freeze is additive. What is frozen is the document's shape, its extension points, and the meaning of every field that ships. Adding a kernel field later is non-breaking; changing one, removing one, or re-meaning one is breaking.
 
 **Feature pack**:
 A versioned extension that adds events, intents, UI nodes, or prefab machine fragments. It adds only at an extension point. It never adds a key to a frozen record, never changes what a kernel field means, and never makes a kernel field optional.
@@ -20,7 +21,7 @@ A versioned extension that adds events, intents, UI nodes, or prefab machine fra
 A place in the kernel where a feature pack may add something later without a breaking change. Being one is a reason for a field to be in the kernel. An extension point is declared while the kernel is frozen, never discovered afterwards.
 
 **Registry**:
-The set of branded top-level state ids a spec may target, produced by `ids(...)`. It holds top-level keys only, so nothing nested is addressable through it.
+The set of branded state ids a spec may target, produced by `ids(...)`.
 
 ### States and flows
 
@@ -28,17 +29,7 @@ The set of branded top-level state ids a spec may target, produced by `ids(...)`
 One enumerable control position in the spec. Distinct from context, which is the typed data blob a state never enumerates.
 
 **Compound state**:
-A state that contains other states. It may carry `history`, which decides whether re-entering it resumes where the session left off or restarts.
-
-**Flow**:
-Sugar for a strictly linear sequence of states. It desugars into a compound state whose children are its steps. A flow is opaque: nothing outside names a step, no step names a sibling, and flows do not nest.
-
-**Step**:
-One member of a flow, either an `ask` or a `run`. A step is a real state after desugaring.
-
-**Step name**:
-The leading argument a step constructor takes, which identifies the step inside its flow. It is a free string under one rule for both constructors. Two steps deriving the same name is an error, fixed with the `as` override rather than by suffixing.
-_Avoid_: step index, step position
+A state that contains other states. It may carry `history`, which decides whether re-entering it resumes where the session left off or restarts. It is the only nesting construct: `flow` and its steps were deleted, so a sequence of screens is a compound state whose children are ordinary states.
 
 **State id**:
 The dotted path that names a state, such as `order.saveOrder`. Segments match `[A-Za-z][A-Za-z0-9]*`, a leading `_` is reserved, and a session records its position as this string.
@@ -46,7 +37,7 @@ The dotted path that names a state, such as `order.saveOrder`. Segments match `[
 ### Events
 
 **Event source**:
-One of the kinds of thing that can move a state. The kernel freezes six of them: a press, a command, a text match, a timer, a lifecycle signal, and a raw update. `on` is keyed by source, so an event is identified by its source and its name together, never by a single concatenated string. `on` is an extension point, so a feature pack may register a further source. The six resolve in their frozen order and every pack source resolves after all six.
+One of the kinds of thing that can move a state, or that fires without moving it. The kernel freezes the list and its resolution order: a press, a command, a text match, a non-text inbound message, a timer, a lifecycle signal, and a raw update. `on` is keyed by source, so an event is identified by its source and its name together, never by a single concatenated string. `on` is an extension point, so a feature pack may register a further source, and every pack source resolves after all the kernel ones.
 
 **Press**:
 An inline button tap. Press names are declared once in the `presses` registry, because a press is the only source whose name appears in two places that can disagree: on the button and under `on.press`.
@@ -56,13 +47,16 @@ _Avoid_: click, tap, callback
 Typed data a button carries with its press. Its schema is declared per event in the registry; its value is written on the button. It never appears on the wire, because callback indirection puts only a short id there.
 
 **Pattern**:
-A serialised regex that routes a text message or a command remainder to a transition. Its named capture groups can be read into context. Distinct from **match**, which validates an `ask` step's reply and is a Standard Schema, not a regex.
+A serialised regex that routes a text message or a command remainder to a transition. Its named capture groups can be read into context.
 
 **`from`**:
 The one way a transition reads runtime data into context. It names a payload key under a press, or a capture group under a pattern, and nothing anywhere else.
 
 **Transition list**:
 The ordered alternatives one event source or one effect outcome may hold in place of a single transition. First match wins, and a list that matches nothing moves the session nowhere. A single transition is the one-element list, so both forms are written and only the list is read. A list is never empty.
+
+**Non-moving transition**:
+A transition with no `target`. It replies and leaves the session where it is: no exit, no entry, no `seq` bump. A transition that names a `target` is always external, even when the target is the state it is already in, so it exits, re-enters, re-renders and bumps `seq`.
 
 **Raw passthrough**:
 The escape hatch source. It matches an update by guard ref and exists so the whole Telegram surface stays usable before a feature pack promotes any part of it to its own source.
@@ -76,7 +70,10 @@ The stored state of one conversation, keyed by the scope axis. It holds a state 
 A unit of work the interpreter emits as data, such as an API call, an effect invocation, or a timer schedule. Adapters execute intents; the interpreter never performs IO.
 
 **Effect**:
-A named side-effecting operation whose signature lives in the spec and whose implementation is bound on the adapter. It declares its outcomes, and each outcome is a transition.
+A named side-effecting operation whose signature lives in the spec and whose implementation is bound on the adapter. The signature declares inputs, outcomes, the values each outcome carries back into context, and any progress values it may emit while it runs. Each outcome is a transition.
+
+**Guard**:
+A named predicate, declared once in the `guards` registry and referenced by a branded ref, whose implementation is bound on the adapter. Distinct from a comparison of a context field against a literal, which is a construct in the document and needs no binding.
 
 **Adapter**:
 The layer that turns intents into real calls against a Bot API client and feeds events back into the interpreter.
