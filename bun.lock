@@ -12,11 +12,11 @@
     },
     "packages/botchart": {
       "name": "botchart",
-      "version": "0.0.0",
+      "version": "0.0.1",
     },
     "packages/botchart-grammy": {
       "name": "botchart-grammy",
-      "version": "0.0.0",
+      "version": "0.0.1",
       "devDependencies": {
         "botchart": "workspace:*",
         "grammy": "^1.45.1",

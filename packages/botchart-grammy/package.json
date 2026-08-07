@@ -1,6 +1,6 @@
 {
   "name": "botchart-grammy",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "grammY adapter for botchart: executes the intents the pure interpreter emits and feeds events back into it.",
   "license": "MIT",
   "author": "Leonid Svyatov <leonid@svyatov.com>",
