@@ -67,7 +67,22 @@ The escape hatch source. It matches an update by guard ref and exists so the who
 The stored state of one conversation, keyed by the scope axis. It holds a state id and a context value.
 
 **Intent**:
-A unit of work the interpreter emits as data, such as an API call, an effect invocation, or a timer schedule. Adapters execute intents; the interpreter never performs IO.
+A unit of work the interpreter emits as data, such as a view operation, an effect invocation, or a timer schedule. Adapters execute intents; the interpreter never performs IO.
+
+**Message handle**:
+The serializable tagged address of one rendered Telegram message. The kernel ships the `chat` kind; feature packs can register `inline`, `business`, and `ephemeral` kinds.
+
+**Message target**:
+The serializable tagged destination for one view. It stays separate from a message handle because sending and editing need different address data.
+
+**View slot**:
+The runtime record that pairs a message target with an optional message handle. A new slot has no handle until the adapter sends its first view.
+
+**View operation**:
+A semantic `send`, `edit`, `delete`, or `replace` intent. A `replace` operation cleans up the old message and sends the new view as one adapter operation.
+
+**Edit compatibility matrix**:
+The complete registry that selects `edit`, `replace`, or `unsupported` for a handle kind, old view kind, and new view kind. Handle and view integrations add their rows.
 
 **Effect**:
 A named side-effecting operation whose signature lives in the spec and whose implementation is bound on the adapter. The signature declares inputs, outcomes, the values each outcome carries back into context, and any progress values it may emit while it runs. Each outcome is a transition.
