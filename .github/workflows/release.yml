@@ -91,6 +91,6 @@ jobs:
       # allows staging only, so no run of this workflow can ship on its own.
       - name: Stage both packages
         run: |
-          for tarball in package/*.tgz; do
+          for tarball in ./package/*.tgz; do
             npm stage publish "$tarball" --ignore-scripts
           done
