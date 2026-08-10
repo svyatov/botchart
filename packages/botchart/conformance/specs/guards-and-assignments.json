@@ -1,0 +1,100 @@
+{
+  "$schema": "https://svyatov.github.io/botchart/schema/0.1.0.json",
+  "version": 1,
+  "schemaRevision": "0.1.0",
+  "packs": [],
+  "scope": "chat+user",
+  "context": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+      "active": { "type": "boolean" },
+      "copied": { "type": "string" },
+      "count": { "type": "number", "minimum": 0 },
+      "label": { "type": "string" },
+      "note": { "type": "string" },
+      "pageSize": { "type": "number" },
+      "products": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": { "type": "string" },
+            "enabled": { "type": "boolean" }
+          },
+          "required": ["id"],
+          "additionalProperties": false
+        }
+      },
+      "remaining": { "type": "number" }
+    },
+    "required": ["active", "copied", "count", "label", "pageSize", "products", "remaining"],
+    "additionalProperties": false,
+    "default": {
+      "active": false,
+      "copied": "old",
+      "count": 2,
+      "label": "old",
+      "note": "remove",
+      "pageSize": 0,
+      "products": [],
+      "remaining": 3
+    }
+  },
+  "parameters": {
+    "pageSize": { "type": "number", "default": 20 }
+  },
+  "guards": {},
+  "effects": {},
+  "presses": {},
+  "units": {},
+  "stalePress": { "action": "ignore" },
+  "initial": "main",
+  "on": {},
+  "states": {
+    "main": {
+      "kind": "state",
+      "render": "keep",
+      "on": {
+        "message": {
+          "photo": [
+            {
+              "when": {
+                "compare": {
+                  "left": { "context": "count" },
+                  "op": "lt",
+                  "right": { "parameter": "pageSize" }
+                }
+              },
+              "assign": {
+                "active": true,
+                "copied": { "context": "label" },
+                "count": { "increment": 2 },
+                "label": { "from": "label" },
+                "note": { "unset": true },
+                "pageSize": { "parameter": "pageSize" },
+                "products": { "from": "products" },
+                "remaining": { "decrement": 1 }
+              }
+            }
+          ],
+          "document": [
+            { "assign": { "count": -1 } }
+          ],
+          "video": [
+            { "assign": { "products": { "from": "products" } } }
+          ],
+          "audio": [
+            { "assign": { "label": { "from": "missing" } } }
+          ],
+          "voice": [
+            { "assign": { "count": { "from": "label" } } }
+          ],
+          "animation": [
+            { "assign": { "label": { "unset": true } } }
+          ]
+        }
+      }
+    }
+  }
+}

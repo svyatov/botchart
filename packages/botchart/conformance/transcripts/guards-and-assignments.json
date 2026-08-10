@@ -1,0 +1,334 @@
+{
+  "$schema": "https://svyatov.github.io/botchart/conformance/0.1.0/transcript.schema.json",
+  "initial": {
+    "now": "2026-08-10T14:00:00Z",
+    "session": {
+      "callStack": [],
+      "callbacks": {},
+      "context": {
+        "active": false,
+        "copied": "old",
+        "count": 2,
+        "label": "old",
+        "note": "remove",
+        "pageSize": 0,
+        "products": [],
+        "remaining": 3
+      },
+      "history": {},
+      "position": "main",
+      "seq": 0,
+      "viewSlots": {}
+    }
+  },
+  "name": "guards and context assignments",
+  "schemaRevision": "0.1.0",
+  "spec": {
+    "path": "../specs/guards-and-assignments.json",
+    "sha256": "df4afa159026ab2662fb74748bbceb48fe526591e2a9ec31ace25d69b050d58a"
+  },
+  "steps": [
+    {
+      "covers": [
+        "runtime.guard.comparison",
+        "runtime.assignment.batch",
+        "runtime.assignment.direct",
+        "runtime.assignment.context",
+        "runtime.assignment.parameter",
+        "runtime.assignment.event",
+        "runtime.assignment.arithmetic",
+        "runtime.assignment.unset",
+        "runtime.context.complete"
+      ],
+      "input": {
+        "name": "photo",
+        "origin": "telegram",
+        "payload": {
+          "label": "new",
+          "products": [
+            {
+              "enabled": true,
+              "id": "first"
+            },
+            {
+              "id": "second"
+            }
+          ]
+        },
+        "source": "message"
+      },
+      "name": "apply one guarded assignment batch",
+      "result": {
+        "intents": [],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {
+            "active": true,
+            "copied": "old",
+            "count": 4,
+            "label": "new",
+            "pageSize": 20,
+            "products": [
+              {
+                "enabled": true,
+                "id": "first"
+              },
+              {
+                "id": "second"
+              }
+            ],
+            "remaining": 2
+          },
+          "history": {},
+          "position": "main",
+          "seq": 0,
+          "viewSlots": {}
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.assignment.arrayShape",
+        "runtime.assignment.recordFields"
+      ],
+      "input": {
+        "name": "video",
+        "origin": "telegram",
+        "payload": {
+          "products": [
+            {
+              "extra": true,
+              "id": "first"
+            }
+          ]
+        },
+        "source": "message"
+      },
+      "name": "reject an open record in an array",
+      "result": {
+        "error": {
+          "code": "context_validation_failed",
+          "message": "Change this assignment batch so the complete context matches $.context.",
+          "path": "$.states.main.on.message.video[0].assign"
+        },
+        "intents": [],
+        "kind": "error",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {
+            "active": true,
+            "copied": "old",
+            "count": 4,
+            "label": "new",
+            "pageSize": 20,
+            "products": [
+              {
+                "enabled": true,
+                "id": "first"
+              },
+              {
+                "id": "second"
+              }
+            ],
+            "remaining": 2
+          },
+          "history": {},
+          "position": "main",
+          "seq": 0,
+          "viewSlots": {}
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.assignment.sourceType",
+        "runtime.assignment.destinationType"
+      ],
+      "input": {
+        "name": "voice",
+        "origin": "telegram",
+        "payload": {
+          "label": "wrong"
+        },
+        "source": "message"
+      },
+      "name": "reject an incompatible event value",
+      "result": {
+        "error": {
+          "code": "context_validation_failed",
+          "message": "Change this assignment batch so the complete context matches $.context.",
+          "path": "$.states.main.on.message.voice[0].assign"
+        },
+        "intents": [],
+        "kind": "error",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {
+            "active": true,
+            "copied": "old",
+            "count": 4,
+            "label": "new",
+            "pageSize": 20,
+            "products": [
+              {
+                "enabled": true,
+                "id": "first"
+              },
+              {
+                "id": "second"
+              }
+            ],
+            "remaining": 2
+          },
+          "history": {},
+          "position": "main",
+          "seq": 0,
+          "viewSlots": {}
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.assignment.optionality"
+      ],
+      "input": {
+        "name": "animation",
+        "origin": "telegram",
+        "payload": {},
+        "source": "message"
+      },
+      "name": "reject unset on a required field",
+      "result": {
+        "error": {
+          "code": "invalid_assignment",
+          "message": "Make the label context field optional before you unset it.",
+          "path": "$.states.main.on.message.animation[0].assign.label"
+        },
+        "intents": [],
+        "kind": "error",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {
+            "active": true,
+            "copied": "old",
+            "count": 4,
+            "label": "new",
+            "pageSize": 20,
+            "products": [
+              {
+                "enabled": true,
+                "id": "first"
+              },
+              {
+                "id": "second"
+              }
+            ],
+            "remaining": 2
+          },
+          "history": {},
+          "position": "main",
+          "seq": 0,
+          "viewSlots": {}
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.assignment.source"
+      ],
+      "input": {
+        "name": "audio",
+        "origin": "telegram",
+        "payload": {},
+        "source": "message"
+      },
+      "name": "reject a missing event value",
+      "result": {
+        "error": {
+          "code": "missing_assignment_source",
+          "message": "Provide the missing value before this assignment runs.",
+          "path": "$.states.main.on.message.audio[0].assign.label"
+        },
+        "intents": [],
+        "kind": "error",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {
+            "active": true,
+            "copied": "old",
+            "count": 4,
+            "label": "new",
+            "pageSize": 20,
+            "products": [
+              {
+                "enabled": true,
+                "id": "first"
+              },
+              {
+                "id": "second"
+              }
+            ],
+            "remaining": 2
+          },
+          "history": {},
+          "position": "main",
+          "seq": 0,
+          "viewSlots": {}
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.context.validation"
+      ],
+      "input": {
+        "name": "document",
+        "origin": "telegram",
+        "payload": {},
+        "source": "message"
+      },
+      "name": "reject a complete context validation failure",
+      "result": {
+        "error": {
+          "code": "context_validation_failed",
+          "message": "Change this assignment batch so the complete context matches $.context.",
+          "path": "$.states.main.on.message.document[0].assign"
+        },
+        "intents": [],
+        "kind": "error",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {
+            "active": true,
+            "copied": "old",
+            "count": 4,
+            "label": "new",
+            "pageSize": 20,
+            "products": [
+              {
+                "enabled": true,
+                "id": "first"
+              },
+              {
+                "id": "second"
+              }
+            ],
+            "remaining": 2
+          },
+          "history": {},
+          "position": "main",
+          "seq": 0,
+          "viewSlots": {}
+        }
+      }
+    }
+  ],
+  "transcriptVersion": 1
+}
