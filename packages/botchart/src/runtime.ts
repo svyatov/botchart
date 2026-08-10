@@ -7,6 +7,7 @@ import type {
   StateId,
   StateNode,
   Transition,
+  Value,
   View,
 } from "./spec.generated.js";
 import type { JsonObject, JsonValue } from "./spec.js";
@@ -216,7 +217,7 @@ export function createSession<Context extends JsonObject = JsonObject>(
   options: CreateSessionOptions,
 ): Session<Context> {
   return {
-    position: options.spec.initial,
+    position: initialStateId(options.spec.states, options.spec.initial),
     context: JSON.parse(JSON.stringify(options.spec.context.default)) as Context,
     history: {},
     callStack: [],
@@ -226,6 +227,18 @@ export function createSession<Context extends JsonObject = JsonObject>(
       : { main: { target: options.target, revision: 0 } },
     callbacks: {},
   };
+}
+
+function initialStateId(
+  states: Readonly<Record<string, StateNode>>,
+  initial: string,
+  prefix = "",
+): StateId {
+  const stateId = (prefix === "" ? initial : `${prefix}.${initial}`) as StateId;
+  const state = states[initial];
+  return state?.kind === "compound"
+    ? initialStateId(state.states, state.initial, stateId)
+    : stateId;
 }
 
 export function step<Context extends JsonObject = JsonObject>(
@@ -283,7 +296,7 @@ function runStep<Context extends JsonObject>(
     return { kind: "ok", session: nextSession, intents: [] };
   }
 
-  const targetState = stateAt(request.spec, transition.target);
+  const targetState = activeStateAt(request.spec, nextSession, transition.target);
   if (targetState === undefined) {
     return {
       kind: "error",
@@ -302,15 +315,298 @@ function runStep<Context extends JsonObject>(
     return result.kind === "error" ? { ...result, session: request.session } : result;
   }
 
-  return {
+  if (targetState.kind === "return") {
+    const returned = completeUnitReturn(
+      { ...nextSession, position: transition.target, seq: nextSession.seq + 1 },
+      targetState,
+      request,
+      options,
+    );
+    return returned.kind === "error"
+      ? { kind: "error", session: request.session, intents: [], error: returned.error }
+      : returned.value;
+  }
+
+  const history = recordExitedHistory(
+    request.spec,
+    nextSession,
+    transition.target,
+  );
+  const target = transition.target;
+
+  const entered = {
     kind: "ok",
     session: {
       ...nextSession,
-      position: transition.target,
+      history,
+      position: target,
       seq: nextSession.seq + 1,
     },
     intents: [],
+  } as const;
+  const settled = settleStateEntry(entered.session, target, 0, request, options);
+  return settled.kind === "error"
+    ? { kind: "error", session: request.session, intents: [], error: settled.error }
+    : settled.value;
+}
+
+function settleStateEntry<Context extends JsonObject>(
+  session: Session<Context>,
+  stateId: StateId,
+  entryIndex: number,
+  request: CoreRunnerRequest<Context>,
+  options: CreateRunnerOptions<Context>,
+): Evaluation<CoreResult<Context>> {
+  const state = activeStateAt(request.spec, session, stateId);
+  if (state?.kind === "return") {
+    return completeUnitReturn(session, state, request, options);
+  }
+  const entry = state !== undefined && state.kind !== "final" ? state.entry : undefined;
+  const node = entry?.[entryIndex];
+  if (node === undefined && state?.kind === "compound") {
+    const stored = session.history[stateId];
+    const child = stored === undefined
+      ? `${stateId}.${state.initial}` as StateId
+      : stored;
+    const descended = { ...session, position: child };
+    return settleStateEntry(descended, child, 0, request, options);
+  }
+  if (node?.kind !== "call") {
+    return { kind: "ok", value: { kind: "ok", session, intents: [] } };
+  }
+  const called = enterCall(session, stateId, entryIndex, request);
+  return called.kind === "error"
+    ? called
+    : settleStateEntry(called.value, called.value.position, 0, request, options);
+}
+
+function completeUnitReturn<Context extends JsonObject>(
+  session: Session<Context>,
+  state: Extract<StateNode, { readonly kind: "return" }>,
+  request: CoreRunnerRequest<Context>,
+  options: CreateRunnerOptions<Context>,
+): Evaluation<CoreResult<Context>> {
+  const frame = session.callStack.at(-1);
+  if (frame === undefined) {
+    return evaluationError(
+      "return_without_call",
+      activeStatePath(request.spec, session, session.position),
+      "Enter this return state through a unit call.",
+    );
+  }
+
+  const output: Record<string, JsonValue> = {};
+  for (const [name, value] of Object.entries(state.output)) {
+    const resolved = resolveValue(
+      value,
+      `${activeStatePath(request.spec, session, session.position)}.output.${name}`,
+      { ...request, session },
+    );
+    if (resolved.kind === "error") return resolved;
+    output[name] = resolved.value;
+  }
+
+  const resumed: Session<Context> = {
+    ...session,
+    position: frame.caller.stateId,
+    callStack: session.callStack.slice(0, -1),
   };
+  const caller = activeStateAt(request.spec, resumed, frame.caller.stateId);
+  const entry = caller !== undefined && caller.kind !== "final" && caller.kind !== "return"
+    ? caller.entry
+    : undefined;
+  const call = entry?.[frame.caller.entryIndex];
+  if (call?.kind !== "call") {
+    return evaluationError(
+      "invalid_call_frame",
+      "$.session.callStack",
+      "Restore a call frame that points to its caller entry.",
+    );
+  }
+
+  const feedbackRequest = {
+    ...request,
+    session: resumed,
+    input: { ...request.input, payload: output },
+  };
+  const mapped = applyAssignments(
+    call.onReturn.assign,
+    `${activeStatePath(request.spec, resumed, frame.caller.stateId)}.entry[${frame.caller.entryIndex}].onReturn.assign`,
+    feedbackRequest,
+    options,
+  );
+  if (mapped.kind === "error") return mapped;
+  const mappedSession = { ...resumed, context: mapped.value };
+  const mappedRequest = { ...feedbackRequest, session: mappedSession };
+  const selected = selectTransition(
+    call.onReturn.do,
+    `${activeStatePath(request.spec, resumed, frame.caller.stateId)}.entry[${frame.caller.entryIndex}].onReturn.do`,
+    mappedRequest,
+    options,
+  );
+  if (selected.kind === "error") return selected;
+  const transition = selected.value?.transition;
+  const assigned = transition?.assign === undefined
+    ? { kind: "ok", value: mappedSession.context } as const
+    : applyAssignments(
+        transition.assign,
+        `${selected.value!.path}.assign`,
+        { ...mappedRequest, input: selected.value!.input },
+        options,
+      );
+  if (assigned.kind === "error") return assigned;
+  const assignedSession = { ...mappedSession, context: assigned.value };
+  if (transition?.target === undefined) {
+    return settleStateEntry(
+      assignedSession,
+      frame.caller.stateId,
+      frame.caller.entryIndex + 1,
+      request,
+      options,
+    );
+  }
+
+  const targetState = activeStateAt(request.spec, assignedSession, transition.target);
+  if (targetState === undefined) {
+    return evaluationError(
+      "invalid_transition_target",
+      selected.value!.path,
+      `Declare the ${transition.target} state before you target it.`,
+    );
+  }
+  if (targetState.kind === "final") {
+    return { kind: "ok", value: enterFinalState(assignedSession, targetState) };
+  }
+  if (targetState.kind === "return") {
+    return completeUnitReturn(
+      { ...assignedSession, position: transition.target, seq: assignedSession.seq + 1 },
+      targetState,
+      request,
+      options,
+    );
+  }
+  const history = recordExitedHistory(request.spec, assignedSession, transition.target);
+  const entered: Session<Context> = {
+    ...assignedSession,
+    history,
+    position: transition.target,
+    seq: assignedSession.seq + 1,
+  };
+  return settleStateEntry(entered, transition.target, 0, request, options);
+}
+
+function enterCall<Context extends JsonObject>(
+  session: Session<Context>,
+  stateId: StateId,
+  entryIndex: number,
+  request: CoreRunnerRequest<Context>,
+): Evaluation<Session<Context>> {
+  const state = activeStateAt(request.spec, session, stateId);
+  const entry = state !== undefined && state.kind !== "final" && state.kind !== "return"
+    ? state.entry
+    : undefined;
+  const call = entry?.[entryIndex];
+  if (call?.kind !== "call") return { kind: "ok", value: session };
+
+  if (session.callStack.some((frame) => frame.unit === call.unit)) {
+    return evaluationError(
+      "recursive_unit_call",
+      `${activeStatePath(request.spec, session, stateId)}.entry[${entryIndex}].unit`,
+      `Remove the call cycle that re-enters the ${call.unit} unit.`,
+    );
+  }
+  const unit = request.spec.units[call.unit];
+  if (unit === undefined) {
+    return evaluationError(
+      "unknown_unit",
+      `${activeStatePath(request.spec, session, stateId)}.entry[${entryIndex}].unit`,
+      `Declare the ${call.unit} unit before you call it.`,
+    );
+  }
+
+  const input: Record<string, JsonValue> = {};
+  for (const [name, value] of Object.entries(call.input)) {
+    const resolved = resolveValue(
+      value,
+      `${activeStatePath(request.spec, session, stateId)}.entry[${entryIndex}].input.${name}`,
+      { ...request, session },
+    );
+    if (resolved.kind === "error") return resolved;
+    input[name] = resolved.value;
+  }
+
+  const called: Session<Context> = {
+    ...session,
+    position: initialStateId(unit.states, unit.initial),
+    callStack: [...session.callStack, {
+      unit: call.unit,
+      input: cloneData(input),
+      caller: { stateId, entryIndex },
+    }],
+    seq: session.seq + 1,
+  };
+  return { kind: "ok", value: called };
+}
+
+function resolveValue<Context extends JsonObject>(
+  value: Value,
+  path: string,
+  request: CoreRunnerRequest<Context>,
+): Evaluation<JsonValue> {
+  if (typeof value !== "object" || Array.isArray(value)) {
+    return { kind: "ok", value: cloneData(value) as JsonValue };
+  }
+  if ("context" in value) {
+    return sourceValue(request.session.context[value.context], path, value.context);
+  }
+  if ("parameter" in value) {
+    return sourceValue(request.spec.parameters[value.parameter]?.default, path, value.parameter);
+  }
+  if ("input" in value) {
+    const input = request.session.callStack.at(-1)?.input;
+    return sourceValue(input?.[value.input], path, value.input);
+  }
+  return evaluationError(
+    "invalid_value_reference",
+    path,
+    "Use item only while you render a projection.",
+  );
+}
+
+function recordExitedHistory<Context extends JsonObject>(
+  spec: BotchartSpec,
+  session: Session<Context>,
+  target: StateId,
+): Readonly<Record<StateId, StateId>> {
+  const source = session.position;
+  const current = session.history;
+  const sourceSegments = source.split(".");
+  const targetSegments = target.split(".");
+  let retained = 0;
+  while (
+    retained < sourceSegments.length
+    && retained < targetSegments.length
+    && sourceSegments[retained] === targetSegments[retained]
+  ) retained += 1;
+
+  if (
+    retained === targetSegments.length
+    && retained < sourceSegments.length
+    && activeStateAt(spec, session, target)?.kind === "compound"
+  ) retained -= 1;
+
+  let history = current;
+  for (let length = 1; length < sourceSegments.length; length += 1) {
+    if (length <= retained) continue;
+    const stateId = sourceSegments.slice(0, length).join(".") as StateId;
+    const state = activeStateAt(spec, session, stateId);
+    if (state?.kind !== "compound" || state.history === undefined) continue;
+    if (history === current) history = { ...current };
+    (history as Record<StateId, StateId>)[stateId] = state.history === "deep"
+      ? source
+      : sourceSegments.slice(0, length + 1).join(".") as StateId;
+  }
+  return history;
 }
 
 function selectEventTransition<Context extends JsonObject>(
@@ -390,7 +686,7 @@ function selectSourceTransitionInHierarchy<Context extends JsonObject>(
   request: CoreRunnerRequest<Context>,
   options: CreateRunnerOptions<Context>,
 ): Evaluation<SelectedTransition | undefined> {
-  for (const scope of handlerScopes(request.spec, request.session.position)) {
+  for (const scope of handlerScopes(request.spec, request.session)) {
     const selection = selectOwnerTransition(
       scope.owner,
       scope.path,
@@ -585,6 +881,9 @@ function applyAssignments<Context extends JsonObject>(
   request: CoreRunnerRequest<Context>,
   options: CreateRunnerOptions<Context>,
 ): Evaluation<Context> {
+  if (Object.keys(assignments).length === 0) {
+    return { kind: "ok", value: request.session.context };
+  }
   const context: Record<string, JsonValue> = { ...request.session.context };
 
   for (const [destination, assignment] of Object.entries(assignments)) {
@@ -791,7 +1090,14 @@ function enterFinalState<Context extends JsonObject>(
 }
 
 function stateAt(spec: BotchartSpec, stateId: StateId): StateNode | undefined {
-  let states = spec.states;
+  return stateAtMap(spec.states, stateId);
+}
+
+function stateAtMap(
+  root: Readonly<Record<string, StateNode>>,
+  stateId: StateId,
+): StateNode | undefined {
+  let states = root;
   let state: StateNode | undefined;
   const segments = stateId.split(".");
 
@@ -807,20 +1113,43 @@ function stateAt(spec: BotchartSpec, stateId: StateId): StateNode | undefined {
   return state;
 }
 
+function activeStateAt<Context extends JsonObject>(
+  spec: BotchartSpec,
+  session: Session<Context>,
+  stateId: StateId,
+): StateNode | undefined {
+  const unit = session.callStack.at(-1)?.unit;
+  return unit === undefined
+    ? stateAt(spec, stateId)
+    : stateAtMap(spec.units[unit]?.states ?? {}, stateId);
+}
+
+function activeStatePath<Context extends JsonObject>(
+  spec: BotchartSpec,
+  session: Session<Context>,
+  stateId: StateId,
+): string {
+  const unit = session.callStack.at(-1)?.unit;
+  const base = unit === undefined ? "$.states" : `$.units.${unit}.states`;
+  return `${base}.${stateId.split(".").join(".states.")}`;
+}
+
 type HandlerOwner = StateNode | BotchartSpec;
 
 function handlerScopes(
   spec: BotchartSpec,
-  position: StateId,
+  session: Session,
 ): readonly { readonly owner: HandlerOwner; readonly path: string }[] {
   const scopes: { owner: HandlerOwner; path: string }[] = [];
-  const segments = position.split(".");
+  const segments = session.position.split(".");
   for (let length = segments.length; length > 0; length -= 1) {
     const stateId = segments.slice(0, length).join(".");
-    const state = stateAt(spec, stateId);
-    if (state !== undefined) scopes.push({ owner: state, path: statePath(stateId) });
+    const state = activeStateAt(spec, session, stateId);
+    if (state !== undefined) {
+      scopes.push({ owner: state, path: activeStatePath(spec, session, stateId) });
+    }
   }
-  scopes.push({ owner: spec, path: "$" });
+  if (session.callStack.length === 0) scopes.push({ owner: spec, path: "$" });
   return scopes;
 }
 
@@ -939,7 +1268,7 @@ function selectRawTransitionInHierarchy<Context extends JsonObject>(
   request: CoreRunnerRequest<Context>,
   options: CreateRunnerOptions<Context>,
 ): Evaluation<SelectedTransition | undefined> {
-  for (const scope of handlerScopes(request.spec, request.session.position)) {
+  for (const scope of handlerScopes(request.spec, request.session)) {
     const selection = selectRawTransition(
       scope.owner,
       scope.path,

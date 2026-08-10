@@ -1,0 +1,335 @@
+{
+  "$schema": "https://svyatov.github.io/botchart/conformance/0.1.0/transcript.schema.json",
+  "initial": {
+    "now": "2026-08-10T14:00:00Z",
+    "session": {
+      "callStack": [],
+      "callbacks": {},
+      "context": {
+        "query": "Ada",
+        "result": ""
+      },
+      "history": {},
+      "position": "shallow.first",
+      "seq": 0,
+      "viewSlots": {}
+    }
+  },
+  "name": "compound history and callable units",
+  "schemaRevision": "0.1.0",
+  "spec": {
+    "path": "../specs/compound-history-and-units.json",
+    "sha256": "3e6bbe8c77fc71d8860fdb87b04435a3f9d29c89728be9564941422e39627c67"
+  },
+  "steps": [
+    {
+      "covers": [
+        "runtime.state.compoundInitial"
+      ],
+      "input": {
+        "name": "photo",
+        "origin": "telegram",
+        "payload": {},
+        "source": "message"
+      },
+      "name": "start from the compound initial leaf",
+      "result": {
+        "intents": [],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {
+            "query": "Ada",
+            "result": ""
+          },
+          "history": {},
+          "position": "shallow.second.detail",
+          "seq": 1,
+          "viewSlots": {}
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.state.historyStore"
+      ],
+      "input": {
+        "name": "document",
+        "origin": "telegram",
+        "payload": {},
+        "source": "message"
+      },
+      "name": "leave the shallow compound",
+      "result": {
+        "intents": [],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {
+            "query": "Ada",
+            "result": ""
+          },
+          "history": {
+            "shallow": "shallow.second"
+          },
+          "position": "deep.branch.first",
+          "seq": 2,
+          "viewSlots": {}
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.state.deepLeaf"
+      ],
+      "input": {
+        "name": "video",
+        "origin": "telegram",
+        "payload": {},
+        "source": "message"
+      },
+      "name": "select a deep leaf",
+      "result": {
+        "intents": [],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {
+            "query": "Ada",
+            "result": ""
+          },
+          "history": {
+            "shallow": "shallow.second"
+          },
+          "position": "deep.branch.detail",
+          "seq": 3,
+          "viewSlots": {}
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.state.deepHistoryStore"
+      ],
+      "input": {
+        "name": "voice",
+        "origin": "telegram",
+        "payload": {},
+        "source": "message"
+      },
+      "name": "leave the deep compound",
+      "result": {
+        "intents": [],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {
+            "query": "Ada",
+            "result": ""
+          },
+          "history": {
+            "deep": "deep.branch.detail",
+            "shallow": "shallow.second"
+          },
+          "position": "outside",
+          "seq": 4,
+          "viewSlots": {}
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.state.historyShallow"
+      ],
+      "input": {
+        "name": "animation",
+        "origin": "telegram",
+        "payload": {},
+        "source": "message"
+      },
+      "name": "restore shallow history",
+      "result": {
+        "intents": [],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {
+            "query": "Ada",
+            "result": ""
+          },
+          "history": {
+            "deep": "deep.branch.detail",
+            "shallow": "shallow.second"
+          },
+          "position": "shallow.second.list",
+          "seq": 5,
+          "viewSlots": {}
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.state.historyDeep"
+      ],
+      "input": {
+        "name": "audio",
+        "origin": "telegram",
+        "payload": {},
+        "source": "message"
+      },
+      "name": "restore deep history",
+      "result": {
+        "intents": [],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {
+            "query": "Ada",
+            "result": ""
+          },
+          "history": {
+            "deep": "deep.branch.detail",
+            "shallow": "shallow.second"
+          },
+          "position": "deep.branch.detail",
+          "seq": 6,
+          "viewSlots": {}
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.unit.call",
+        "runtime.unit.callStack"
+      ],
+      "input": {
+        "name": "contact",
+        "origin": "telegram",
+        "payload": {},
+        "source": "message"
+      },
+      "name": "enter nested callable units",
+      "result": {
+        "intents": [],
+        "kind": "ok",
+        "session": {
+          "callStack": [
+            {
+              "caller": {
+                "entryIndex": 0,
+                "stateId": "caller"
+              },
+              "input": {
+                "query": "Ada"
+              },
+              "unit": "outer"
+            },
+            {
+              "caller": {
+                "entryIndex": 0,
+                "stateId": "working"
+              },
+              "input": {
+                "query": "Ada"
+              },
+              "unit": "inner"
+            }
+          ],
+          "callbacks": {},
+          "context": {
+            "query": "Ada",
+            "result": ""
+          },
+          "history": {
+            "deep": "deep.branch.detail",
+            "shallow": "shallow.second"
+          },
+          "position": "waiting",
+          "seq": 9,
+          "viewSlots": {}
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.unit.inputImmutable",
+        "runtime.unit.returnOrdering"
+      ],
+      "input": {
+        "name": "sticker",
+        "origin": "telegram",
+        "payload": {},
+        "source": "message"
+      },
+      "name": "return immutable inner input",
+      "result": {
+        "intents": [],
+        "kind": "ok",
+        "session": {
+          "callStack": [
+            {
+              "caller": {
+                "entryIndex": 0,
+                "stateId": "caller"
+              },
+              "input": {
+                "query": "Ada"
+              },
+              "unit": "outer"
+            }
+          ],
+          "callbacks": {},
+          "context": {
+            "query": "Grace",
+            "result": "Ada"
+          },
+          "history": {
+            "deep": "deep.branch.detail",
+            "shallow": "shallow.second"
+          },
+          "position": "working",
+          "seq": 10,
+          "viewSlots": {}
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.unit.return"
+      ],
+      "input": {
+        "name": "poll",
+        "origin": "telegram",
+        "payload": {},
+        "source": "message"
+      },
+      "name": "return to the root caller",
+      "result": {
+        "intents": [],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {
+            "query": "Grace",
+            "result": "Ada"
+          },
+          "history": {
+            "deep": "deep.branch.detail",
+            "shallow": "shallow.second"
+          },
+          "position": "success",
+          "seq": 12,
+          "viewSlots": {}
+        }
+      }
+    }
+  ],
+  "transcriptVersion": 1
+}

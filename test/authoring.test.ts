@@ -266,3 +266,40 @@ test("define reports a context schema export failure", () => {
     "The context schema cannot be exported to JSON Schema: Date cannot be represented in JSON Schema. Use a schema that supports draft 2020-12 output.",
   );
 });
+
+test("define rejects direct and indirect unit call recursion", () => {
+  const S = ids("main");
+  const { call, define, state } = createBot({
+    ids: S,
+    context,
+    effects: {},
+    guards: {},
+    parameters: {},
+    presses: {},
+    units: {
+      outer: { input: {}, output: {} },
+      inner: { input: {}, output: {} },
+    },
+  });
+  const callUnit = (unit: "outer" | "inner") => call({
+    unit,
+    onReturn: { do: {} },
+  });
+
+  expect(() => define({
+    initial: S.main,
+    states: { main: state({}) },
+    units: {
+      outer: {
+        initial: "working",
+        states: { working: state({ entry: callUnit("inner") }) },
+      },
+      inner: {
+        initial: "waiting",
+        states: { waiting: state({ entry: callUnit("outer") }) },
+      },
+    },
+  })).toThrow(
+    "The unit call cycle outer -> inner -> outer is invalid. Remove one call from this cycle.",
+  );
+});

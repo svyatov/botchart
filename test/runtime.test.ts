@@ -49,6 +49,28 @@ test("session creation enters the initial state with default context", () => {
   });
 });
 
+test("session creation follows compound initial states to an atomic leaf", () => {
+  const spec = {
+    initial: "menu",
+    context: { default: {} },
+    states: {
+      menu: {
+        kind: "compound",
+        initial: "catalog",
+        states: {
+          catalog: {
+            kind: "compound",
+            initial: "list",
+            states: { list: { kind: "state", render: "keep" } },
+          },
+        },
+      },
+    },
+  } as unknown as BotchartSpec;
+
+  expect(createSession({ spec }).position).toBe("menu.catalog.list");
+});
+
 test("session creation records an initial message target", () => {
   expect(createSession({
     spec: minimalSpec,
@@ -84,6 +106,571 @@ test("an external transition changes state and bumps the sequence", () => {
   })).toEqual({
     kind: "ok",
     session: { ...current, position: "left.child", seq: 1 },
+    intents: [],
+  });
+});
+
+test("an external transition follows a compound target to its initial leaf", () => {
+  const spec = {
+    initial: "start",
+    context: { default: {} },
+    parameters: {},
+    states: {
+      start: {
+        kind: "state",
+        render: "keep",
+        on: { message: { photo: [{ target: "menu" }] } },
+      },
+      menu: {
+        kind: "compound",
+        initial: "list",
+        states: { list: { kind: "state", render: "keep" } },
+      },
+    },
+  } as unknown as BotchartSpec;
+  const current = createSession({ spec });
+
+  expect(step({
+    spec,
+    session: current,
+    input: { origin: "telegram", source: "message", name: "photo", payload: {} },
+    now: "2026-08-10T14:00:00Z",
+  })).toEqual({
+    kind: "ok",
+    session: { ...current, position: "menu.list", seq: 1 },
+    intents: [],
+  });
+});
+
+test("shallow history restores the last active child", () => {
+  const spec = {
+    initial: "menu",
+    context: { default: {} },
+    parameters: {},
+    on: {
+      message: {
+        photo: [{ target: "menu.second" }],
+        document: [{ target: "outside" }],
+        video: [{ target: "menu" }],
+      },
+    },
+    states: {
+      menu: {
+        kind: "compound",
+        initial: "first",
+        history: "shallow",
+        states: {
+          first: { kind: "state", render: "keep" },
+          second: { kind: "state", render: "keep" },
+        },
+      },
+      outside: { kind: "state", render: "keep" },
+    },
+  } as unknown as BotchartSpec;
+  const input = (name: string) => ({
+    origin: "telegram" as const,
+    source: "message",
+    name,
+    payload: {},
+  });
+  const first = step({
+    spec,
+    session: createSession({ spec }),
+    input: input("photo"),
+    now: "2026-08-10T14:00:00Z",
+  });
+  if (first.kind !== "ok" || first.session === null) throw new Error("Expected a session.");
+  const outside = step({
+    spec,
+    session: first.session,
+    input: input("document"),
+    now: "2026-08-10T14:00:01Z",
+  });
+  if (outside.kind !== "ok" || outside.session === null) throw new Error("Expected a session.");
+
+  expect(outside.session.history).toEqual({ menu: "menu.second" });
+  expect(step({
+    spec,
+    session: outside.session,
+    input: input("video"),
+    now: "2026-08-10T14:00:02Z",
+  })).toEqual({
+    kind: "ok",
+    session: { ...outside.session, position: "menu.second", seq: 3 },
+    intents: [],
+  });
+});
+
+test("deep history restores the last active leaf", () => {
+  const spec = {
+    initial: "menu",
+    context: { default: {} },
+    parameters: {},
+    on: {
+      message: {
+        photo: [{ target: "menu.catalog.detail" }],
+        document: [{ target: "outside" }],
+        video: [{ target: "menu" }],
+      },
+    },
+    states: {
+      menu: {
+        kind: "compound",
+        initial: "catalog",
+        history: "deep",
+        states: {
+          catalog: {
+            kind: "compound",
+            initial: "list",
+            states: {
+              list: { kind: "state", render: "keep" },
+              detail: { kind: "state", render: "keep" },
+            },
+          },
+        },
+      },
+      outside: { kind: "state", render: "keep" },
+    },
+  } as unknown as BotchartSpec;
+  const run = (session: ReturnType<typeof createSession>, name: string) => step({
+    spec,
+    session,
+    input: { origin: "telegram", source: "message", name, payload: {} },
+    now: "2026-08-10T14:00:00Z",
+  });
+  const detail = run(createSession({ spec }), "photo");
+  if (detail.kind !== "ok" || detail.session === null) throw new Error("Expected a session.");
+  const outside = run(detail.session, "document");
+  if (outside.kind !== "ok" || outside.session === null) throw new Error("Expected a session.");
+
+  expect(outside.session.history).toEqual({ menu: "menu.catalog.detail" });
+  expect(run(outside.session, "video")).toEqual({
+    kind: "ok",
+    session: { ...outside.session, position: "menu.catalog.detail", seq: 3 },
+    intents: [],
+  });
+});
+
+test("a unit call stores immutable input and suspends its caller", () => {
+  const spec = {
+    initial: "start",
+    context: {
+      default: { query: "Ada" },
+      properties: { query: { type: "string" } },
+      required: ["query"],
+    },
+    parameters: {},
+    units: {
+      lookup: {
+        input: { query: { type: "string" } },
+        output: { result: { type: "string" } },
+        initial: "waiting",
+        states: { waiting: { kind: "state", render: "keep" } },
+      },
+    },
+    states: {
+      start: {
+        kind: "state",
+        render: "keep",
+        on: { message: { photo: [{ target: "caller" }] } },
+      },
+      caller: {
+        kind: "state",
+        render: "keep",
+        entry: [{
+          kind: "call",
+          unit: "lookup",
+          input: { query: { context: "query" } },
+          onReturn: { assign: { query: { from: "result" } }, do: [{}] },
+        }],
+      },
+    },
+  } as unknown as BotchartSpec;
+  const current = createSession({ spec });
+
+  expect(step({
+    spec,
+    session: current,
+    input: { origin: "telegram", source: "message", name: "photo", payload: {} },
+    now: "2026-08-10T14:00:00Z",
+  })).toEqual({
+    kind: "ok",
+    session: {
+      ...current,
+      position: "waiting",
+      callStack: [{
+        unit: "lookup",
+        input: { query: "Ada" },
+        caller: { stateId: "caller", entryIndex: 0 },
+      }],
+      seq: 2,
+    },
+    intents: [],
+  });
+});
+
+test("a unit return maps every output before it selects onReturn", () => {
+  const spec = {
+    initial: "start",
+    context: {
+      default: { query: "Ada", result: "" },
+      properties: { query: { type: "string" }, result: { type: "string" } },
+      required: ["query", "result"],
+    },
+    parameters: {},
+    units: {
+      lookup: {
+        input: { query: { type: "string" } },
+        output: { result: { type: "string" } },
+        initial: "waiting",
+        states: {
+          waiting: {
+            kind: "state",
+            render: "keep",
+            on: {
+              message: {
+                document: [{ assign: { query: "Grace" }, target: "done" }],
+              },
+            },
+          },
+          done: { kind: "return", output: { result: { input: "query" } } },
+        },
+      },
+    },
+    states: {
+      start: {
+        kind: "state",
+        render: "keep",
+        on: { message: { photo: [{ target: "caller" }] } },
+      },
+      caller: {
+        kind: "state",
+        render: "keep",
+        entry: [{
+          kind: "call",
+          unit: "lookup",
+          input: { query: { context: "query" } },
+          onReturn: {
+            assign: { result: { from: "result" } },
+            do: [
+              {
+                when: { compare: { left: { context: "result" }, op: "eq", right: "Ada" } },
+                target: "success",
+              },
+              { target: "failure" },
+            ],
+          },
+        }],
+      },
+      success: { kind: "state", render: "keep" },
+      failure: { kind: "state", render: "keep" },
+    },
+  } as unknown as BotchartSpec;
+  const runner = createRunner({ validateContext: () => true });
+  const called = runner({
+    spec,
+    session: createSession({ spec }),
+    input: { origin: "telegram", source: "message", name: "photo", payload: {} },
+    now: "2026-08-10T14:00:00Z",
+  });
+  if (called.kind !== "ok" || called.session === null) throw new Error("Expected a session.");
+
+  expect(runner({
+    spec,
+    session: called.session,
+    input: { origin: "telegram", source: "message", name: "document", payload: {} },
+    now: "2026-08-10T14:00:01Z",
+  })).toEqual({
+    kind: "ok",
+    session: {
+      ...called.session,
+      position: "success",
+      context: { query: "Grace", result: "Ada" },
+      callStack: [],
+      seq: 4,
+    },
+    intents: [],
+  });
+});
+
+test("nested unit calls share one call stack", () => {
+  const unit = (states: Record<string, unknown>) => ({
+    input: { value: { type: "string" } },
+    output: { value: { type: "string" } },
+    initial: "working",
+    states,
+  });
+  const spec = {
+    initial: "start",
+    context: {
+      default: { value: "Ada" },
+      properties: { value: { type: "string" } },
+      required: ["value"],
+    },
+    parameters: {},
+    units: {
+      outer: unit({
+        working: {
+          kind: "state",
+          render: "keep",
+          entry: [{
+            kind: "call",
+            unit: "inner",
+            input: { value: { input: "value" } },
+            onReturn: { assign: { value: { from: "value" } }, do: [{}] },
+          }],
+        },
+      }),
+      inner: {
+        ...unit({ waiting: { kind: "state", render: "keep" } }),
+        initial: "waiting",
+      },
+    },
+    states: {
+      start: {
+        kind: "state",
+        render: "keep",
+        on: { message: { photo: [{ target: "caller" }] } },
+      },
+      caller: {
+        kind: "state",
+        render: "keep",
+        entry: [{
+          kind: "call",
+          unit: "outer",
+          input: { value: { context: "value" } },
+          onReturn: { assign: { value: { from: "value" } }, do: [{}] },
+        }],
+      },
+    },
+  } as unknown as BotchartSpec;
+  const current = createSession({ spec });
+
+  expect(step({
+    spec,
+    session: current,
+    input: { origin: "telegram", source: "message", name: "photo", payload: {} },
+    now: "2026-08-10T14:00:00Z",
+  })).toEqual({
+    kind: "ok",
+    session: {
+      ...current,
+      position: "waiting",
+      callStack: [
+        {
+          unit: "outer",
+          input: { value: "Ada" },
+          caller: { stateId: "caller", entryIndex: 0 },
+        },
+        {
+          unit: "inner",
+          input: { value: "Ada" },
+          caller: { stateId: "working", entryIndex: 0 },
+        },
+      ],
+      seq: 3,
+    },
+    intents: [],
+  });
+});
+
+test("a recursive unit call fails atomically", () => {
+  const call = (unit: string) => ({
+    kind: "call",
+    unit,
+    input: {},
+    onReturn: { assign: {}, do: [{}] },
+  });
+  const spec = {
+    initial: "start",
+    context: { default: {} },
+    parameters: {},
+    units: {
+      outer: {
+        input: {},
+        output: {},
+        initial: "working",
+        states: { working: { kind: "state", render: "keep", entry: [call("inner")] } },
+      },
+      inner: {
+        input: {},
+        output: {},
+        initial: "waiting",
+        states: { waiting: { kind: "state", render: "keep", entry: [call("outer")] } },
+      },
+    },
+    states: {
+      start: {
+        kind: "state",
+        render: "keep",
+        on: { message: { photo: [{ target: "caller" }] } },
+      },
+      caller: { kind: "state", render: "keep", entry: [call("outer")] },
+    },
+  } as unknown as BotchartSpec;
+  const current = createSession({ spec });
+
+  expect(step({
+    spec,
+    session: current,
+    input: { origin: "telegram", source: "message", name: "photo", payload: {} },
+    now: "2026-08-10T14:00:00Z",
+  })).toEqual({
+    kind: "error",
+    session: current,
+    intents: [],
+    error: {
+      code: "recursive_unit_call",
+      path: "$.units.inner.states.waiting.entry[0].unit",
+      message: "Remove the call cycle that re-enters the outer unit.",
+    },
+  });
+});
+
+test("a non-moving unit return continues the caller entry pipeline", () => {
+  const spec = {
+    initial: "start",
+    context: {
+      default: { seed: "Ada", first: "" },
+      properties: { seed: { type: "string" }, first: { type: "string" } },
+      required: ["seed", "first"],
+    },
+    parameters: {},
+    units: {
+      first: {
+        input: { value: { type: "string" } },
+        output: { value: { type: "string" } },
+        initial: "done",
+        states: { done: { kind: "return", output: { value: { input: "value" } } } },
+      },
+      second: {
+        input: { value: { type: "string" } },
+        output: {},
+        initial: "waiting",
+        states: { waiting: { kind: "state", render: "keep" } },
+      },
+    },
+    states: {
+      start: {
+        kind: "state",
+        render: "keep",
+        on: { message: { photo: [{ target: "caller" }] } },
+      },
+      caller: {
+        kind: "state",
+        render: "keep",
+        entry: [
+          {
+            kind: "call",
+            unit: "first",
+            input: { value: { context: "seed" } },
+            onReturn: { assign: { first: { from: "value" } }, do: [{}] },
+          },
+          {
+            kind: "call",
+            unit: "second",
+            input: { value: { context: "first" } },
+            onReturn: { assign: {}, do: [{}] },
+          },
+        ],
+      },
+    },
+  } as unknown as BotchartSpec;
+  const current = createSession({ spec });
+  const runner = createRunner({ validateContext: () => true });
+
+  expect(runner({
+    spec,
+    session: current,
+    input: { origin: "telegram", source: "message", name: "photo", payload: {} },
+    now: "2026-08-10T14:00:00Z",
+  })).toEqual({
+    kind: "ok",
+    session: {
+      ...current,
+      position: "waiting",
+      context: { seed: "Ada", first: "Ada" },
+      callStack: [{
+        unit: "second",
+        input: { value: "Ada" },
+        caller: { stateId: "caller", entryIndex: 1 },
+      }],
+      seq: 3,
+    },
+    intents: [],
+  });
+});
+
+test("a compound entry runs before its initial child enters", () => {
+  const spec = {
+    initial: "start",
+    context: { default: {} },
+    parameters: {},
+    units: {
+      probe: {
+        input: {},
+        output: {},
+        initial: "waiting",
+        states: {
+          waiting: {
+            kind: "state",
+            render: "keep",
+            on: { message: { document: [{ target: "done" }] } },
+          },
+          done: { kind: "return", output: {} },
+        },
+      },
+    },
+    states: {
+      start: {
+        kind: "state",
+        render: "keep",
+        on: { message: { photo: [{ target: "menu" }] } },
+      },
+      menu: {
+        kind: "compound",
+        initial: "list",
+        entry: [{
+          kind: "call",
+          unit: "probe",
+          input: {},
+          onReturn: { assign: {}, do: [{}] },
+        }],
+        states: { list: { kind: "state", render: "keep" } },
+      },
+    },
+  } as unknown as BotchartSpec;
+  const current = createSession({ spec });
+  const called = step({
+    spec,
+    session: current,
+    input: { origin: "telegram", source: "message", name: "photo", payload: {} },
+    now: "2026-08-10T14:00:00Z",
+  });
+
+  expect(called).toEqual({
+    kind: "ok",
+    session: {
+      ...current,
+      position: "waiting",
+      callStack: [{
+        unit: "probe",
+        input: {},
+        caller: { stateId: "menu", entryIndex: 0 },
+      }],
+      seq: 2,
+    },
+    intents: [],
+  });
+  if (called.kind !== "ok" || called.session === null) throw new Error("Expected a session.");
+  expect(step({
+    spec,
+    session: called.session,
+    input: { origin: "telegram", source: "message", name: "document", payload: {} },
+    now: "2026-08-10T14:00:01Z",
+  })).toEqual({
+    kind: "ok",
+    session: { ...current, position: "menu.list", seq: 3 },
     intents: [],
   });
 });

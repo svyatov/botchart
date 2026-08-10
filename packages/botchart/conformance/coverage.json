@@ -40,11 +40,22 @@
     "runtime.guard.comparison",
     "runtime.session.final",
     "runtime.session.initial",
+    "runtime.state.compoundInitial",
+    "runtime.state.deepHistoryStore",
+    "runtime.state.deepLeaf",
     "runtime.state.entry",
     "runtime.state.exit",
+    "runtime.state.historyDeep",
+    "runtime.state.historyShallow",
+    "runtime.state.historyStore",
     "runtime.transition.external",
     "runtime.transition.nonMoving",
     "runtime.transition.selfExternal",
-    "runtime.transition.seq"
+    "runtime.transition.seq",
+    "runtime.unit.call",
+    "runtime.unit.callStack",
+    "runtime.unit.inputImmutable",
+    "runtime.unit.return",
+    "runtime.unit.returnOrdering"
   ]
 }

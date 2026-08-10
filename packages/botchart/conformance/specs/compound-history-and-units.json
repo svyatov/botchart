@@ -1,0 +1,168 @@
+{
+  "$schema": "https://svyatov.github.io/botchart/schema/0.1.0.json",
+  "version": 1,
+  "schemaRevision": "0.1.0",
+  "packs": [],
+  "scope": "chat+user",
+  "context": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+      "query": { "type": "string" },
+      "result": { "type": "string" }
+    },
+    "required": ["query", "result"],
+    "additionalProperties": false,
+    "default": { "query": "Ada", "result": "" }
+  },
+  "parameters": {},
+  "guards": {},
+  "effects": {},
+  "presses": {},
+  "units": {
+    "outer": {
+      "input": { "query": { "type": "string" } },
+      "output": { "result": { "type": "string" } },
+      "initial": "working",
+      "states": {
+        "working": {
+          "kind": "state",
+          "render": "keep",
+          "entry": [
+            {
+              "kind": "call",
+              "unit": "inner",
+              "input": { "query": { "input": "query" } },
+              "onReturn": {
+                "assign": { "result": { "from": "result" } },
+                "do": [
+                  {
+                    "when": {
+                      "compare": {
+                        "left": { "context": "result" },
+                        "op": "eq",
+                        "right": "Ada"
+                      }
+                    }
+                  },
+                  { "target": "failed" }
+                ]
+              }
+            }
+          ],
+          "on": {
+            "message": {
+              "poll": [{ "target": "done" }]
+            }
+          }
+        },
+        "failed": {
+          "kind": "return",
+          "output": { "result": "failed" }
+        },
+        "done": {
+          "kind": "return",
+          "output": { "result": { "input": "query" } }
+        }
+      }
+    },
+    "inner": {
+      "input": { "query": { "type": "string" } },
+      "output": { "result": { "type": "string" } },
+      "initial": "waiting",
+      "states": {
+        "waiting": {
+          "kind": "state",
+          "render": "keep",
+          "on": {
+            "message": {
+              "sticker": [
+                { "assign": { "query": "Grace" }, "target": "done" }
+              ]
+            }
+          }
+        },
+        "done": {
+          "kind": "return",
+          "output": { "result": { "input": "query" } }
+        }
+      }
+    }
+  },
+  "stalePress": { "action": "ignore" },
+  "initial": "shallow",
+  "on": {
+    "message": {
+      "photo": [{ "target": "shallow.second.detail" }],
+      "document": [{ "target": "deep.branch.first" }],
+      "video": [{ "target": "deep.branch.detail" }],
+      "voice": [{ "target": "outside" }],
+      "animation": [{ "target": "shallow" }],
+      "audio": [{ "target": "deep" }],
+      "contact": [{ "target": "caller" }]
+    }
+  },
+  "states": {
+    "shallow": {
+      "kind": "compound",
+      "initial": "first",
+      "history": "shallow",
+      "states": {
+        "first": { "kind": "state", "render": "keep" },
+        "second": {
+          "kind": "compound",
+          "initial": "list",
+          "states": {
+            "list": { "kind": "state", "render": "keep" },
+            "detail": { "kind": "state", "render": "keep" }
+          }
+        }
+      }
+    },
+    "deep": {
+      "kind": "compound",
+      "initial": "branch",
+      "history": "deep",
+      "states": {
+        "branch": {
+          "kind": "compound",
+          "initial": "first",
+          "states": {
+            "first": { "kind": "state", "render": "keep" },
+            "detail": { "kind": "state", "render": "keep" }
+          }
+        }
+      }
+    },
+    "outside": { "kind": "state", "render": "keep" },
+    "caller": {
+      "kind": "state",
+      "render": "keep",
+      "entry": [
+        {
+          "kind": "call",
+          "unit": "outer",
+          "input": { "query": { "context": "query" } },
+          "onReturn": {
+            "assign": { "result": { "from": "result" } },
+            "do": [
+              {
+                "when": {
+                  "compare": {
+                    "left": { "context": "result" },
+                    "op": "eq",
+                    "right": "Ada"
+                  }
+                },
+                "target": "success"
+              },
+              { "target": "failure" }
+            ]
+          }
+        }
+      ]
+    },
+    "success": { "kind": "state", "render": "keep" },
+    "failure": { "kind": "state", "render": "keep" }
+  }
+}
