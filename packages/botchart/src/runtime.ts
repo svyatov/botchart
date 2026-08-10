@@ -1153,6 +1153,15 @@ function escapeViewBinding(
   parseMode: View["parseMode"],
   context: "text" | "code" | "url",
 ): string {
+  if (parseMode === "MarkdownV2" && context === "text") {
+    return value.replace(/[\\_*\[\]()~`>#+\-=|{}.!]/g, "\\$&");
+  }
+  if (parseMode === "MarkdownV2" && context === "code") {
+    return value.replace(/[`\\]/g, "\\$&");
+  }
+  if (parseMode === "MarkdownV2" && context === "url") {
+    return value.replace(/[)\\]/g, "\\$&");
+  }
   if (parseMode !== "HTML") return value;
   const escaped = value
     .replaceAll("&", "&amp;")
