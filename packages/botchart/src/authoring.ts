@@ -871,6 +871,45 @@ function assertJson(value: unknown, path = "$", seen = new Set<object>()): asser
   seen.delete(value);
 }
 
+function unitCalls(states: Readonly<Record<string, StateNode>>): readonly string[] {
+  const calls: string[] = [];
+  for (const state of Object.values(states)) {
+    if (state.kind !== "final" && state.kind !== "return") {
+      for (const node of state.entry ?? []) {
+        if (node.kind === "call") calls.push(node.unit);
+      }
+    }
+    if (state.kind === "compound") calls.push(...unitCalls(state.states));
+  }
+  return calls;
+}
+
+function assertNoUnitCallCycles(
+  units: Readonly<Record<string, { readonly states: Readonly<Record<string, StateNode>> }>>,
+): void {
+  const complete = new Set<string>();
+  const path: string[] = [];
+
+  const visit = (unit: string): void => {
+    const cycleStart = path.indexOf(unit);
+    if (cycleStart >= 0) {
+      const cycle = [...path.slice(cycleStart), unit].join(" -> ");
+      throw new Error(
+        `The unit call cycle ${cycle} is invalid. Remove one call from this cycle.`,
+      );
+    }
+    if (complete.has(unit)) return;
+    const declaration = units[unit];
+    if (declaration === undefined) return;
+    path.push(unit);
+    for (const called of unitCalls(declaration.states)) visit(called);
+    path.pop();
+    complete.add(unit);
+  };
+
+  for (const unit of Object.keys(units)) visit(unit);
+}
+
 function parts(value: unknown): readonly unknown[] {
   const values = typeof value === "string" ? [value] : (value as readonly unknown[]);
   return values.map((part) => {
@@ -1283,6 +1322,7 @@ export function createBot<
         { payload: declaration.payload ?? {} },
       ]),
     );
+    assertNoUnitCallCycles(canonicalUnits);
     const spec = {
       $schema: schemaId,
       version: 1,
