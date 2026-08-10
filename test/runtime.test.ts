@@ -843,6 +843,106 @@ test("HTML rendering escapes bound text and preserves authored markup", () => {
   });
 });
 
+function renderMarkdownV2Binding(options: {
+  readonly value: string;
+  readonly escape: "text" | "code" | "url";
+  readonly prefix: string;
+  readonly suffix: string;
+}) {
+  const spec = {
+    initial: "start",
+    context: { default: { value: options.value } },
+    parameters: {},
+    states: {
+      start: {
+        kind: "state",
+        render: "keep",
+        on: { message: { photo: [{ target: "result" }] } },
+      },
+      result: {
+        kind: "state",
+        view: {
+          kind: "text",
+          text: [
+            options.prefix,
+            { context: "value", escape: options.escape },
+            options.suffix,
+          ],
+          parseMode: "MarkdownV2",
+        },
+        render: "append",
+      },
+    },
+  } as unknown as BotchartSpec;
+  const session = createSession({ spec, target: { kind: "chat", chatId: 42 } });
+  const result = step({
+    spec,
+    session,
+    input: { origin: "telegram", source: "message", name: "photo", payload: {} },
+    now: "2026-08-10T14:00:00Z",
+  });
+
+  if (result.kind === "error") return result;
+  return result.intents[0];
+}
+
+test("MarkdownV2 text bindings escape syntax and preserve authored markup", () => {
+  expect(renderMarkdownV2Binding({
+    value: "\\_*[]()~`>#+-=|{}.! Cyrillic: Привет emoji: 😀",
+    escape: "text",
+    prefix: "*Authored* ",
+    suffix: " _markup_",
+  })).toEqual({
+    kind: "view",
+    operation: "send",
+    slot: "main",
+    target: { kind: "chat", chatId: 42 },
+    view: {
+      kind: "text",
+      text: "*Authored* \\\\\\_\\*\\[\\]\\(\\)\\~\\`\\>\\#\\+\\-\\=\\|\\{\\}\\.\\! Cyrillic: Привет emoji: 😀 _markup_",
+      parseMode: "MarkdownV2",
+    },
+  });
+});
+
+test("MarkdownV2 code bindings escape only backticks and backslashes", () => {
+  expect(renderMarkdownV2Binding({
+    value: "`\\._-=#~|",
+    escape: "code",
+    prefix: "`",
+    suffix: "`",
+  })).toEqual({
+    kind: "view",
+    operation: "send",
+    slot: "main",
+    target: { kind: "chat", chatId: 42 },
+    view: {
+      kind: "text",
+      text: "`\\`\\\\._-=#~|`",
+      parseMode: "MarkdownV2",
+    },
+  });
+});
+
+test("MarkdownV2 URL bindings escape only right parentheses and backslashes", () => {
+  expect(renderMarkdownV2Binding({
+    value: "https://example.com/a)b\\c?x=1#frag+~|-",
+    escape: "url",
+    prefix: "[Docs](",
+    suffix: ")",
+  })).toEqual({
+    kind: "view",
+    operation: "send",
+    slot: "main",
+    target: { kind: "chat", chatId: 42 },
+    view: {
+      kind: "text",
+      text: "[Docs](https://example.com/a\\)b\\\\c?x=1#frag+~|-)",
+      parseMode: "MarkdownV2",
+    },
+  });
+});
+
 test("a text view that renders empty fails atomically", () => {
   const spec = {
     initial: "start",

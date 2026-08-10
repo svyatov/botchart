@@ -1,0 +1,71 @@
+{
+  "$schema": "https://svyatov.github.io/botchart/schema/0.1.0.json",
+  "version": 1,
+  "schemaRevision": "0.1.0",
+  "packs": [],
+  "scope": "chat+user",
+  "context": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+      "textValue": { "type": "string" },
+      "codeValue": { "type": "string" },
+      "urlValue": { "type": "string" }
+    },
+    "required": ["textValue", "codeValue", "urlValue"],
+    "additionalProperties": false,
+    "default": {
+      "textValue": "\\_*[]()~`>#+-=|{}.! Cyrillic: Привет emoji: 😀",
+      "codeValue": "`\\._-=#~|",
+      "urlValue": "https://example.com/a)b\\c?x=1#frag+~|-"
+    }
+  },
+  "parameters": {},
+  "guards": {},
+  "effects": {},
+  "presses": {},
+  "units": {},
+  "stalePress": { "action": "ignore" },
+  "initial": "start",
+  "on": {
+    "message": {
+      "photo": [{ "target": "markdownText" }],
+      "document": [{ "target": "markdownCode" }],
+      "video": [{ "target": "markdownUrl" }]
+    }
+  },
+  "states": {
+    "start": { "kind": "state", "render": "keep" },
+    "markdownText": {
+      "kind": "state",
+      "view": {
+        "kind": "text",
+        "text": [
+          "*Authored* ",
+          { "context": "textValue", "escape": "text" },
+          " _markup_"
+        ],
+        "parseMode": "MarkdownV2"
+      },
+      "render": "append"
+    },
+    "markdownCode": {
+      "kind": "state",
+      "view": {
+        "kind": "text",
+        "text": ["`", { "context": "codeValue", "escape": "code" }, "`"],
+        "parseMode": "MarkdownV2"
+      },
+      "render": "append"
+    },
+    "markdownUrl": {
+      "kind": "state",
+      "view": {
+        "kind": "text",
+        "text": ["[Docs](", { "context": "urlValue", "escape": "url" }, ")"],
+        "parseMode": "MarkdownV2"
+      },
+      "render": "append"
+    }
+  }
+}

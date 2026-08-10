@@ -1,0 +1,192 @@
+{
+  "$schema": "https://svyatov.github.io/botchart/conformance/0.1.0/transcript.schema.json",
+  "initial": {
+    "now": "2026-08-10T14:00:00Z",
+    "session": {
+      "callStack": [],
+      "callbacks": {},
+      "context": {
+        "codeValue": "`\\._-=#~|",
+        "textValue": "\\_*[]()~`>#+-=|{}.! Cyrillic: Привет emoji: 😀",
+        "urlValue": "https://example.com/a)b\\c?x=1#frag+~|-"
+      },
+      "history": {},
+      "position": "start",
+      "seq": 0,
+      "viewSlots": {
+        "main": {
+          "revision": 0,
+          "target": {
+            "chatId": 42,
+            "kind": "chat"
+          }
+        }
+      }
+    }
+  },
+  "name": "MarkdownV2 binding escaping",
+  "schemaRevision": "0.1.0",
+  "spec": {
+    "path": "../specs/markdown-v2-escaping.json",
+    "sha256": "d1bd3321ad5025a0f2850e4012d8d659d81440399ee290b0eefad237a5358a46"
+  },
+  "steps": [
+    {
+      "covers": [
+        "runtime.view.markdownV2.text"
+      ],
+      "input": {
+        "name": "photo",
+        "origin": "telegram",
+        "payload": {},
+        "source": "message"
+      },
+      "name": "escape a normal text binding",
+      "result": {
+        "intents": [
+          {
+            "kind": "view",
+            "operation": "send",
+            "slot": "main",
+            "target": {
+              "chatId": 42,
+              "kind": "chat"
+            },
+            "view": {
+              "kind": "text",
+              "parseMode": "MarkdownV2",
+              "text": "*Authored* \\\\\\_\\*\\[\\]\\(\\)\\~\\`\\>\\#\\+\\-\\=\\|\\{\\}\\.\\! Cyrillic: Привет emoji: 😀 _markup_"
+            }
+          }
+        ],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {
+            "codeValue": "`\\._-=#~|",
+            "textValue": "\\_*[]()~`>#+-=|{}.! Cyrillic: Привет emoji: 😀",
+            "urlValue": "https://example.com/a)b\\c?x=1#frag+~|-"
+          },
+          "history": {},
+          "position": "markdownText",
+          "seq": 1,
+          "viewSlots": {
+            "main": {
+              "revision": 0,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.view.markdownV2.code"
+      ],
+      "input": {
+        "name": "document",
+        "origin": "telegram",
+        "payload": {},
+        "source": "message"
+      },
+      "name": "escape a code binding",
+      "result": {
+        "intents": [
+          {
+            "kind": "view",
+            "operation": "send",
+            "slot": "main",
+            "target": {
+              "chatId": 42,
+              "kind": "chat"
+            },
+            "view": {
+              "kind": "text",
+              "parseMode": "MarkdownV2",
+              "text": "`\\`\\\\._-=#~|`"
+            }
+          }
+        ],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {
+            "codeValue": "`\\._-=#~|",
+            "textValue": "\\_*[]()~`>#+-=|{}.! Cyrillic: Привет emoji: 😀",
+            "urlValue": "https://example.com/a)b\\c?x=1#frag+~|-"
+          },
+          "history": {},
+          "position": "markdownCode",
+          "seq": 2,
+          "viewSlots": {
+            "main": {
+              "revision": 0,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.view.markdownV2.url"
+      ],
+      "input": {
+        "name": "video",
+        "origin": "telegram",
+        "payload": {},
+        "source": "message"
+      },
+      "name": "escape a URL binding",
+      "result": {
+        "intents": [
+          {
+            "kind": "view",
+            "operation": "send",
+            "slot": "main",
+            "target": {
+              "chatId": 42,
+              "kind": "chat"
+            },
+            "view": {
+              "kind": "text",
+              "parseMode": "MarkdownV2",
+              "text": "[Docs](https://example.com/a\\)b\\\\c?x=1#frag+~|-)"
+            }
+          }
+        ],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {
+            "codeValue": "`\\._-=#~|",
+            "textValue": "\\_*[]()~`>#+-=|{}.! Cyrillic: Привет emoji: 😀",
+            "urlValue": "https://example.com/a)b\\c?x=1#frag+~|-"
+          },
+          "history": {},
+          "position": "markdownUrl",
+          "seq": 3,
+          "viewSlots": {
+            "main": {
+              "revision": 0,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "transcriptVersion": 1
+}
