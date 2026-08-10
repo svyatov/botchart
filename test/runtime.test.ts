@@ -144,6 +144,414 @@ test("an external transition exits and enters the target state path", () => {
   });
 });
 
+test("an event bubbles from the active leaf to the root", () => {
+  const spec = {
+    initial: "menu",
+    context: { default: {} },
+    parameters: {},
+    on: {
+      message: { photo: [{ target: "done" }] },
+    },
+    states: {
+      menu: {
+        kind: "compound",
+        initial: "list",
+        states: {
+          list: { kind: "state", render: "keep" },
+        },
+      },
+      done: { kind: "state", render: "keep" },
+    },
+  } as unknown as BotchartSpec;
+  const current = {
+    ...createSession({ spec }),
+    position: "menu.list",
+  };
+
+  expect(step({
+    spec,
+    session: current,
+    input: {
+      origin: "telegram",
+      source: "message",
+      name: "photo",
+      payload: {},
+    },
+    now: "2026-08-10T14:00:00Z",
+  })).toEqual({
+    kind: "ok",
+    session: { ...current, position: "done", seq: 1 },
+    intents: [],
+  });
+});
+
+test("a press selects the first matching transition", () => {
+  const spec = {
+    initial: "main",
+    context: { default: {} },
+    parameters: {},
+    on: {},
+    states: {
+      main: {
+        kind: "state",
+        render: "keep",
+        on: {
+          press: {
+            pick: [
+              { when: { compare: { left: 1, op: "eq", right: 2 } }, target: "wrong" },
+              { target: "done" },
+            ],
+          },
+        },
+      },
+      wrong: { kind: "state", render: "keep" },
+      done: { kind: "state", render: "keep" },
+    },
+  } as unknown as BotchartSpec;
+  const current = createSession({ spec });
+
+  expect(step({
+    spec,
+    session: current,
+    input: {
+      origin: "telegram",
+      source: "press",
+      name: "pick",
+      payload: {},
+    },
+    now: "2026-08-10T14:00:00Z",
+  })).toEqual({
+    kind: "ok",
+    session: { ...current, position: "done", seq: 1 },
+    intents: [],
+  });
+});
+
+test("a normalized bare command name routes to its handler", () => {
+  const spec = {
+    initial: "main",
+    context: { default: {} },
+    parameters: {},
+    on: {},
+    states: {
+      main: {
+        kind: "state",
+        render: "keep",
+        on: {
+          command: {
+            start: { do: [{ target: "done" }] },
+          },
+        },
+      },
+      done: { kind: "state", render: "keep" },
+    },
+  } as unknown as BotchartSpec;
+  const current = createSession({ spec });
+
+  expect(step({
+    spec,
+    session: current,
+    input: {
+      origin: "telegram",
+      source: "command",
+      name: "start",
+      payload: { remainder: "catalog" },
+    },
+    now: "2026-08-10T14:00:00Z",
+  })).toEqual({
+    kind: "ok",
+    session: { ...current, position: "done", seq: 1 },
+    intents: [],
+  });
+});
+
+test("ordered text patterns expose named captures to assignments", () => {
+  const spec = {
+    initial: "main",
+    context: {
+      default: { name: "" },
+      properties: { name: { type: "string" } },
+      required: ["name"],
+    },
+    parameters: {},
+    on: {},
+    states: {
+      main: {
+        kind: "state",
+        render: "keep",
+        on: {
+          text: [
+            { pattern: "^skip$", do: [{ target: "wrong" }] },
+            {
+              pattern: "^hello (?<name>[A-Za-z]+)$",
+              do: [{ assign: { name: { from: "name" } }, target: "done" }],
+            },
+          ],
+        },
+      },
+      wrong: { kind: "state", render: "keep" },
+      done: { kind: "state", render: "keep" },
+    },
+  } as unknown as BotchartSpec;
+  const current = createSession({ spec });
+  const runner = createRunner({ validateContext: () => true });
+
+  expect(runner({
+    spec,
+    session: current,
+    input: {
+      origin: "telegram",
+      source: "text",
+      name: "message",
+      payload: { text: "hello Ada" },
+    },
+    now: "2026-08-10T14:00:00Z",
+  })).toEqual({
+    kind: "ok",
+    session: {
+      ...current,
+      context: { name: "Ada" },
+      position: "done",
+      seq: 1,
+    },
+    intents: [],
+  });
+});
+
+test("a command pattern matches its preserved remainder and exposes captures", () => {
+  const spec = {
+    initial: "main",
+    context: {
+      default: { referrer: "" },
+      properties: { referrer: { type: "string" } },
+      required: ["referrer"],
+    },
+    parameters: {},
+    on: {},
+    states: {
+      main: {
+        kind: "state",
+        render: "keep",
+        on: {
+          command: {
+            start: {
+              pattern: "^ref_(?<referrer>[a-z]+)$",
+              do: [{ assign: { referrer: { from: "referrer" } }, target: "done" }],
+            },
+          },
+        },
+      },
+      done: { kind: "state", render: "keep" },
+    },
+  } as unknown as BotchartSpec;
+  const current = createSession({ spec });
+  const runner = createRunner({ validateContext: () => true });
+
+  expect(runner({
+    spec,
+    session: current,
+    input: {
+      origin: "telegram",
+      source: "command",
+      name: "start",
+      payload: { remainder: "ref_alice" },
+    },
+    now: "2026-08-10T14:00:00Z",
+  })).toEqual({
+    kind: "ok",
+    session: {
+      ...current,
+      context: { referrer: "alice" },
+      position: "done",
+      seq: 1,
+    },
+    intents: [],
+  });
+});
+
+test("a timer routes through its named after handler", () => {
+  const spec = {
+    initial: "main",
+    context: { default: {} },
+    parameters: {},
+    on: {},
+    states: {
+      main: {
+        kind: "state",
+        render: "keep",
+        on: {
+          after: {
+            remind: { delay: "1m", do: [{ target: "done" }] },
+          },
+        },
+      },
+      done: { kind: "state", render: "keep" },
+    },
+  } as unknown as BotchartSpec;
+  const current = createSession({ spec });
+
+  expect(step({
+    spec,
+    session: current,
+    input: {
+      origin: "scheduler",
+      source: "timer",
+      name: "remind",
+      payload: { timerId: "timer:1" },
+    },
+    now: "2026-08-10T14:01:00Z",
+  })).toEqual({
+    kind: "ok",
+    session: { ...current, position: "done", seq: 1 },
+    intents: [],
+  });
+});
+
+test("a lifecycle event routes through its distinct source", () => {
+  const spec = {
+    initial: "main",
+    context: { default: {} },
+    parameters: {},
+    on: {
+      lifecycle: { blocked: [{ target: "done" }] },
+    },
+    states: {
+      main: { kind: "state", render: "keep" },
+      done: { kind: "state", render: "keep" },
+    },
+  } as unknown as BotchartSpec;
+  const current = createSession({ spec });
+
+  expect(step({
+    spec,
+    session: current,
+    input: {
+      origin: "adapter",
+      source: "lifecycle",
+      name: "blocked",
+      payload: { chainId: "failure:1" },
+    },
+    now: "2026-08-10T14:01:00Z",
+  })).toEqual({
+    kind: "ok",
+    session: { ...current, position: "done", seq: 1 },
+    intents: [],
+  });
+});
+
+test("raw passthrough runs after a normal source has no match", () => {
+  const spec = {
+    initial: "main",
+    context: { default: {} },
+    parameters: {},
+    guards: { isAlbum: {} },
+    on: {},
+    states: {
+      main: {
+        kind: "state",
+        render: "keep",
+        on: {
+          raw: [
+            { when: { guard: "isAlbum" }, do: [{ target: "done" }] },
+          ],
+        },
+      },
+      done: { kind: "state", render: "keep" },
+    },
+  } as unknown as BotchartSpec;
+  const current = createSession({ spec });
+  const runner = createRunner({ guards: { isAlbum: () => true } });
+
+  expect(runner({
+    spec,
+    session: current,
+    input: {
+      origin: "telegram",
+      source: "message",
+      name: "photo",
+      payload: { mediaGroupId: "album:1" },
+    },
+    now: "2026-08-10T14:01:00Z",
+  })).toEqual({
+    kind: "ok",
+    session: { ...current, position: "done", seq: 1 },
+    intents: [],
+  });
+});
+
+test("a registered feature source routes before raw passthrough", () => {
+  const spec = {
+    initial: "main",
+    context: { default: {} },
+    parameters: {},
+    packs: [{ id: "https://example.com/web-app", version: "1.0.0" }],
+    on: {},
+    states: {
+      main: {
+        kind: "state",
+        render: "keep",
+        on: {
+          webApp: {
+            submitted: [{ target: "done" }],
+          },
+          raw: [{ do: [{ target: "wrong" }] }],
+        },
+      },
+      wrong: { kind: "state", render: "keep" },
+      done: { kind: "state", render: "keep" },
+    },
+  } as unknown as BotchartSpec;
+  const current = createSession({ spec });
+
+  expect(step({
+    spec,
+    session: current,
+    input: {
+      origin: "telegram",
+      source: "webApp",
+      name: "submitted",
+      payload: { data: "confirmed" },
+    },
+    now: "2026-08-10T14:01:00Z",
+  })).toEqual({
+    kind: "ok",
+    session: { ...current, position: "done", seq: 1 },
+    intents: [],
+  });
+});
+
+test("an unmatched normal event emits one unhandled lifecycle event", () => {
+  const spec = {
+    initial: "main",
+    context: { default: {} },
+    parameters: {},
+    on: {
+      lifecycle: { unhandled: [{ target: "done" }] },
+    },
+    states: {
+      main: { kind: "state", render: "keep" },
+      done: { kind: "state", render: "keep" },
+    },
+  } as unknown as BotchartSpec;
+  const current = createSession({ spec });
+
+  expect(step({
+    spec,
+    session: current,
+    input: {
+      origin: "telegram",
+      source: "message",
+      name: "photo",
+      payload: { fileId: "photo:1" },
+    },
+    now: "2026-08-10T14:01:00Z",
+  })).toEqual({
+    kind: "ok",
+    session: { ...current, position: "done", seq: 1 },
+    intents: [],
+  });
+});
+
 test("a comparing guard selects the first matching transition", () => {
   const spec = {
     initial: "main",

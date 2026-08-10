@@ -1,0 +1,163 @@
+{
+  "$schema": "https://svyatov.github.io/botchart/schema/0.1.0.json",
+  "version": 1,
+  "schemaRevision": "0.1.0",
+  "packs": [
+    {
+      "id": "https://example.com/web-app",
+      "version": "1.0.0"
+    }
+  ],
+  "scope": "chat+user",
+  "context": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+      "name": { "type": "string" },
+      "referrer": { "type": "string" },
+      "route": { "type": "string" }
+    },
+    "required": ["name", "referrer", "route"],
+    "additionalProperties": false,
+    "default": {
+      "name": "",
+      "referrer": "",
+      "route": "initial"
+    }
+  },
+  "parameters": {},
+  "guards": {},
+  "effects": {},
+  "presses": {
+    "pick": { "payload": {} }
+  },
+  "units": {},
+  "stalePress": { "action": "ignore" },
+  "initial": "main",
+  "on": {
+    "press": {
+      "pick": [
+        { "assign": { "route": "press" } }
+      ]
+    },
+    "command": {
+      "help": {
+        "do": [
+          { "assign": { "route": "commandBare" } }
+        ]
+      },
+      "start": {
+        "pattern": "^ref_(?<referrer>[a-z]+)$",
+        "do": [
+          {
+            "assign": {
+              "referrer": { "from": "referrer" },
+              "route": "command"
+            }
+          }
+        ]
+      }
+    },
+    "text": [
+      {
+        "pattern": "^skip$",
+        "do": [
+          { "assign": { "route": "wrong" } }
+        ]
+      },
+      {
+        "pattern": "^hello (?<name>[A-Za-z]+)$",
+        "do": [
+          {
+            "assign": {
+              "name": { "from": "name" },
+              "route": "text"
+            }
+          }
+        ]
+      }
+    ],
+    "message": {
+      "photo": [
+        {
+          "when": {
+            "compare": {
+              "left": { "context": "route" },
+              "op": "eq",
+              "right": "never"
+            }
+          },
+          "assign": { "route": "wrong" }
+        },
+        { "assign": { "route": "message" } }
+      ]
+    },
+    "lifecycle": {
+      "blocked": [
+        { "assign": { "route": "lifecycle" } }
+      ],
+      "unhandled": [
+        {
+          "assign": { "route": "unhandled" },
+          "target": "unhandled"
+        }
+      ]
+    },
+    "webApp": {
+      "submitted": [
+        { "assign": { "route": "feature" } }
+      ]
+    }
+  },
+  "states": {
+    "main": {
+      "kind": "state",
+      "render": "keep",
+      "on": {
+        "after": {
+          "remind": {
+            "delay": "1m",
+            "do": [
+              { "assign": { "route": "timer" } }
+            ]
+          }
+        },
+        "raw": [
+          {
+            "do": [
+              {
+                "when": {
+                  "compare": {
+                    "left": { "context": "route" },
+                    "op": "eq",
+                    "right": "feature"
+                  }
+                },
+                "assign": { "route": "raw" }
+              },
+              {
+                "assign": { "route": "rawFallback" },
+                "target": "plain"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "plain": {
+      "kind": "state",
+      "render": "keep",
+      "on": {
+        "message": {
+          "voice": [
+            {}
+          ]
+        }
+      }
+    },
+    "unhandled": {
+      "kind": "state",
+      "render": "keep"
+    }
+  }
+}
