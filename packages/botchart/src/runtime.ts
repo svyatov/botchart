@@ -1,9 +1,12 @@
 import type {
   AssignmentValue,
   BotchartSpec,
+  Button,
+  Comparison,
   Condition,
   ContextJsonSchema,
   FieldMap,
+  KeyboardNode,
   ProducedAssignment,
   Run,
   ScalarValue,
@@ -12,6 +15,7 @@ import type {
   Transition,
   Value,
   View,
+  ViewPart,
 } from "./spec.generated.js";
 import type { JsonObject, JsonValue } from "./spec.js";
 
@@ -214,9 +218,17 @@ export type ContextValidator<Context extends JsonObject = JsonObject> = (
   options: ContextValidationOptions<Context>,
 ) => boolean;
 
+export type EditCompatibility = "edit" | "replace" | "unsupported";
+
+export type EditCompatibilityMatrix = Readonly<Record<
+  string,
+  Readonly<Record<string, Readonly<Record<string, EditCompatibility>>>>
+>>;
+
 export type CreateRunnerOptions<Context extends JsonObject = JsonObject> = {
   readonly guards?: Readonly<Record<string, GuardBinding<Context>>>;
   readonly validateContext?: ContextValidator<Context>;
+  readonly viewCompatibility?: EditCompatibilityMatrix;
 };
 
 export type CreateSessionOptions = {
@@ -282,6 +294,9 @@ function runStep<Context extends JsonObject>(
   request: CoreRunnerRequest<Context>,
   options: CreateRunnerOptions<Context>,
 ): CoreResult<Context> {
+  if (request.input.origin === "adapter" && request.input.source === "view") {
+    return commitViewResult(request);
+  }
   if (request.input.origin === "effect") {
     return runEffectFeedback(request, options);
   }
@@ -339,7 +354,13 @@ function runStep<Context extends JsonObject>(
   }
 
   if (targetState.kind === "final") {
-    const result = enterFinalState(nextSession, targetState);
+    const result = enterFinalState(
+      nextSession,
+      targetState,
+      transition.target,
+      request,
+      options,
+    );
     return result.kind === "error" ? { ...result, session: request.session } : result;
   }
 
@@ -378,6 +399,135 @@ function runStep<Context extends JsonObject>(
     : settled.value;
 }
 
+function commitViewResult<Context extends JsonObject>(
+  request: CoreRunnerRequest<Context>,
+): CoreResult<Context> {
+  const committed = applyViewResult(request.session, request.input);
+  return committed.kind === "error"
+    ? { kind: "error", session: request.session, intents: [], error: committed.error }
+    : { kind: "ok", session: committed.value, intents: [] };
+}
+
+function applyViewResult<Context extends JsonObject>(
+  session: Session<Context>,
+  input: CoreInput,
+): Evaluation<Session<Context>> {
+  const payload = input.payload;
+  if (!isJsonObject(payload)) {
+    return evaluationError(
+      "invalid_view_result",
+      "$.input.payload",
+      "Use a view result object from the adapter.",
+    );
+  }
+  const operation = input.name;
+  if (
+    operation !== "send"
+    && operation !== "edit"
+    && operation !== "delete"
+    && operation !== "replace"
+  ) {
+    return evaluationError(
+      "invalid_view_result",
+      "$.input.name",
+      "Use send, edit, delete, or replace for an adapter view result.",
+    );
+  }
+  const allowed = operation === "delete"
+    ? ["slot"]
+    : operation === "edit"
+      ? ["slot", "viewKind", "interactive"]
+      : ["slot", "handle", "viewKind", "interactive"];
+  const unknown = Object.keys(payload).find((name) => !allowed.includes(name));
+  if (unknown !== undefined) {
+    return evaluationError(
+      "invalid_view_result",
+      `$.input.payload.${unknown}`,
+      `Remove the ${unknown} view result field.`,
+    );
+  }
+  if (typeof payload.slot !== "string" || payload.slot.length === 0) {
+    return evaluationError(
+      "invalid_view_result",
+      "$.input.payload.slot",
+      "Set slot to the view intent slot.",
+    );
+  }
+  const slot = session.viewSlots[payload.slot];
+  if (slot === undefined) {
+    return evaluationError(
+      "invalid_view_result",
+      `$.session.viewSlots.${payload.slot}`,
+      `Add the ${payload.slot} view slot before you commit its result.`,
+    );
+  }
+  if (operation === "delete") {
+    const { current: _current, ...cleared } = slot;
+    return {
+      kind: "ok",
+      value: {
+        ...session,
+        viewSlots: { ...session.viewSlots, [payload.slot]: cleared },
+      },
+    };
+  }
+  if (typeof payload.viewKind !== "string" || payload.viewKind.length === 0) {
+    return evaluationError(
+      "invalid_view_result",
+      "$.input.payload.viewKind",
+      "Set viewKind to the rendered view kind.",
+    );
+  }
+  if (typeof payload.interactive !== "boolean") {
+    return evaluationError(
+      "invalid_view_result",
+      "$.input.payload.interactive",
+      "Set interactive to true when the rendered view contains controls.",
+    );
+  }
+  const handle = operation === "edit"
+    ? slot.current?.handle
+    : chatHandle(payload.handle);
+  if (handle === undefined) {
+    return evaluationError(
+      "invalid_view_result",
+      operation === "edit" ? `$.session.viewSlots.${payload.slot}.current` : "$.input.payload.handle",
+      operation === "edit"
+        ? "Commit an edit only after the view slot has a current message."
+        : "Set handle to the message handle returned by the adapter.",
+    );
+  }
+  return {
+    kind: "ok",
+    value: {
+      ...session,
+      viewSlots: {
+        ...session.viewSlots,
+        [payload.slot]: {
+          ...slot,
+          revision: slot.revision + (payload.interactive ? 1 : 0),
+          current: { handle, viewKind: payload.viewKind as ViewKind },
+        },
+      },
+    },
+  };
+}
+
+function chatHandle(value: JsonValue | undefined): ChatHandle | undefined {
+  if (
+    !isJsonObject(value)
+    || Object.keys(value).some((name) =>
+      name !== "kind" && name !== "chatId" && name !== "messageId"
+    )
+    || value.kind !== "chat"
+    || typeof value.chatId !== "number"
+    || !Number.isFinite(value.chatId)
+    || typeof value.messageId !== "number"
+    || !Number.isFinite(value.messageId)
+  ) return undefined;
+  return { kind: "chat", chatId: value.chatId, messageId: value.messageId };
+}
+
 function settleStateEntry<Context extends JsonObject>(
   session: Session<Context>,
   stateId: StateId,
@@ -403,7 +553,10 @@ function settleStateEntry<Context extends JsonObject>(
     return startEffect(session, stateId, entryIndex, node, request);
   }
   if (node?.kind !== "call") {
-    return { kind: "ok", value: { kind: "ok", session, intents: [] } };
+    const rendered = renderActiveState(session, state, request, options);
+    return rendered.kind === "error"
+      ? rendered
+      : { kind: "ok", value: { kind: "ok", session, intents: rendered.value } };
   }
   const called = enterCall(session, stateId, entryIndex, request);
   return called.kind === "error"
@@ -535,7 +688,7 @@ function handleEffectFeedback<Context extends JsonObject>(
     );
     if (mapped.kind === "error") return mapped;
     const session = { ...request.session, context: mapped.value };
-    const rendered = renderActiveState(session, state);
+    const rendered = renderActiveState(session, state, request, options);
     return rendered.kind === "error"
       ? rendered
       : {
@@ -610,7 +763,13 @@ function handleEffectFeedback<Context extends JsonObject>(
     );
   }
   if (targetState.kind === "final") {
-    const result = enterFinalState(assignedSession, targetState);
+    const result = enterFinalState(
+      assignedSession,
+      targetState,
+      transition.target,
+      request,
+      options,
+    );
     return result.kind === "error"
       ? { kind: "error", error: result.error }
       : { kind: "ok", value: result };
@@ -802,6 +961,8 @@ function applyFeedbackAssignments<Context extends JsonObject>(
 function renderActiveState<Context extends JsonObject>(
   session: Session<Context>,
   state: StateNode | undefined,
+  request: CoreRunnerRequest<Context>,
+  options: CreateRunnerOptions<Context>,
 ): Evaluation<readonly Intent[]> {
   if (state?.kind !== "state" || state.render === "keep") {
     return { kind: "ok", value: [] };
@@ -827,23 +988,71 @@ function renderActiveState<Context extends JsonObject>(
       "Add a view before you use the edit or append render policy.",
     );
   }
-  if (state.render === "edit" && slot?.current !== undefined) {
+  const path = `${activeStatePath(request.spec, session, session.position)}.view`;
+  const view = renderTextView(state.view, path, { ...request, session });
+  if (view.kind === "error") return view;
+  return planRenderedView(
+    slot,
+    view.value,
+    state.render,
+    options.viewCompatibility,
+    "Add the main view slot before you render this state.",
+  );
+}
+
+function planRenderedView(
+  slot: ViewSlot | undefined,
+  view: JsonObject,
+  policy: "edit" | "append",
+  compatibility: EditCompatibilityMatrix | undefined,
+  missingTargetMessage: string,
+): Evaluation<readonly Intent[]> {
+  if (policy === "edit" && slot?.current !== undefined) {
+    const operation = editCompatibility(
+      slot.current.handle.kind,
+      slot.current.viewKind,
+      String(view.kind),
+      compatibility,
+    );
+    if (operation === undefined) {
+      return evaluationError(
+        "missing_edit_compatibility",
+        "$.session.viewSlots.main.current.viewKind",
+        `Register the ${slot.current.handle.kind}/${slot.current.viewKind}/${String(view.kind)} edit compatibility row.`,
+      );
+    }
+    if (operation === "unsupported") {
+      return evaluationError(
+        "unsupported_view_edit",
+        "$.session.viewSlots.main.current.viewKind",
+        "Use append or install a view integration that supports this edit.",
+      );
+    }
     return {
       kind: "ok",
-      value: [{
-        kind: "view",
-        operation: "edit",
-        slot: "main",
-        handle: slot.current.handle,
-        view: state.view as unknown as JsonObject,
-      }],
+      value: operation === "edit"
+        ? [{
+            kind: "view",
+            operation: "edit",
+            slot: "main",
+            handle: slot.current.handle,
+            view,
+          }]
+        : [{
+            kind: "view",
+            operation: "replace",
+            slot: "main",
+            target: slot.target,
+            handle: slot.current.handle,
+            view,
+          }],
     };
   }
   if (slot === undefined) {
     return evaluationError(
       "missing_view_target",
       "$.session.viewSlots.main",
-      "Add the main view slot before you render this state.",
+      missingTargetMessage,
     );
   }
   return {
@@ -853,9 +1062,313 @@ function renderActiveState<Context extends JsonObject>(
       operation: "send",
       slot: "main",
       target: slot.target,
-      view: state.view as unknown as JsonObject,
+      view,
     }],
   };
+}
+
+function editCompatibility(
+  handleKind: string,
+  oldViewKind: string,
+  newViewKind: string,
+  matrix: EditCompatibilityMatrix | undefined,
+): EditCompatibility | undefined {
+  const registered = matrix?.[handleKind]?.[oldViewKind]?.[newViewKind];
+  if (registered !== undefined) return registered;
+  if (handleKind !== "chat" || newViewKind !== "text") return undefined;
+  if (oldViewKind === "text" || oldViewKind === "rich") return "edit";
+  return oldViewKind === "media" ? "replace" : undefined;
+}
+
+function renderTextView<Context extends JsonObject>(
+  view: View,
+  path: string,
+  request: CoreRunnerRequest<Context>,
+): Evaluation<JsonObject> {
+  const scope = { request, parseMode: view.parseMode };
+  const text = renderViewParts(view.text, `${path}.text`, scope);
+  if (text.kind === "error") return text;
+  if (text.value.length === 0) {
+    return evaluationError(
+      "empty_view_text",
+      `${path}.text`,
+      "Provide text that renders to at least one character.",
+    );
+  }
+  const keyboard = view.keyboard === undefined
+    ? { kind: "ok", value: undefined } as const
+    : renderKeyboard(view.keyboard, `${path}.keyboard`, scope);
+  if (keyboard.kind === "error") return keyboard;
+  return {
+    kind: "ok",
+    value: {
+      kind: "text",
+      text: text.value,
+      parseMode: view.parseMode,
+      ...(keyboard.value === undefined ? {} : { keyboard: keyboard.value }),
+    } as unknown as JsonObject,
+  };
+}
+
+type ViewRenderScope<Context extends JsonObject> = {
+  readonly request: CoreRunnerRequest<Context>;
+  readonly parseMode: View["parseMode"];
+  readonly item?: JsonObject;
+};
+
+function renderViewParts<Context extends JsonObject>(
+  parts: readonly ViewPart[],
+  path: string,
+  scope: ViewRenderScope<Context>,
+): Evaluation<string> {
+  let rendered = "";
+  for (const [index, part] of parts.entries()) {
+    if (typeof part === "string") {
+      rendered += part;
+      continue;
+    }
+    const value = resolveViewValue(part, `${path}[${index}]`, scope);
+    if (value.kind === "error") return value;
+    if (
+      typeof value.value !== "string"
+      && typeof value.value !== "number"
+      && typeof value.value !== "boolean"
+    ) {
+      return evaluationError(
+        "invalid_view_value",
+        `${path}[${index}]`,
+        "Reference a scalar value in this view binding.",
+      );
+    }
+    const text = typeof value.value === "number"
+      ? JSON.stringify(value.value)
+      : String(value.value);
+    rendered += escapeViewBinding(text, scope.parseMode, part.escape);
+  }
+  return { kind: "ok", value: rendered };
+}
+
+function escapeViewBinding(
+  value: string,
+  parseMode: View["parseMode"],
+  context: "text" | "code" | "url",
+): string {
+  if (parseMode !== "HTML") return value;
+  const escaped = value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
+  return context === "url" ? escaped.replaceAll('"', "&quot;") : escaped;
+}
+
+function renderKeyboard<Context extends JsonObject>(
+  nodes: readonly KeyboardNode[],
+  path: string,
+  scope: ViewRenderScope<Context>,
+): Evaluation<readonly JsonObject[]> {
+  const rows: JsonObject[] = [];
+  for (const [nodeIndex, node] of nodes.entries()) {
+    const nodePath = `${path}[${nodeIndex}]`;
+    if (node.kind === "row") {
+      const row = renderKeyboardRow(node.buttons, `${nodePath}.buttons`, scope);
+      if (row.kind === "error") return row;
+      if (row.value !== undefined) rows.push(row.value);
+      continue;
+    }
+
+    const source = scope.request.session.context[node.source.context];
+    if (source === undefined) {
+      return missingViewValue(nodePath, node.source.context);
+    }
+    if (!Array.isArray(source)) {
+      return evaluationError(
+        "invalid_projection_source",
+        `${nodePath}.source`,
+        `Set ${node.source.context} to an array before this projection renders.`,
+      );
+    }
+    if (source.length > node.maxItems) {
+      return evaluationError(
+        "projection_limit",
+        nodePath,
+        `Reduce ${node.source.context} to ${node.maxItems} items or fewer before this projection renders.`,
+      );
+    }
+    for (const [itemIndex, item] of source.entries()) {
+      if (!isJsonObject(item)) {
+        return evaluationError(
+          "invalid_projection_item",
+          `${nodePath}.source[${itemIndex}]`,
+          `Set every ${node.source.context} item to a flat record.`,
+        );
+      }
+      for (const [rowIndex, row] of node.rows.entries()) {
+        const rendered = renderKeyboardRow(
+          row.buttons,
+          `${nodePath}.rows[${rowIndex}].buttons`,
+          { ...scope, item },
+        );
+        if (rendered.kind === "error") return rendered;
+        if (rendered.value !== undefined) rows.push(rendered.value);
+      }
+    }
+  }
+  return { kind: "ok", value: rows };
+}
+
+function renderKeyboardRow<Context extends JsonObject>(
+  buttons: readonly Button[],
+  path: string,
+  scope: ViewRenderScope<Context>,
+): Evaluation<JsonObject | undefined> {
+  const rendered: JsonObject[] = [];
+  for (const [index, button] of buttons.entries()) {
+    const buttonPath = `${path}[${index}]`;
+    if (button.when !== undefined) {
+      const visible = evaluateViewComparison(
+        button.when.compare,
+        `${buttonPath}.when.compare`,
+        scope,
+      );
+      if (visible.kind === "error") return visible;
+      if (!visible.value) continue;
+    }
+    const value = renderButton(button, buttonPath, scope);
+    if (value.kind === "error") return value;
+    rendered.push(value.value);
+  }
+  return {
+    kind: "ok",
+    value: rendered.length === 0 ? undefined : { kind: "row", buttons: rendered },
+  };
+}
+
+function renderButton<Context extends JsonObject>(
+  button: Button,
+  path: string,
+  scope: ViewRenderScope<Context>,
+): Evaluation<JsonObject> {
+  const label = renderViewParts(button.label, `${path}.label`, scope);
+  if (label.kind === "error") return label;
+  if (label.value.length === 0) {
+    return evaluationError(
+      "empty_button_label",
+      `${path}.label`,
+      "Provide a button label that renders to at least one character.",
+    );
+  }
+  const payload: Record<string, JsonValue> = {};
+  for (const [name, source] of Object.entries(button.payload ?? {})) {
+    const value = resolveViewValue(source, `${path}.payload.${name}`, scope);
+    if (value.kind === "error") return value;
+    payload[name] = value.value;
+  }
+  return {
+    kind: "ok",
+    value: {
+      kind: "button",
+      label: label.value,
+      press: button.press,
+      ...(button.payload === undefined ? {} : { payload }),
+      durable: button.durable,
+    },
+  };
+}
+
+function evaluateViewComparison<Context extends JsonObject>(
+  comparison: Comparison,
+  path: string,
+  scope: ViewRenderScope<Context>,
+): Evaluation<boolean> {
+  const left = resolveViewScalar(comparison.left, `${path}.left`, scope);
+  if (left.kind === "error") return left;
+  const right = resolveViewScalar(comparison.right, `${path}.right`, scope);
+  if (right.kind === "error") return right;
+  if (comparison.op === "eq" || comparison.op === "neq") {
+    if (typeof left.value !== typeof right.value) {
+      return evaluationError(
+        "invalid_view_comparison",
+        path,
+        "Compare view values with the same scalar type.",
+      );
+    }
+  } else if (typeof left.value !== "number" || typeof right.value !== "number") {
+    return evaluationError(
+      "invalid_view_comparison",
+      path,
+      "Use number values with an ordered view comparison.",
+    );
+  }
+  switch (comparison.op) {
+    case "eq": return { kind: "ok", value: left.value === right.value };
+    case "neq": return { kind: "ok", value: left.value !== right.value };
+    case "lt": return { kind: "ok", value: left.value < right.value };
+    case "lte": return { kind: "ok", value: left.value <= right.value };
+    case "gt": return { kind: "ok", value: left.value > right.value };
+    case "gte": return { kind: "ok", value: left.value >= right.value };
+  }
+}
+
+function resolveViewScalar<Context extends JsonObject>(
+  value: ScalarValue,
+  path: string,
+  scope: ViewRenderScope<Context>,
+): Evaluation<string | number | boolean> {
+  const resolved = resolveViewValue(value, path, scope);
+  if (resolved.kind === "error") return resolved;
+  if (
+    typeof resolved.value === "string"
+    || typeof resolved.value === "number"
+    || typeof resolved.value === "boolean"
+  ) return { kind: "ok", value: resolved.value };
+  return evaluationError(
+    "invalid_view_value",
+    path,
+    "Reference a scalar value in this view binding.",
+  );
+}
+
+function resolveViewValue<Context extends JsonObject>(
+  value: Value,
+  path: string,
+  scope: ViewRenderScope<Context>,
+): Evaluation<JsonValue> {
+  if (typeof value !== "object" || Array.isArray(value)) {
+    return { kind: "ok", value: cloneData(value) as JsonValue };
+  }
+  if ("context" in value) {
+    const resolved = scope.request.session.context[value.context];
+    return resolved === undefined
+      ? missingViewValue(path, value.context)
+      : { kind: "ok", value: cloneData(resolved) };
+  }
+  if ("parameter" in value) {
+    const resolved = scope.request.spec.parameters[value.parameter]?.default;
+    return resolved === undefined
+      ? missingViewValue(path, value.parameter)
+      : { kind: "ok", value: cloneData(resolved) as JsonValue };
+  }
+  if ("input" in value) {
+    const resolved = scope.request.session.callStack.at(-1)?.input[value.input];
+    return resolved === undefined
+      ? missingViewValue(path, value.input)
+      : { kind: "ok", value: cloneData(resolved) };
+  }
+  if (!("item" in value)) {
+    return { kind: "ok", value: cloneData(value) as JsonValue };
+  }
+  const resolved = scope.item?.[value.item];
+  return resolved === undefined
+    ? missingViewValue(path, value.item)
+    : { kind: "ok", value: cloneData(resolved) };
+}
+
+function missingViewValue(path: string, name: string): Evaluation<never> {
+  return evaluationError(
+    "missing_view_value",
+    path,
+    `Provide the ${name} value before this view renders.`,
+  );
 }
 
 function completeUnitReturn<Context extends JsonObject>(
@@ -953,7 +1466,16 @@ function completeUnitReturn<Context extends JsonObject>(
     );
   }
   if (targetState.kind === "final") {
-    return { kind: "ok", value: enterFinalState(assignedSession, targetState) };
+    return {
+      kind: "ok",
+      value: enterFinalState(
+        assignedSession,
+        targetState,
+        transition.target,
+        request,
+        options,
+      ),
+    };
   }
   if (targetState.kind === "return") {
     return completeUnitReturn(
@@ -1510,6 +2032,9 @@ function cloneData<Value>(value: Value): Value {
 function enterFinalState<Context extends JsonObject>(
   session: Session<Context>,
   state: Extract<StateNode, { readonly kind: "final" }>,
+  stateId: StateId,
+  request: CoreRunnerRequest<Context>,
+  options: CreateRunnerOptions<Context>,
 ): CoreResult<Context> {
   const slot = session.viewSlots.main;
   if (state.render === "delete") {
@@ -1527,44 +2052,25 @@ function enterFinalState<Context extends JsonObject>(
     };
   }
 
-  if (state.render === "edit" && slot?.current !== undefined) {
-    return {
-      kind: "ok",
-      session: null,
-      intents: [{
-        kind: "view",
-        operation: "edit",
-        slot: "main",
-        handle: slot.current.handle,
-        view: state.view as unknown as JsonObject,
-      }],
-    };
+  const view = renderTextView(
+    state.view,
+    `${activeStatePath(request.spec, session, stateId)}.view`,
+    { ...request, session },
+  );
+  if (view.kind === "error") {
+    return { kind: "error", session, intents: [], error: view.error };
   }
 
-  if (slot === undefined) {
-    return {
-      kind: "error",
-      session,
-      intents: [],
-      error: {
-        code: "missing_view_target",
-        path: "$.session.viewSlots.main",
-        message: "Add the main view slot before you enter a final state with a view.",
-      },
-    };
-  }
-
-  return {
-    kind: "ok",
-    session: null,
-    intents: [{
-      kind: "view",
-      operation: "send",
-      slot: "main",
-      target: slot.target,
-      view: state.view as unknown as JsonObject,
-    }],
-  };
+  const planned = planRenderedView(
+    slot,
+    view.value,
+    state.render,
+    options.viewCompatibility,
+    "Add the main view slot before you enter a final state with a view.",
+  );
+  return planned.kind === "error"
+    ? { kind: "error", session, intents: [], error: planned.error }
+    : { kind: "ok", session: null, intents: planned.value };
 }
 
 function stateAt(spec: BotchartSpec, stateId: StateId): StateNode | undefined {

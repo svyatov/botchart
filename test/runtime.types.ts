@@ -257,6 +257,9 @@ const configuredRunner = createRunner({
   },
   validateContext: ({ context, schema }) =>
     context.page === 2 && schema.type === "object",
+  viewCompatibility: {
+    chat: { media: { text: "replace" } },
+  },
 });
 
 configuredRunner satisfies CoreRunner;

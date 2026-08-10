@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { createRunner, createSession, step } from "botchart";
-import type { BotchartSpec, CoreResult } from "botchart";
+import type { BotchartSpec, CoreResult, Session } from "botchart";
 import assignmentSpecJson from "botchart/conformance/specs/guards-and-assignments.json" with { type: "json" };
 import lifecycleSpec from "botchart/conformance/specs/session-lifecycle.json" with { type: "json" };
 import lifecycleTranscript from "botchart/conformance/transcripts/session-lifecycle.json" with { type: "json" };
@@ -516,8 +516,371 @@ test("effect progress updates context and renders without moving", () => {
       operation: "send",
       slot: "main",
       target: { kind: "chat", chatId: 42 },
-      view: { kind: "text", text: ["Loading"], parseMode: "plain" },
+      view: { kind: "text", text: "Loading", parseMode: "plain" },
     }],
+  });
+});
+
+test("a state render resolves structured text bindings before intent emission", () => {
+  const spec = {
+    initial: "start",
+    context: { default: { name: "Ada" } },
+    parameters: { punctuation: { type: "string", default: "!" } },
+    states: {
+      start: {
+        kind: "state",
+        render: "keep",
+        on: { message: { photo: [{ target: "welcome" }] } },
+      },
+      welcome: {
+        kind: "state",
+        view: {
+          kind: "text",
+          text: [
+            "Hello, ",
+            { context: "name", escape: "text" },
+            { parameter: "punctuation", escape: "text" },
+          ],
+          parseMode: "plain",
+        },
+        render: "edit",
+      },
+    },
+  } as unknown as BotchartSpec;
+  const current = createSession({ spec, target: { kind: "chat", chatId: 42 } });
+
+  expect(step({
+    spec,
+    session: current,
+    input: { origin: "telegram", source: "message", name: "photo", payload: {} },
+    now: "2026-08-10T14:00:00Z",
+  })).toEqual({
+    kind: "ok",
+    session: { ...current, position: "welcome", seq: 1 },
+    intents: [{
+      kind: "view",
+      operation: "send",
+      slot: "main",
+      target: { kind: "chat", chatId: 42 },
+      view: { kind: "text", text: "Hello, Ada!", parseMode: "plain" },
+    }],
+  });
+});
+
+test("a keyboard projection renders one authored row for each matching item", () => {
+  const spec = {
+    initial: "start",
+    context: {
+      default: {
+        products: [
+          { id: "first", title: "First", enabled: true },
+          { id: "hidden", enabled: false },
+          { id: "third", title: "Third", enabled: true },
+        ],
+      },
+    },
+    parameters: {},
+    states: {
+      start: {
+        kind: "state",
+        render: "keep",
+        on: { message: { photo: [{ target: "catalog" }] } },
+      },
+      catalog: {
+        kind: "state",
+        view: {
+          kind: "text",
+          text: ["Products"],
+          parseMode: "plain",
+          keyboard: [{
+            kind: "project",
+            source: { context: "products" },
+            maxItems: 3,
+            rows: [{
+              kind: "row",
+              buttons: [{
+                kind: "button",
+                label: [{ item: "title", escape: "text" }],
+                press: "pick",
+                payload: { id: { item: "id" } },
+                durable: false,
+                when: {
+                  compare: {
+                    left: { item: "enabled" },
+                    op: "eq",
+                    right: true,
+                  },
+                },
+              }],
+            }],
+          }],
+        },
+        render: "append",
+      },
+    },
+  } as unknown as BotchartSpec;
+  const current = createSession({ spec, target: { kind: "chat", chatId: 42 } });
+  const result = step({
+    spec,
+    session: current,
+    input: { origin: "telegram", source: "message", name: "photo", payload: {} },
+    now: "2026-08-10T14:00:00Z",
+  });
+
+  expect(result.kind === "ok" ? result.intents : result).toEqual([{
+    kind: "view",
+    operation: "send",
+    slot: "main",
+    target: { kind: "chat", chatId: 42 },
+    view: {
+      kind: "text",
+      text: "Products",
+      parseMode: "plain",
+      keyboard: [
+        {
+          kind: "row",
+          buttons: [{
+            kind: "button",
+            label: "First",
+            press: "pick",
+            payload: { id: "first" },
+            durable: false,
+          }],
+        },
+        {
+          kind: "row",
+          buttons: [{
+            kind: "button",
+            label: "Third",
+            press: "pick",
+            payload: { id: "third" },
+            durable: false,
+          }],
+        },
+      ],
+    },
+  }]);
+});
+
+test("the edit policy replaces an incompatible current view", () => {
+  const spec = {
+    initial: "start",
+    context: { default: {} },
+    parameters: {},
+    states: {
+      start: {
+        kind: "state",
+        render: "keep",
+        on: { message: { photo: [{ target: "summary" }] } },
+      },
+      summary: {
+        kind: "state",
+        view: { kind: "text", text: ["Summary"], parseMode: "plain" },
+        render: "edit",
+      },
+    },
+  } as unknown as BotchartSpec;
+  const base = createSession({ spec, target: { kind: "chat", chatId: 42 } });
+  const current = {
+    ...base,
+    viewSlots: {
+      main: {
+        ...base.viewSlots.main!,
+        current: {
+          handle: { kind: "chat", chatId: 42, messageId: 7 },
+          viewKind: "media",
+        },
+      },
+    },
+  } as unknown as Session;
+  const runner = createRunner({
+    viewCompatibility: { chat: { media: { text: "replace" } } },
+  });
+
+  const result = runner({
+    spec,
+    session: current,
+    input: { origin: "telegram", source: "message", name: "photo", payload: {} },
+    now: "2026-08-10T14:00:00Z",
+  });
+
+  expect(result.kind === "ok" ? result.intents : result).toEqual([{
+    kind: "view",
+    operation: "replace",
+    slot: "main",
+    target: { kind: "chat", chatId: 42 },
+    handle: { kind: "chat", chatId: 42, messageId: 7 },
+    view: { kind: "text", text: "Summary", parseMode: "plain" },
+  }]);
+});
+
+test("an adapter view result commits the handle and interactive revision", () => {
+  const current = createSession({
+    spec: minimalSpec,
+    target: { kind: "chat", chatId: 42 },
+  });
+
+  expect(step({
+    spec: minimalSpec,
+    session: current,
+    input: {
+      origin: "adapter",
+      source: "view",
+      name: "send",
+      payload: {
+        slot: "main",
+        handle: { kind: "chat", chatId: 42, messageId: 7 },
+        viewKind: "text",
+        interactive: true,
+      },
+    },
+    now: "2026-08-10T14:00:01Z",
+  })).toEqual({
+    kind: "ok",
+    session: {
+      ...current,
+      viewSlots: {
+        main: {
+          ...current.viewSlots.main!,
+          revision: 1,
+          current: {
+            handle: { kind: "chat", chatId: 42, messageId: 7 },
+            viewKind: "text",
+          },
+        },
+      },
+    },
+    intents: [],
+  });
+});
+
+test("a final state resolves view bindings before it removes the session", () => {
+  const spec = {
+    initial: "start",
+    context: { default: { result: 42 } },
+    parameters: {},
+    states: {
+      start: {
+        kind: "state",
+        render: "keep",
+        on: { message: { photo: [{ target: "done" }] } },
+      },
+      done: {
+        kind: "final",
+        view: {
+          kind: "text",
+          text: ["Result: ", { context: "result", escape: "text" }],
+          parseMode: "plain",
+        },
+        render: "append",
+      },
+    },
+  } as unknown as BotchartSpec;
+  const current = createSession({ spec, target: { kind: "chat", chatId: 42 } });
+
+  expect(step({
+    spec,
+    session: current,
+    input: { origin: "telegram", source: "message", name: "photo", payload: {} },
+    now: "2026-08-10T14:00:00Z",
+  })).toEqual({
+    kind: "ok",
+    session: null,
+    intents: [{
+      kind: "view",
+      operation: "send",
+      slot: "main",
+      target: { kind: "chat", chatId: 42 },
+      view: { kind: "text", text: "Result: 42", parseMode: "plain" },
+    }],
+  });
+});
+
+test("HTML rendering escapes bound text and preserves authored markup", () => {
+  const spec = {
+    initial: "start",
+    context: { default: { name: "<Ada & Co>" } },
+    parameters: {},
+    states: {
+      start: {
+        kind: "state",
+        render: "keep",
+        on: { message: { photo: [{ target: "welcome" }] } },
+      },
+      welcome: {
+        kind: "state",
+        view: {
+          kind: "text",
+          text: [
+            "<b>",
+            { context: "name", escape: "text" },
+            "</b>",
+          ],
+          parseMode: "HTML",
+        },
+        render: "append",
+      },
+    },
+  } as unknown as BotchartSpec;
+  const current = createSession({ spec, target: { kind: "chat", chatId: 42 } });
+  const result = step({
+    spec,
+    session: current,
+    input: { origin: "telegram", source: "message", name: "photo", payload: {} },
+    now: "2026-08-10T14:00:00Z",
+  });
+
+  expect(result.kind === "ok" ? result.intents[0] : result).toEqual({
+    kind: "view",
+    operation: "send",
+    slot: "main",
+    target: { kind: "chat", chatId: 42 },
+    view: {
+      kind: "text",
+      text: "<b>&lt;Ada &amp; Co&gt;</b>",
+      parseMode: "HTML",
+    },
+  });
+});
+
+test("a text view that renders empty fails atomically", () => {
+  const spec = {
+    initial: "start",
+    context: { default: { label: "" } },
+    parameters: {},
+    states: {
+      start: {
+        kind: "state",
+        render: "keep",
+        on: { message: { photo: [{ target: "empty" }] } },
+      },
+      empty: {
+        kind: "state",
+        view: {
+          kind: "text",
+          text: [{ context: "label", escape: "text" }],
+          parseMode: "plain",
+        },
+        render: "append",
+      },
+    },
+  } as unknown as BotchartSpec;
+  const current = createSession({ spec, target: { kind: "chat", chatId: 42 } });
+
+  expect(step({
+    spec,
+    session: current,
+    input: { origin: "telegram", source: "message", name: "photo", payload: {} },
+    now: "2026-08-10T14:00:00Z",
+  })).toEqual({
+    kind: "error",
+    session: current,
+    intents: [],
+    error: {
+      code: "empty_view_text",
+      path: "$.states.empty.view.text",
+      message: "Provide text that renders to at least one character.",
+    },
   });
 });
 
@@ -1223,7 +1586,7 @@ test("a final state emits its view operation before session removal", () => {
       operation: "send",
       slot: "main",
       target: { kind: "chat", chatId: 42 },
-      view: { kind: "text", text: ["Done"], parseMode: "plain" },
+      view: { kind: "text", text: "Done", parseMode: "plain" },
     }],
   });
 });

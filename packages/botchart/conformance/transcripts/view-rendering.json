@@ -1,0 +1,1048 @@
+{
+  "$schema": "https://svyatov.github.io/botchart/conformance/0.1.0/transcript.schema.json",
+  "initial": {
+    "now": "2026-08-10T14:00:00Z",
+    "session": {
+      "callStack": [],
+      "callbacks": {},
+      "context": {
+        "empty": "",
+        "name": "<Ada & Co>",
+        "products": [
+          {
+            "enabled": true,
+            "id": "first",
+            "title": "<First>"
+          },
+          {
+            "enabled": false,
+            "id": "hidden"
+          }
+        ],
+        "tooMany": [
+          {
+            "id": "one"
+          },
+          {
+            "id": "two"
+          },
+          {
+            "id": "three"
+          }
+        ]
+      },
+      "history": {},
+      "position": "start",
+      "seq": 0,
+      "viewSlots": {
+        "main": {
+          "current": {
+            "handle": {
+              "chatId": 42,
+              "kind": "chat",
+              "messageId": 7
+            },
+            "viewKind": "media"
+          },
+          "revision": 0,
+          "target": {
+            "chatId": 42,
+            "kind": "chat"
+          }
+        }
+      }
+    }
+  },
+  "name": "view rendering and reconciliation",
+  "schemaRevision": "0.1.0",
+  "spec": {
+    "path": "../specs/view-rendering.json",
+    "sha256": "c206d7848f2b1d44d96176e8fc4252862275f57c1484f56e6c345063fb7fbe72"
+  },
+  "steps": [
+    {
+      "covers": [
+        "runtime.view.text",
+        "runtime.view.binding.context",
+        "runtime.view.binding.parameter",
+        "runtime.view.binding.item",
+        "runtime.view.html",
+        "runtime.view.keyboard",
+        "runtime.view.projection",
+        "runtime.view.projectionCondition",
+        "runtime.view.render.edit",
+        "runtime.view.reconcile.replace"
+      ],
+      "input": {
+        "name": "photo",
+        "origin": "telegram",
+        "payload": {},
+        "source": "message"
+      },
+      "name": "replace an incompatible view with rendered bindings and projection rows",
+      "result": {
+        "intents": [
+          {
+            "handle": {
+              "chatId": 42,
+              "kind": "chat",
+              "messageId": 7
+            },
+            "kind": "view",
+            "operation": "replace",
+            "slot": "main",
+            "target": {
+              "chatId": 42,
+              "kind": "chat"
+            },
+            "view": {
+              "keyboard": [
+                {
+                  "buttons": [
+                    {
+                      "durable": false,
+                      "kind": "button",
+                      "label": "&lt;First&gt;",
+                      "payload": {
+                        "id": "first"
+                      },
+                      "press": "pick"
+                    }
+                  ],
+                  "kind": "row"
+                }
+              ],
+              "kind": "text",
+              "parseMode": "HTML",
+              "text": "<b>Hello, &lt;Ada &amp; Co&gt;!</b>"
+            }
+          }
+        ],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {
+            "empty": "",
+            "name": "<Ada & Co>",
+            "products": [
+              {
+                "enabled": true,
+                "id": "first",
+                "title": "<First>"
+              },
+              {
+                "enabled": false,
+                "id": "hidden"
+              }
+            ],
+            "tooMany": [
+              {
+                "id": "one"
+              },
+              {
+                "id": "two"
+              },
+              {
+                "id": "three"
+              }
+            ]
+          },
+          "history": {},
+          "position": "summary",
+          "seq": 1,
+          "viewSlots": {
+            "main": {
+              "current": {
+                "handle": {
+                  "chatId": 42,
+                  "kind": "chat",
+                  "messageId": 7
+                },
+                "viewKind": "media"
+              },
+              "revision": 0,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.view.slot.replace",
+        "runtime.view.revision.interactive"
+      ],
+      "input": {
+        "name": "replace",
+        "origin": "adapter",
+        "payload": {
+          "handle": {
+            "chatId": 42,
+            "kind": "chat",
+            "messageId": 8
+          },
+          "interactive": true,
+          "slot": "main",
+          "viewKind": "text"
+        },
+        "source": "view"
+      },
+      "name": "commit the replacement handle and interactive revision",
+      "result": {
+        "intents": [],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {
+            "empty": "",
+            "name": "<Ada & Co>",
+            "products": [
+              {
+                "enabled": true,
+                "id": "first",
+                "title": "<First>"
+              },
+              {
+                "enabled": false,
+                "id": "hidden"
+              }
+            ],
+            "tooMany": [
+              {
+                "id": "one"
+              },
+              {
+                "id": "two"
+              },
+              {
+                "id": "three"
+              }
+            ]
+          },
+          "history": {},
+          "position": "summary",
+          "seq": 1,
+          "viewSlots": {
+            "main": {
+              "current": {
+                "handle": {
+                  "chatId": 42,
+                  "kind": "chat",
+                  "messageId": 8
+                },
+                "viewKind": "text"
+              },
+              "revision": 1,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.view.reconcile.edit"
+      ],
+      "input": {
+        "name": "document",
+        "origin": "telegram",
+        "payload": {},
+        "source": "message"
+      },
+      "name": "edit a compatible text view",
+      "result": {
+        "intents": [
+          {
+            "handle": {
+              "chatId": 42,
+              "kind": "chat",
+              "messageId": 8
+            },
+            "kind": "view",
+            "operation": "edit",
+            "slot": "main",
+            "view": {
+              "kind": "text",
+              "parseMode": "plain",
+              "text": "Details"
+            }
+          }
+        ],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {
+            "empty": "",
+            "name": "<Ada & Co>",
+            "products": [
+              {
+                "enabled": true,
+                "id": "first",
+                "title": "<First>"
+              },
+              {
+                "enabled": false,
+                "id": "hidden"
+              }
+            ],
+            "tooMany": [
+              {
+                "id": "one"
+              },
+              {
+                "id": "two"
+              },
+              {
+                "id": "three"
+              }
+            ]
+          },
+          "history": {},
+          "position": "details",
+          "seq": 2,
+          "viewSlots": {
+            "main": {
+              "current": {
+                "handle": {
+                  "chatId": 42,
+                  "kind": "chat",
+                  "messageId": 8
+                },
+                "viewKind": "text"
+              },
+              "revision": 1,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.view.slot.edit",
+        "runtime.view.revision.static"
+      ],
+      "input": {
+        "name": "edit",
+        "origin": "adapter",
+        "payload": {
+          "interactive": false,
+          "slot": "main",
+          "viewKind": "text"
+        },
+        "source": "view"
+      },
+      "name": "commit a static edit without changing the revision",
+      "result": {
+        "intents": [],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {
+            "empty": "",
+            "name": "<Ada & Co>",
+            "products": [
+              {
+                "enabled": true,
+                "id": "first",
+                "title": "<First>"
+              },
+              {
+                "enabled": false,
+                "id": "hidden"
+              }
+            ],
+            "tooMany": [
+              {
+                "id": "one"
+              },
+              {
+                "id": "two"
+              },
+              {
+                "id": "three"
+              }
+            ]
+          },
+          "history": {},
+          "position": "details",
+          "seq": 2,
+          "viewSlots": {
+            "main": {
+              "current": {
+                "handle": {
+                  "chatId": 42,
+                  "kind": "chat",
+                  "messageId": 8
+                },
+                "viewKind": "text"
+              },
+              "revision": 1,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.view.render.append",
+        "runtime.view.reconcile.send"
+      ],
+      "input": {
+        "name": "video",
+        "origin": "telegram",
+        "payload": {},
+        "source": "message"
+      },
+      "name": "append an interactive view",
+      "result": {
+        "intents": [
+          {
+            "kind": "view",
+            "operation": "send",
+            "slot": "main",
+            "target": {
+              "chatId": 42,
+              "kind": "chat"
+            },
+            "view": {
+              "keyboard": [
+                {
+                  "buttons": [
+                    {
+                      "durable": true,
+                      "kind": "button",
+                      "label": "Keep",
+                      "payload": {
+                        "id": "keep"
+                      },
+                      "press": "pick"
+                    }
+                  ],
+                  "kind": "row"
+                }
+              ],
+              "kind": "text",
+              "parseMode": "plain",
+              "text": "Appended"
+            }
+          }
+        ],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {
+            "empty": "",
+            "name": "<Ada & Co>",
+            "products": [
+              {
+                "enabled": true,
+                "id": "first",
+                "title": "<First>"
+              },
+              {
+                "enabled": false,
+                "id": "hidden"
+              }
+            ],
+            "tooMany": [
+              {
+                "id": "one"
+              },
+              {
+                "id": "two"
+              },
+              {
+                "id": "three"
+              }
+            ]
+          },
+          "history": {},
+          "position": "append",
+          "seq": 3,
+          "viewSlots": {
+            "main": {
+              "current": {
+                "handle": {
+                  "chatId": 42,
+                  "kind": "chat",
+                  "messageId": 8
+                },
+                "viewKind": "text"
+              },
+              "revision": 1,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.view.slot.send"
+      ],
+      "input": {
+        "name": "send",
+        "origin": "adapter",
+        "payload": {
+          "handle": {
+            "chatId": 42,
+            "kind": "chat",
+            "messageId": 9
+          },
+          "interactive": true,
+          "slot": "main",
+          "viewKind": "text"
+        },
+        "source": "view"
+      },
+      "name": "commit the appended message as current",
+      "result": {
+        "intents": [],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {
+            "empty": "",
+            "name": "<Ada & Co>",
+            "products": [
+              {
+                "enabled": true,
+                "id": "first",
+                "title": "<First>"
+              },
+              {
+                "enabled": false,
+                "id": "hidden"
+              }
+            ],
+            "tooMany": [
+              {
+                "id": "one"
+              },
+              {
+                "id": "two"
+              },
+              {
+                "id": "three"
+              }
+            ]
+          },
+          "history": {},
+          "position": "append",
+          "seq": 3,
+          "viewSlots": {
+            "main": {
+              "current": {
+                "handle": {
+                  "chatId": 42,
+                  "kind": "chat",
+                  "messageId": 9
+                },
+                "viewKind": "text"
+              },
+              "revision": 2,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.view.render.delete",
+        "runtime.view.reconcile.delete"
+      ],
+      "input": {
+        "name": "audio",
+        "origin": "telegram",
+        "payload": {},
+        "source": "message"
+      },
+      "name": "delete the current view",
+      "result": {
+        "intents": [
+          {
+            "handle": {
+              "chatId": 42,
+              "kind": "chat",
+              "messageId": 9
+            },
+            "kind": "view",
+            "operation": "delete",
+            "slot": "main"
+          }
+        ],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {
+            "empty": "",
+            "name": "<Ada & Co>",
+            "products": [
+              {
+                "enabled": true,
+                "id": "first",
+                "title": "<First>"
+              },
+              {
+                "enabled": false,
+                "id": "hidden"
+              }
+            ],
+            "tooMany": [
+              {
+                "id": "one"
+              },
+              {
+                "id": "two"
+              },
+              {
+                "id": "three"
+              }
+            ]
+          },
+          "history": {},
+          "position": "remove",
+          "seq": 4,
+          "viewSlots": {
+            "main": {
+              "current": {
+                "handle": {
+                  "chatId": 42,
+                  "kind": "chat",
+                  "messageId": 9
+                },
+                "viewKind": "text"
+              },
+              "revision": 2,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.view.slot.delete"
+      ],
+      "input": {
+        "name": "delete",
+        "origin": "adapter",
+        "payload": {
+          "slot": "main"
+        },
+        "source": "view"
+      },
+      "name": "clear the committed view handle",
+      "result": {
+        "intents": [],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {
+            "empty": "",
+            "name": "<Ada & Co>",
+            "products": [
+              {
+                "enabled": true,
+                "id": "first",
+                "title": "<First>"
+              },
+              {
+                "enabled": false,
+                "id": "hidden"
+              }
+            ],
+            "tooMany": [
+              {
+                "id": "one"
+              },
+              {
+                "id": "two"
+              },
+              {
+                "id": "three"
+              }
+            ]
+          },
+          "history": {},
+          "position": "remove",
+          "seq": 4,
+          "viewSlots": {
+            "main": {
+              "revision": 2,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.view.render.keep"
+      ],
+      "input": {
+        "name": "voice",
+        "origin": "telegram",
+        "payload": {},
+        "source": "message"
+      },
+      "name": "keep the current view unchanged",
+      "result": {
+        "intents": [],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {
+            "empty": "",
+            "name": "<Ada & Co>",
+            "products": [
+              {
+                "enabled": true,
+                "id": "first",
+                "title": "<First>"
+              },
+              {
+                "enabled": false,
+                "id": "hidden"
+              }
+            ],
+            "tooMany": [
+              {
+                "id": "one"
+              },
+              {
+                "id": "two"
+              },
+              {
+                "id": "three"
+              }
+            ]
+          },
+          "history": {},
+          "position": "kept",
+          "seq": 5,
+          "viewSlots": {
+            "main": {
+              "revision": 2,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.view.binding.missing",
+        "runtime.view.atomic"
+      ],
+      "input": {
+        "name": "sticker",
+        "origin": "telegram",
+        "payload": {},
+        "source": "message"
+      },
+      "name": "reject a missing structured binding atomically",
+      "result": {
+        "error": {
+          "code": "missing_view_value",
+          "message": "Provide the missing value before this view renders.",
+          "path": "$.states.missing.view.text[0]"
+        },
+        "intents": [],
+        "kind": "error",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {
+            "empty": "",
+            "name": "<Ada & Co>",
+            "products": [
+              {
+                "enabled": true,
+                "id": "first",
+                "title": "<First>"
+              },
+              {
+                "enabled": false,
+                "id": "hidden"
+              }
+            ],
+            "tooMany": [
+              {
+                "id": "one"
+              },
+              {
+                "id": "two"
+              },
+              {
+                "id": "three"
+              }
+            ]
+          },
+          "history": {},
+          "position": "kept",
+          "seq": 5,
+          "viewSlots": {
+            "main": {
+              "revision": 2,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.view.projectionLimit"
+      ],
+      "input": {
+        "name": "animation",
+        "origin": "telegram",
+        "payload": {},
+        "source": "message"
+      },
+      "name": "reject a projection above its declared limit",
+      "result": {
+        "error": {
+          "code": "projection_limit",
+          "message": "Reduce tooMany to 2 items or fewer before this projection renders.",
+          "path": "$.states.limit.view.keyboard[0]"
+        },
+        "intents": [],
+        "kind": "error",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {
+            "empty": "",
+            "name": "<Ada & Co>",
+            "products": [
+              {
+                "enabled": true,
+                "id": "first",
+                "title": "<First>"
+              },
+              {
+                "enabled": false,
+                "id": "hidden"
+              }
+            ],
+            "tooMany": [
+              {
+                "id": "one"
+              },
+              {
+                "id": "two"
+              },
+              {
+                "id": "three"
+              }
+            ]
+          },
+          "history": {},
+          "position": "kept",
+          "seq": 5,
+          "viewSlots": {
+            "main": {
+              "revision": 2,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.view.emptyText"
+      ],
+      "input": {
+        "name": "location",
+        "origin": "telegram",
+        "payload": {},
+        "source": "message"
+      },
+      "name": "reject text that renders empty",
+      "result": {
+        "error": {
+          "code": "empty_view_text",
+          "message": "Provide text that renders to at least one character.",
+          "path": "$.states.empty.view.text"
+        },
+        "intents": [],
+        "kind": "error",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {
+            "empty": "",
+            "name": "<Ada & Co>",
+            "products": [
+              {
+                "enabled": true,
+                "id": "first",
+                "title": "<First>"
+              },
+              {
+                "enabled": false,
+                "id": "hidden"
+              }
+            ],
+            "tooMany": [
+              {
+                "id": "one"
+              },
+              {
+                "id": "two"
+              },
+              {
+                "id": "three"
+              }
+            ]
+          },
+          "history": {},
+          "position": "kept",
+          "seq": 5,
+          "viewSlots": {
+            "main": {
+              "revision": 2,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.view.binding.input"
+      ],
+      "input": {
+        "name": "contact",
+        "origin": "telegram",
+        "payload": {},
+        "source": "message"
+      },
+      "name": "render a callable unit input binding",
+      "result": {
+        "intents": [
+          {
+            "kind": "view",
+            "operation": "send",
+            "slot": "main",
+            "target": {
+              "chatId": 42,
+              "kind": "chat"
+            },
+            "view": {
+              "kind": "text",
+              "parseMode": "plain",
+              "text": "Input: Unit view"
+            }
+          }
+        ],
+        "kind": "ok",
+        "session": {
+          "callStack": [
+            {
+              "caller": {
+                "entryIndex": 0,
+                "stateId": "caller"
+              },
+              "input": {
+                "title": "Unit view"
+              },
+              "unit": "show"
+            }
+          ],
+          "callbacks": {},
+          "context": {
+            "empty": "",
+            "name": "<Ada & Co>",
+            "products": [
+              {
+                "enabled": true,
+                "id": "first",
+                "title": "<First>"
+              },
+              {
+                "enabled": false,
+                "id": "hidden"
+              }
+            ],
+            "tooMany": [
+              {
+                "id": "one"
+              },
+              {
+                "id": "two"
+              },
+              {
+                "id": "three"
+              }
+            ]
+          },
+          "history": {},
+          "position": "screen",
+          "seq": 7,
+          "viewSlots": {
+            "main": {
+              "revision": 2,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "transcriptVersion": 1
+}

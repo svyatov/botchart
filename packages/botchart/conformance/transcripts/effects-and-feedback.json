@@ -123,9 +123,7 @@
             "view": {
               "kind": "text",
               "parseMode": "plain",
-              "text": [
-                "Loading"
-              ]
+              "text": "Loading"
             }
           }
         ],
