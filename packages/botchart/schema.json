@@ -1,0 +1,1092 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://svyatov.github.io/botchart/schema/0.1.0.json",
+  "title": "botchart canonical spec 0.1.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "version",
+    "schemaRevision",
+    "packs",
+    "scope",
+    "context",
+    "parameters",
+    "guards",
+    "effects",
+    "presses",
+    "units",
+    "stalePress",
+    "initial",
+    "on",
+    "states"
+  ],
+  "properties": {
+    "$schema": { "const": "https://svyatov.github.io/botchart/schema/0.1.0.json" },
+    "version": { "const": 1 },
+    "schemaRevision": { "const": "0.1.0" },
+    "packs": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/pack" }
+    },
+    "scope": { "enum": ["user", "chat", "chat+user", "global"] },
+    "context": { "$ref": "#/$defs/contextSchema" },
+    "parameters": { "$ref": "#/$defs/parameterMap" },
+    "guards": { "$ref": "#/$defs/guardMap" },
+    "effects": { "$ref": "#/$defs/effectMap" },
+    "presses": { "$ref": "#/$defs/pressMap" },
+    "units": { "$ref": "#/$defs/unitMap" },
+    "stalePress": { "$ref": "#/$defs/stalePress" },
+    "initial": { "$ref": "#/$defs/name" },
+    "on": { "$ref": "#/$defs/rootOn" },
+    "states": { "$ref": "#/$defs/stateMap" }
+  },
+  "$defs": {
+    "name": {
+      "type": "string",
+      "pattern": "^[A-Za-z][A-Za-z0-9]*$"
+    },
+    "stateId": {
+      "type": "string",
+      "pattern": "^[A-Za-z][A-Za-z0-9]*(\\.[A-Za-z][A-Za-z0-9]*)*$"
+    },
+    "commandName": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]{0,31}$"
+    },
+    "delay": {
+      "type": "string",
+      "pattern": "^[1-9][0-9]*(ms|s|m|h|d)$"
+    },
+    "semver": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(-((0|[1-9][0-9]*)|[0-9]*[A-Za-z-][0-9A-Za-z-]*)(\\.((0|[1-9][0-9]*)|[0-9]*[A-Za-z-][0-9A-Za-z-]*))*)?(\\+[0-9A-Za-z-]+(\\.[0-9A-Za-z-]+)*)?$"
+    },
+    "pack": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "version"],
+      "properties": {
+        "id": { "type": "string", "format": "uri" },
+        "version": { "$ref": "#/$defs/semver" }
+      }
+    },
+    "contextLocalRef": {
+      "type": "object",
+      "required": ["$ref"],
+      "properties": {
+        "$ref": {
+          "type": "string",
+          "pattern": "^#(?:/.*)?$"
+        }
+      }
+    },
+    "contextScalarSchema": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "enum": ["string", "number", "integer", "boolean"] },
+        "$ref": { "type": "string", "pattern": "^#(?:/.*)?$" }
+      }
+    },
+    "contextScalarOrRef": {
+      "oneOf": [
+        { "$ref": "#/$defs/contextScalarSchema" },
+        { "$ref": "#/$defs/contextLocalRef" }
+      ]
+    },
+    "contextRecordSchema": {
+      "type": "object",
+      "required": ["type", "properties"],
+      "properties": {
+        "type": { "const": "object" },
+        "$ref": { "type": "string", "pattern": "^#(?:/.*)?$" },
+        "properties": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/name" },
+          "additionalProperties": { "$ref": "#/$defs/contextScalarOrRef" }
+        },
+        "required": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/name" }
+        },
+        "additionalProperties": { "const": false },
+        "unevaluatedProperties": { "const": false }
+      },
+      "anyOf": [
+        {
+          "required": ["additionalProperties"],
+          "properties": { "additionalProperties": { "const": false } }
+        },
+        {
+          "required": ["unevaluatedProperties"],
+          "properties": { "unevaluatedProperties": { "const": false } }
+        }
+      ]
+    },
+    "contextArraySchema": {
+      "type": "object",
+      "required": ["type", "items"],
+      "properties": {
+        "type": { "const": "array" },
+        "$ref": { "type": "string", "pattern": "^#(?:/.*)?$" },
+        "items": {
+          "oneOf": [
+            { "$ref": "#/$defs/contextScalarSchema" },
+            { "$ref": "#/$defs/contextRecordSchema" },
+            { "$ref": "#/$defs/contextLocalRef" }
+          ]
+        }
+      }
+    },
+    "contextFieldSchema": {
+      "oneOf": [
+        { "$ref": "#/$defs/contextScalarSchema" },
+        { "$ref": "#/$defs/contextArraySchema" },
+        { "$ref": "#/$defs/contextLocalRef" }
+      ]
+    },
+    "contextSchema": {
+      "type": "object",
+      "required": ["$schema", "type", "properties", "default"],
+      "properties": {
+        "$schema": { "const": "https://json-schema.org/draft/2020-12/schema" },
+        "type": { "const": "object" },
+        "$ref": { "type": "string", "pattern": "^#(?:/.*)?$" },
+        "properties": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/name" },
+          "additionalProperties": { "$ref": "#/$defs/contextFieldSchema" }
+        },
+        "required": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/name" }
+        },
+        "additionalProperties": { "const": false },
+        "unevaluatedProperties": { "const": false },
+        "default": { "type": "object" },
+        "$defs": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/contextFieldSchema" }
+        }
+      },
+      "anyOf": [
+        {
+          "required": ["additionalProperties"],
+          "properties": { "additionalProperties": { "const": false } }
+        },
+        {
+          "required": ["unevaluatedProperties"],
+          "properties": { "unevaluatedProperties": { "const": false } }
+        }
+      ]
+    },
+    "stringField": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type"],
+      "properties": {
+        "type": { "const": "string" },
+        "optional": { "const": true },
+        "enum": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "numberField": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type"],
+      "properties": {
+        "type": { "const": "number" },
+        "optional": { "const": true },
+        "enum": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "number" }
+        }
+      }
+    },
+    "booleanField": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type"],
+      "properties": {
+        "type": { "const": "boolean" },
+        "optional": { "const": true }
+      }
+    },
+    "requiredStringField": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type"],
+      "properties": {
+        "type": { "const": "string" },
+        "enum": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "requiredNumberField": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type"],
+      "properties": {
+        "type": { "const": "number" },
+        "enum": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "number" }
+        }
+      }
+    },
+    "requiredBooleanField": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type"],
+      "properties": {
+        "type": { "const": "boolean" }
+      }
+    },
+    "scalarField": {
+      "oneOf": [
+        { "$ref": "#/$defs/stringField" },
+        { "$ref": "#/$defs/numberField" },
+        { "$ref": "#/$defs/booleanField" }
+      ]
+    },
+    "requiredScalarField": {
+      "oneOf": [
+        { "$ref": "#/$defs/requiredStringField" },
+        { "$ref": "#/$defs/requiredNumberField" },
+        { "$ref": "#/$defs/requiredBooleanField" }
+      ]
+    },
+    "recordField": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "fields"],
+      "properties": {
+        "type": { "const": "record" },
+        "fields": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/name" },
+          "additionalProperties": { "$ref": "#/$defs/scalarField" }
+        }
+      }
+    },
+    "arrayField": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "items"],
+      "properties": {
+        "type": { "const": "array" },
+        "items": {
+          "oneOf": [
+            { "$ref": "#/$defs/requiredScalarField" },
+            { "$ref": "#/$defs/recordField" }
+          ]
+        },
+        "optional": { "const": true }
+      }
+    },
+    "requiredArrayField": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "items"],
+      "properties": {
+        "type": { "const": "array" },
+        "items": {
+          "oneOf": [
+            { "$ref": "#/$defs/requiredScalarField" },
+            { "$ref": "#/$defs/recordField" }
+          ]
+        }
+      }
+    },
+    "field": {
+      "oneOf": [
+        { "$ref": "#/$defs/scalarField" },
+        { "$ref": "#/$defs/arrayField" }
+      ]
+    },
+    "requiredField": {
+      "oneOf": [
+        { "$ref": "#/$defs/requiredScalarField" },
+        { "$ref": "#/$defs/requiredArrayField" }
+      ]
+    },
+    "fieldMap": {
+      "type": "object",
+      "propertyNames": { "$ref": "#/$defs/name" },
+      "additionalProperties": { "$ref": "#/$defs/field" }
+    },
+    "requiredFieldMap": {
+      "type": "object",
+      "propertyNames": { "$ref": "#/$defs/name" },
+      "additionalProperties": { "$ref": "#/$defs/requiredField" }
+    },
+    "stringParameter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "default"],
+      "properties": {
+        "type": { "const": "string" },
+        "enum": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string" }
+        },
+        "default": { "type": "string" }
+      }
+    },
+    "numberParameter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "default"],
+      "properties": {
+        "type": { "const": "number" },
+        "enum": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "number" }
+        },
+        "default": { "type": "number" }
+      }
+    },
+    "booleanParameter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "default"],
+      "properties": {
+        "type": { "const": "boolean" },
+        "default": { "type": "boolean" }
+      }
+    },
+    "arrayParameter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "items", "default"],
+      "properties": {
+        "type": { "const": "array" },
+        "items": {
+          "oneOf": [
+            { "$ref": "#/$defs/requiredScalarField" },
+            { "$ref": "#/$defs/recordField" }
+          ]
+        },
+        "default": { "type": "array" }
+      }
+    },
+    "parameter": {
+      "oneOf": [
+        { "$ref": "#/$defs/stringParameter" },
+        { "$ref": "#/$defs/numberParameter" },
+        { "$ref": "#/$defs/booleanParameter" },
+        { "$ref": "#/$defs/arrayParameter" }
+      ]
+    },
+    "parameterMap": {
+      "type": "object",
+      "propertyNames": { "$ref": "#/$defs/name" },
+      "additionalProperties": { "$ref": "#/$defs/parameter" }
+    },
+    "guardMap": {
+      "type": "object",
+      "propertyNames": { "$ref": "#/$defs/name" },
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false
+      }
+    },
+    "effect": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["input", "outcomes"],
+      "properties": {
+        "input": { "$ref": "#/$defs/requiredFieldMap" },
+        "progress": {
+          "allOf": [
+            { "$ref": "#/$defs/fieldMap" },
+            { "type": "object", "minProperties": 1 }
+          ]
+        },
+        "outcomes": {
+          "type": "object",
+          "minProperties": 1,
+          "propertyNames": { "$ref": "#/$defs/name" },
+          "additionalProperties": { "$ref": "#/$defs/fieldMap" }
+        },
+        "timeout": { "$ref": "#/$defs/delay" }
+      },
+      "allOf": [
+        {
+          "if": {
+            "required": ["timeout"],
+            "properties": { "timeout": true }
+          },
+          "then": {
+            "properties": {
+              "outcomes": {
+                "type": "object",
+                "required": ["timeout"],
+                "properties": { "timeout": true }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "effectMap": {
+      "type": "object",
+      "propertyNames": { "$ref": "#/$defs/name" },
+      "additionalProperties": { "$ref": "#/$defs/effect" }
+    },
+    "press": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["payload"],
+      "properties": {
+        "payload": { "$ref": "#/$defs/requiredFieldMap" }
+      }
+    },
+    "pressMap": {
+      "type": "object",
+      "propertyNames": { "$ref": "#/$defs/name" },
+      "additionalProperties": { "$ref": "#/$defs/press" }
+    },
+    "contextRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["context"],
+      "properties": { "context": { "$ref": "#/$defs/name" } }
+    },
+    "parameterRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["parameter"],
+      "properties": { "parameter": { "$ref": "#/$defs/name" } }
+    },
+    "inputRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["input"],
+      "properties": { "input": { "$ref": "#/$defs/name" } }
+    },
+    "itemRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["item"],
+      "properties": { "item": { "$ref": "#/$defs/name" } }
+    },
+    "valueRef": {
+      "oneOf": [
+        { "$ref": "#/$defs/contextRef" },
+        { "$ref": "#/$defs/parameterRef" },
+        { "$ref": "#/$defs/inputRef" },
+        { "$ref": "#/$defs/itemRef" }
+      ]
+    },
+    "directValue": {
+      "oneOf": [
+        { "type": "string" },
+        { "type": "number" },
+        { "type": "boolean" },
+        { "type": "array" }
+      ]
+    },
+    "value": {
+      "oneOf": [
+        { "$ref": "#/$defs/directValue" },
+        { "$ref": "#/$defs/valueRef" }
+      ]
+    },
+    "from": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["from"],
+      "properties": { "from": { "$ref": "#/$defs/name" } }
+    },
+    "increment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["increment"],
+      "properties": {
+        "increment": { "type": "number", "exclusiveMinimum": 0 }
+      }
+    },
+    "decrement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["decrement"],
+      "properties": {
+        "decrement": { "type": "number", "exclusiveMinimum": 0 }
+      }
+    },
+    "unset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["unset"],
+      "properties": { "unset": { "const": true } }
+    },
+    "assignmentValue": {
+      "oneOf": [
+        { "$ref": "#/$defs/value" },
+        { "$ref": "#/$defs/from" },
+        { "$ref": "#/$defs/increment" },
+        { "$ref": "#/$defs/decrement" },
+        { "$ref": "#/$defs/unset" }
+      ]
+    },
+    "assignment": {
+      "type": "object",
+      "propertyNames": { "$ref": "#/$defs/name" },
+      "additionalProperties": { "$ref": "#/$defs/assignmentValue" }
+    },
+    "scalarValue": {
+      "oneOf": [
+        { "type": "string" },
+        { "type": "number" },
+        { "type": "boolean" },
+        { "$ref": "#/$defs/valueRef" }
+      ]
+    },
+    "comparison": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["left", "op", "right"],
+      "properties": {
+        "left": { "$ref": "#/$defs/scalarValue" },
+        "op": { "enum": ["eq", "neq", "lt", "lte", "gt", "gte"] },
+        "right": { "$ref": "#/$defs/scalarValue" }
+      }
+    },
+    "comparisonCondition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["compare"],
+      "properties": {
+        "compare": { "$ref": "#/$defs/comparison" }
+      }
+    },
+    "guardCondition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["guard"],
+      "properties": {
+        "guard": { "$ref": "#/$defs/name" }
+      }
+    },
+    "condition": {
+      "oneOf": [
+        { "$ref": "#/$defs/guardCondition" },
+        { "$ref": "#/$defs/comparisonCondition" }
+      ]
+    },
+    "viewBinding": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["context", "escape"],
+          "properties": {
+            "context": { "$ref": "#/$defs/name" },
+            "escape": { "enum": ["text", "code", "url"] }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["parameter", "escape"],
+          "properties": {
+            "parameter": { "$ref": "#/$defs/name" },
+            "escape": { "enum": ["text", "code", "url"] }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["input", "escape"],
+          "properties": {
+            "input": { "$ref": "#/$defs/name" },
+            "escape": { "enum": ["text", "code", "url"] }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["item", "escape"],
+          "properties": {
+            "item": { "$ref": "#/$defs/name" },
+            "escape": { "enum": ["text", "code", "url"] }
+          }
+        }
+      ]
+    },
+    "viewPart": {
+      "oneOf": [
+        { "type": "string", "minLength": 1 },
+        { "$ref": "#/$defs/viewBinding" }
+      ]
+    },
+    "viewParts": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/viewPart" }
+    },
+    "pressAnswer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "text"],
+      "properties": {
+        "kind": { "enum": ["toast", "alert"] },
+        "text": { "$ref": "#/$defs/viewParts" }
+      }
+    },
+    "button": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "label", "press", "durable"],
+      "properties": {
+        "kind": { "const": "button" },
+        "label": { "$ref": "#/$defs/viewParts" },
+        "press": { "$ref": "#/$defs/name" },
+        "payload": {
+          "type": "object",
+          "minProperties": 1,
+          "propertyNames": { "$ref": "#/$defs/name" },
+          "additionalProperties": { "$ref": "#/$defs/value" }
+        },
+        "durable": { "type": "boolean" },
+        "when": { "$ref": "#/$defs/comparisonCondition" },
+        "appearance": false
+      }
+    },
+    "row": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "buttons"],
+      "properties": {
+        "kind": { "const": "row" },
+        "buttons": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/button" }
+        }
+      }
+    },
+    "projection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "source", "maxItems", "rows"],
+      "properties": {
+        "kind": { "const": "project" },
+        "source": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["context"],
+          "properties": {
+            "context": { "$ref": "#/$defs/name" }
+          }
+        },
+        "maxItems": { "type": "integer", "exclusiveMinimum": 0 },
+        "rows": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/row" }
+        }
+      }
+    },
+    "keyboardNode": {
+      "oneOf": [
+        { "$ref": "#/$defs/row" },
+        { "$ref": "#/$defs/projection" }
+      ]
+    },
+    "textView": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "text", "parseMode"],
+      "properties": {
+        "kind": { "const": "text" },
+        "text": { "$ref": "#/$defs/viewParts" },
+        "parseMode": { "enum": ["plain", "HTML", "MarkdownV2"] },
+        "keyboard": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/keyboardNode" }
+        }
+      }
+    },
+    "finalTextView": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "text", "parseMode"],
+      "properties": {
+        "kind": { "const": "text" },
+        "text": { "$ref": "#/$defs/viewParts" },
+        "parseMode": { "enum": ["plain", "HTML", "MarkdownV2"] }
+      }
+    },
+    "view": { "$ref": "#/$defs/textView" },
+    "transition": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "target": { "$ref": "#/$defs/stateId" },
+        "when": { "$ref": "#/$defs/condition" },
+        "assign": { "$ref": "#/$defs/assignment" }
+      }
+    },
+    "pressTransition": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "target": { "$ref": "#/$defs/stateId" },
+        "when": { "$ref": "#/$defs/condition" },
+        "assign": { "$ref": "#/$defs/assignment" },
+        "answer": { "$ref": "#/$defs/pressAnswer" }
+      }
+    },
+    "transitionList": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/transition" }
+    },
+    "pressTransitionList": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/pressTransition" }
+    },
+    "pressHandlers": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": { "$ref": "#/$defs/name" },
+      "additionalProperties": { "$ref": "#/$defs/pressTransitionList" }
+    },
+    "commandEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["do"],
+      "properties": {
+        "pattern": { "type": "string", "format": "regex" },
+        "do": { "$ref": "#/$defs/transitionList" }
+      }
+    },
+    "commandHandlers": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": { "$ref": "#/$defs/commandName" },
+      "additionalProperties": { "$ref": "#/$defs/commandEntry" }
+    },
+    "textEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pattern", "do"],
+      "properties": {
+        "pattern": { "type": "string", "format": "regex" },
+        "do": { "$ref": "#/$defs/transitionList" }
+      }
+    },
+    "textHandlers": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/textEntry" }
+    },
+    "messageHandlers": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": false,
+      "properties": {
+        "animation": { "$ref": "#/$defs/transitionList" },
+        "audio": { "$ref": "#/$defs/transitionList" },
+        "contact": { "$ref": "#/$defs/transitionList" },
+        "dice": { "$ref": "#/$defs/transitionList" },
+        "document": { "$ref": "#/$defs/transitionList" },
+        "location": { "$ref": "#/$defs/transitionList" },
+        "photo": { "$ref": "#/$defs/transitionList" },
+        "poll": { "$ref": "#/$defs/transitionList" },
+        "sticker": { "$ref": "#/$defs/transitionList" },
+        "venue": { "$ref": "#/$defs/transitionList" },
+        "video": { "$ref": "#/$defs/transitionList" },
+        "videoNote": { "$ref": "#/$defs/transitionList" },
+        "voice": { "$ref": "#/$defs/transitionList" }
+      }
+    },
+    "afterEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["delay", "do"],
+      "properties": {
+        "delay": { "$ref": "#/$defs/delay" },
+        "do": { "$ref": "#/$defs/transitionList" }
+      }
+    },
+    "afterHandlers": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": { "$ref": "#/$defs/name" },
+      "additionalProperties": { "$ref": "#/$defs/afterEntry" }
+    },
+    "lifecycleHandlers": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": false,
+      "properties": {
+        "blocked": { "$ref": "#/$defs/transitionList" },
+        "error": { "$ref": "#/$defs/transitionList" },
+        "unhandled": { "$ref": "#/$defs/transitionList" }
+      }
+    },
+    "rawEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["do"],
+      "properties": {
+        "when": { "$ref": "#/$defs/condition" },
+        "do": { "$ref": "#/$defs/transitionList" }
+      }
+    },
+    "rawHandlers": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/rawEntry" }
+    },
+    "rootOn": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "press": { "$ref": "#/$defs/pressHandlers" },
+        "command": { "$ref": "#/$defs/commandHandlers" },
+        "text": { "$ref": "#/$defs/textHandlers" },
+        "message": { "$ref": "#/$defs/messageHandlers" },
+        "lifecycle": { "$ref": "#/$defs/lifecycleHandlers" },
+        "raw": { "$ref": "#/$defs/rawHandlers" }
+      }
+    },
+    "stateOn": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "press": { "$ref": "#/$defs/pressHandlers" },
+        "command": { "$ref": "#/$defs/commandHandlers" },
+        "text": { "$ref": "#/$defs/textHandlers" },
+        "message": { "$ref": "#/$defs/messageHandlers" },
+        "after": { "$ref": "#/$defs/afterHandlers" },
+        "lifecycle": { "$ref": "#/$defs/lifecycleHandlers" },
+        "raw": { "$ref": "#/$defs/rawHandlers" }
+      }
+    },
+    "producedAssignment": {
+      "type": "object",
+      "propertyNames": { "$ref": "#/$defs/name" },
+      "additionalProperties": { "$ref": "#/$defs/from" }
+    },
+    "operationResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["assign", "do"],
+      "properties": {
+        "assign": { "$ref": "#/$defs/producedAssignment" },
+        "do": { "$ref": "#/$defs/transitionList" }
+      }
+    },
+    "run": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "effect", "input", "outcomes"],
+      "properties": {
+        "kind": { "const": "run" },
+        "effect": { "$ref": "#/$defs/name" },
+        "input": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/name" },
+          "additionalProperties": { "$ref": "#/$defs/value" }
+        },
+        "onProgress": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["assign"],
+          "properties": {
+            "assign": { "$ref": "#/$defs/producedAssignment" }
+          }
+        },
+        "outcomes": {
+          "type": "object",
+          "minProperties": 1,
+          "propertyNames": { "$ref": "#/$defs/name" },
+          "additionalProperties": { "$ref": "#/$defs/operationResult" }
+        }
+      }
+    },
+    "call": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "unit", "input", "onReturn"],
+      "properties": {
+        "kind": { "const": "call" },
+        "unit": { "$ref": "#/$defs/name" },
+        "input": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/name" },
+          "additionalProperties": { "$ref": "#/$defs/value" }
+        },
+        "onReturn": { "$ref": "#/$defs/operationResult" }
+      }
+    },
+    "entryNode": {
+      "oneOf": [
+        { "$ref": "#/$defs/run" },
+        { "$ref": "#/$defs/call" }
+      ]
+    },
+    "entry": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/entryNode" }
+    },
+    "atomicStateWithView": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "view", "render"],
+      "properties": {
+        "kind": { "const": "state" },
+        "view": { "$ref": "#/$defs/view" },
+        "render": { "enum": ["edit", "append"] },
+        "entry": { "$ref": "#/$defs/entry" },
+        "on": { "$ref": "#/$defs/stateOn" }
+      }
+    },
+    "atomicStateWithoutView": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "render"],
+      "properties": {
+        "kind": { "const": "state" },
+        "render": { "enum": ["keep", "delete"] },
+        "entry": { "$ref": "#/$defs/entry" },
+        "on": { "$ref": "#/$defs/stateOn" }
+      }
+    },
+    "compoundState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "initial", "states"],
+      "properties": {
+        "kind": { "const": "compound" },
+        "initial": { "$ref": "#/$defs/name" },
+        "states": { "$ref": "#/$defs/stateMap" },
+        "history": { "enum": ["shallow", "deep"] },
+        "entry": { "$ref": "#/$defs/entry" },
+        "on": { "$ref": "#/$defs/stateOn" }
+      }
+    },
+    "finalStateWithView": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "view", "render"],
+      "properties": {
+        "kind": { "const": "final" },
+        "view": { "$ref": "#/$defs/finalTextView" },
+        "render": { "enum": ["edit", "append"] }
+      }
+    },
+    "finalStateWithoutView": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "render"],
+      "properties": {
+        "kind": { "const": "final" },
+        "render": { "const": "delete" }
+      }
+    },
+    "returnState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "output"],
+      "properties": {
+        "kind": { "const": "return" },
+        "output": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/name" },
+          "additionalProperties": { "$ref": "#/$defs/value" }
+        }
+      }
+    },
+    "stateNode": {
+      "oneOf": [
+        { "$ref": "#/$defs/atomicStateWithView" },
+        { "$ref": "#/$defs/atomicStateWithoutView" },
+        { "$ref": "#/$defs/compoundState" },
+        { "$ref": "#/$defs/finalStateWithView" },
+        { "$ref": "#/$defs/finalStateWithoutView" },
+        { "$ref": "#/$defs/returnState" }
+      ]
+    },
+    "stateMap": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": { "$ref": "#/$defs/name" },
+      "additionalProperties": { "$ref": "#/$defs/stateNode" }
+    },
+    "unit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["input", "output", "initial", "states"],
+      "properties": {
+        "input": { "$ref": "#/$defs/requiredFieldMap" },
+        "output": { "$ref": "#/$defs/fieldMap" },
+        "initial": { "$ref": "#/$defs/name" },
+        "states": { "$ref": "#/$defs/stateMap" }
+      }
+    },
+    "unitMap": {
+      "type": "object",
+      "propertyNames": { "$ref": "#/$defs/name" },
+      "additionalProperties": { "$ref": "#/$defs/unit" }
+    },
+    "stalePress": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["action"],
+          "properties": {
+            "action": { "const": "ignore" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["action", "answer"],
+          "properties": {
+            "action": { "const": "answer" },
+            "answer": { "$ref": "#/$defs/pressAnswer" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["action"],
+          "properties": {
+            "action": { "const": "rerender" },
+            "answer": { "$ref": "#/$defs/pressAnswer" }
+          }
+        }
+      ]
+    }
+  }
+}

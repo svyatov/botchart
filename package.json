@@ -9,6 +9,7 @@
     "clean": "rm -rf packages/*/dist packages/*/*.tsbuildinfo"
   },
   "devDependencies": {
+    "ajv": "8.20.0",
     "botchart": "workspace:*",
     "botchart-grammy": "workspace:*",
     "typescript": "^7.0.2"
