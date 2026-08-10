@@ -14,9 +14,10 @@
       "types": "./dist/simulator.d.ts",
       "default": "./dist/simulator.js"
     },
+    "./schema": "./schema.json",
     "./package.json": "./package.json"
   },
-  "files": ["dist"],
+  "files": ["dist", "schema.json"],
   "sideEffects": false,
   "engines": {
     "node": ">=22"

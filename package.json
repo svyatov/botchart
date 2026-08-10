@@ -4,11 +4,12 @@
   "type": "module",
   "workspaces": ["packages/*"],
   "scripts": {
-    "build": "tsc -p packages/botchart && tsc -p packages/botchart-grammy",
+    "build": "tsc -p packages/botchart && tsc -p packages/botchart/tsconfig.type-tests.json && tsc -p packages/botchart-grammy",
     "test": "bun test",
     "clean": "rm -rf packages/*/dist packages/*/*.tsbuildinfo"
   },
   "devDependencies": {
+    "ajv": "8.20.0",
     "botchart": "workspace:*",
     "botchart-grammy": "workspace:*",
     "typescript": "^7.0.2"
