@@ -1,0 +1,232 @@
+{
+  "$schema": "https://svyatov.github.io/botchart/schema/0.1.0.json",
+  "version": 1,
+  "schemaRevision": "0.1.0",
+  "packs": [],
+  "scope": "chat+user",
+  "context": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+      "name": { "type": "string" },
+      "empty": { "type": "string" },
+      "missing": { "type": "string" },
+      "products": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": { "type": "string" },
+            "title": { "type": "string" },
+            "enabled": { "type": "boolean" }
+          },
+          "required": ["id", "enabled"],
+          "additionalProperties": false
+        }
+      },
+      "tooMany": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": { "id": { "type": "string" } },
+          "required": ["id"],
+          "additionalProperties": false
+        }
+      }
+    },
+    "required": ["name", "empty", "products", "tooMany"],
+    "additionalProperties": false,
+    "default": {
+      "name": "<Ada & Co>",
+      "empty": "",
+      "products": [
+        { "id": "first", "title": "<First>", "enabled": true },
+        { "id": "hidden", "enabled": false }
+      ],
+      "tooMany": [{ "id": "one" }, { "id": "two" }, { "id": "three" }]
+    }
+  },
+  "parameters": {
+    "punctuation": { "type": "string", "default": "!" },
+    "unitTitle": { "type": "string", "default": "Unit view" }
+  },
+  "guards": {},
+  "effects": {},
+  "presses": {
+    "pick": {
+      "payload": { "id": { "type": "string" } }
+    }
+  },
+  "units": {
+    "show": {
+      "input": { "title": { "type": "string" } },
+      "output": {},
+      "initial": "screen",
+      "states": {
+        "screen": {
+          "kind": "state",
+          "view": {
+            "kind": "text",
+            "text": ["Input: ", { "input": "title", "escape": "text" }],
+            "parseMode": "plain"
+          },
+          "render": "edit"
+        }
+      }
+    }
+  },
+  "stalePress": { "action": "ignore" },
+  "initial": "start",
+  "on": {
+    "message": {
+      "photo": [{ "target": "summary" }],
+      "document": [{ "target": "details" }],
+      "video": [{ "target": "append" }],
+      "audio": [{ "target": "remove" }],
+      "voice": [{ "target": "kept" }],
+      "sticker": [{ "target": "missing" }],
+      "animation": [{ "target": "limit" }],
+      "location": [{ "target": "empty" }],
+      "contact": [{ "target": "caller" }]
+    }
+  },
+  "states": {
+    "start": { "kind": "state", "render": "keep" },
+    "summary": {
+      "kind": "state",
+      "view": {
+        "kind": "text",
+        "text": [
+          "<b>Hello, ",
+          { "context": "name", "escape": "text" },
+          { "parameter": "punctuation", "escape": "text" },
+          "</b>"
+        ],
+        "parseMode": "HTML",
+        "keyboard": [
+          {
+            "kind": "project",
+            "source": { "context": "products" },
+            "maxItems": 2,
+            "rows": [
+              {
+                "kind": "row",
+                "buttons": [
+                  {
+                    "kind": "button",
+                    "label": [{ "item": "title", "escape": "text" }],
+                    "press": "pick",
+                    "payload": { "id": { "item": "id" } },
+                    "durable": false,
+                    "when": {
+                      "compare": {
+                        "left": { "item": "enabled" },
+                        "op": "eq",
+                        "right": true
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "render": "edit"
+    },
+    "details": {
+      "kind": "state",
+      "view": {
+        "kind": "text",
+        "text": ["Details"],
+        "parseMode": "plain"
+      },
+      "render": "edit"
+    },
+    "append": {
+      "kind": "state",
+      "view": {
+        "kind": "text",
+        "text": ["Appended"],
+        "parseMode": "plain",
+        "keyboard": [
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": ["Keep"],
+                "press": "pick",
+                "payload": { "id": "keep" },
+                "durable": true
+              }
+            ]
+          }
+        ]
+      },
+      "render": "append"
+    },
+    "remove": { "kind": "state", "render": "delete" },
+    "kept": { "kind": "state", "render": "keep" },
+    "missing": {
+      "kind": "state",
+      "view": {
+        "kind": "text",
+        "text": [{ "context": "missing", "escape": "text" }],
+        "parseMode": "plain"
+      },
+      "render": "append"
+    },
+    "limit": {
+      "kind": "state",
+      "view": {
+        "kind": "text",
+        "text": ["Limit"],
+        "parseMode": "plain",
+        "keyboard": [
+          {
+            "kind": "project",
+            "source": { "context": "tooMany" },
+            "maxItems": 2,
+            "rows": [
+              {
+                "kind": "row",
+                "buttons": [
+                  {
+                    "kind": "button",
+                    "label": [{ "item": "id", "escape": "text" }],
+                    "press": "pick",
+                    "payload": { "id": { "item": "id" } },
+                    "durable": false
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "render": "append"
+    },
+    "empty": {
+      "kind": "state",
+      "view": {
+        "kind": "text",
+        "text": [{ "context": "empty", "escape": "text" }],
+        "parseMode": "plain"
+      },
+      "render": "append"
+    },
+    "caller": {
+      "kind": "state",
+      "render": "keep",
+      "entry": [
+        {
+          "kind": "call",
+          "unit": "show",
+          "input": { "title": { "parameter": "unitTitle" } },
+          "onReturn": { "assign": {}, "do": [{}] }
+        }
+      ]
+    }
+  }
+}

@@ -4,6 +4,7 @@ import compoundSpec from "botchart/conformance/specs/compound-history-and-units.
 import effectSpec from "botchart/conformance/specs/effects-and-feedback.json" with { type: "json" };
 import guardSpec from "botchart/conformance/specs/guards-and-assignments.json" with { type: "json" };
 import lifecycleSpec from "botchart/conformance/specs/session-lifecycle.json" with { type: "json" };
+import viewSpec from "botchart/conformance/specs/view-rendering.json" with { type: "json" };
 import schema from "botchart/schema" with { type: "json" };
 
 const schemaId = "https://svyatov.github.io/botchart/schema/0.1.0.json";
@@ -75,6 +76,10 @@ test("published schema accepts the compound history and units conformance spec",
 
 test("published schema accepts the effects and feedback conformance spec", () => {
   expect(validate(effectSpec), JSON.stringify(validate.errors)).toBe(true);
+});
+
+test("published schema accepts the view rendering conformance spec", () => {
+  expect(validate(viewSpec), JSON.stringify(validate.errors)).toBe(true);
 });
 
 const completeSpec = {

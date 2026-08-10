@@ -164,7 +164,8 @@
     },
     {
       "covers": [
-        "runtime.session.final"
+        "runtime.session.final",
+        "runtime.view.final"
       ],
       "input": {
         "name": "photo",
@@ -186,9 +187,7 @@
             "view": {
               "kind": "text",
               "parseMode": "plain",
-              "text": [
-                "Done"
-              ]
+              "text": "Done"
             }
           }
         ],
