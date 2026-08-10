@@ -14,10 +14,11 @@
       "types": "./dist/simulator.d.ts",
       "default": "./dist/simulator.js"
     },
+    "./conformance/*": "./conformance/*",
     "./schema": "./schema.json",
     "./package.json": "./package.json"
   },
-  "files": ["dist", "schema.json"],
+  "files": ["conformance", "dist", "schema.json"],
   "sideEffects": false,
   "engines": {
     "node": ">=22"

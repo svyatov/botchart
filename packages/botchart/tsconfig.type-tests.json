@@ -6,5 +6,9 @@
     "noEmit": true,
     "sourceMap": false
   },
-  "include": ["../../test/authoring.types.ts", "../../test/runtime.types.ts"]
+  "include": [
+    "../../test/authoring.types.ts",
+    "../../test/runtime.types.ts",
+    "../../test/simulator.types.ts"
+  ]
 }

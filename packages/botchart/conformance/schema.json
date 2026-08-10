@@ -1,0 +1,405 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://svyatov.github.io/botchart/conformance/0.1.0/transcript.schema.json",
+  "title": "botchart golden transcript",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "const": "https://svyatov.github.io/botchart/conformance/0.1.0/transcript.schema.json"
+    },
+    "transcriptVersion": { "const": 1 },
+    "schemaRevision": { "const": "0.1.0" },
+    "name": { "type": "string", "minLength": 1 },
+    "spec": { "$ref": "#/$defs/specReference" },
+    "initial": { "$ref": "#/$defs/initial" },
+    "steps": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/step" }
+    }
+  },
+  "required": [
+    "$schema",
+    "transcriptVersion",
+    "schemaRevision",
+    "name",
+    "spec",
+    "initial",
+    "steps"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "jsonValue": {
+      "oneOf": [
+        { "type": "null" },
+        { "type": "boolean" },
+        { "type": "number" },
+        { "type": "string" },
+        {
+          "type": "array",
+          "items": { "$ref": "#/$defs/jsonValue" }
+        },
+        {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/jsonValue" }
+        }
+      ]
+    },
+    "jsonObject": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/jsonValue" }
+    },
+    "stateId": {
+      "type": "string",
+      "pattern": "^[A-Za-z][A-Za-z0-9]*(?:\\.[A-Za-z][A-Za-z0-9]*)*$"
+    },
+    "utcTime": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\\.[0-9]+)?Z$"
+    },
+    "specReference": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^(?!/)(?![A-Za-z][A-Za-z0-9+.-]*:).+\\.json$"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "required": ["path", "sha256"],
+      "additionalProperties": false
+    },
+    "initial": {
+      "type": "object",
+      "properties": {
+        "session": { "$ref": "#/$defs/session" },
+        "now": { "$ref": "#/$defs/utcTime" }
+      },
+      "required": ["session", "now"],
+      "additionalProperties": false
+    },
+    "step": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "input": { "$ref": "#/$defs/coreInput" },
+        "advance": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]*(?:ms|s|m|h|d)$"
+        },
+        "covers": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]*(?:\\.[a-z][a-zA-Z0-9]*)+$"
+          }
+        },
+        "result": { "$ref": "#/$defs/coreResult" }
+      },
+      "required": ["name", "input", "covers", "result"],
+      "additionalProperties": false
+    },
+    "coreInput": {
+      "type": "object",
+      "properties": {
+        "origin": {
+          "enum": ["telegram", "effect", "scheduler", "adapter"]
+        },
+        "source": { "type": "string", "minLength": 1 },
+        "name": { "type": "string", "minLength": 1 },
+        "payload": { "$ref": "#/$defs/jsonValue" }
+      },
+      "required": ["origin", "source", "name", "payload"],
+      "additionalProperties": false
+    },
+    "session": {
+      "type": "object",
+      "properties": {
+        "position": { "$ref": "#/$defs/stateId" },
+        "context": { "$ref": "#/$defs/jsonObject" },
+        "history": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/stateId" }
+        },
+        "callStack": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/callFrame" }
+        },
+        "seq": { "type": "integer", "minimum": 0 },
+        "viewSlots": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/viewSlot" }
+        },
+        "callbacks": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/callbackRecord" }
+        }
+      },
+      "required": [
+        "position",
+        "context",
+        "history",
+        "callStack",
+        "seq",
+        "viewSlots",
+        "callbacks"
+      ],
+      "additionalProperties": false
+    },
+    "callFrame": {
+      "type": "object",
+      "properties": {
+        "unit": { "type": "string", "minLength": 1 },
+        "input": { "$ref": "#/$defs/jsonObject" },
+        "caller": {
+          "type": "object",
+          "properties": {
+            "stateId": { "$ref": "#/$defs/stateId" },
+            "entryIndex": { "type": "integer", "minimum": 0 }
+          },
+          "required": ["stateId", "entryIndex"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["unit", "input", "caller"],
+      "additionalProperties": false
+    },
+    "chatTarget": {
+      "type": "object",
+      "properties": {
+        "kind": { "const": "chat" },
+        "chatId": { "type": "number" }
+      },
+      "required": ["kind", "chatId"],
+      "additionalProperties": false
+    },
+    "chatHandle": {
+      "type": "object",
+      "properties": {
+        "kind": { "const": "chat" },
+        "chatId": { "type": "number" },
+        "messageId": { "type": "number" }
+      },
+      "required": ["kind", "chatId", "messageId"],
+      "additionalProperties": false
+    },
+    "viewSlot": {
+      "type": "object",
+      "properties": {
+        "target": { "$ref": "#/$defs/chatTarget" },
+        "revision": { "type": "integer", "minimum": 0 },
+        "current": {
+          "type": "object",
+          "properties": {
+            "handle": { "$ref": "#/$defs/chatHandle" },
+            "viewKind": { "type": "string", "minLength": 1 }
+          },
+          "required": ["handle", "viewKind"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["target", "revision"],
+      "additionalProperties": false
+    },
+    "callbackRecord": {
+      "type": "object",
+      "properties": {
+        "sessionKey": { "type": "string", "minLength": 1 },
+        "stateId": { "$ref": "#/$defs/stateId" },
+        "seq": { "type": "integer", "minimum": 0 },
+        "viewSlot": { "type": "string", "minLength": 1 },
+        "viewRevision": { "type": "integer", "minimum": 0 },
+        "press": { "type": "string", "minLength": 1 },
+        "payload": { "$ref": "#/$defs/jsonObject" },
+        "durable": { "type": "boolean" }
+      },
+      "required": [
+        "sessionKey",
+        "stateId",
+        "seq",
+        "viewSlot",
+        "viewRevision",
+        "press",
+        "payload",
+        "durable"
+      ],
+      "additionalProperties": false
+    },
+    "stalenessToken": {
+      "type": "object",
+      "properties": {
+        "sessionKey": { "type": "string", "minLength": 1 },
+        "stateId": { "$ref": "#/$defs/stateId" },
+        "seq": { "type": "integer", "minimum": 0 }
+      },
+      "required": ["sessionKey", "stateId", "seq"],
+      "additionalProperties": false
+    },
+    "viewIntent": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": { "const": "view" },
+            "operation": { "const": "send" },
+            "slot": { "type": "string", "minLength": 1 },
+            "target": { "$ref": "#/$defs/chatTarget" },
+            "view": { "$ref": "#/$defs/jsonObject" }
+          },
+          "required": ["kind", "operation", "slot", "target", "view"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": { "const": "view" },
+            "operation": { "const": "edit" },
+            "slot": { "type": "string", "minLength": 1 },
+            "handle": { "$ref": "#/$defs/chatHandle" },
+            "view": { "$ref": "#/$defs/jsonObject" }
+          },
+          "required": ["kind", "operation", "slot", "handle", "view"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": { "const": "view" },
+            "operation": { "const": "delete" },
+            "slot": { "type": "string", "minLength": 1 },
+            "handle": { "$ref": "#/$defs/chatHandle" }
+          },
+          "required": ["kind", "operation", "slot", "handle"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": { "const": "view" },
+            "operation": { "const": "replace" },
+            "slot": { "type": "string", "minLength": 1 },
+            "target": { "$ref": "#/$defs/chatTarget" },
+            "handle": { "$ref": "#/$defs/chatHandle" },
+            "view": { "$ref": "#/$defs/jsonObject" }
+          },
+          "required": ["kind", "operation", "slot", "target", "handle", "view"],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "effectIntent": {
+      "type": "object",
+      "properties": {
+        "kind": { "const": "effect" },
+        "id": { "type": "string", "minLength": 1 },
+        "effect": { "type": "string", "minLength": 1 },
+        "input": { "$ref": "#/$defs/jsonObject" },
+        "token": { "$ref": "#/$defs/stalenessToken" }
+      },
+      "required": ["kind", "id", "effect", "input", "token"],
+      "additionalProperties": false
+    },
+    "timerIntent": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": { "const": "timer" },
+            "operation": { "const": "schedule" },
+            "id": { "type": "string", "minLength": 1 },
+            "timer": { "type": "string", "minLength": 1 },
+            "fireAt": { "$ref": "#/$defs/utcTime" },
+            "token": { "$ref": "#/$defs/stalenessToken" }
+          },
+          "required": ["kind", "operation", "id", "timer", "fireAt", "token"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": { "const": "timer" },
+            "operation": { "const": "cancel" },
+            "id": { "type": "string", "minLength": 1 }
+          },
+          "required": ["kind", "operation", "id"],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "pressAnswerIntent": {
+      "type": "object",
+      "properties": {
+        "kind": { "const": "pressAnswer" },
+        "callbackQueryId": { "type": "string", "minLength": 1 },
+        "answer": {
+          "type": "object",
+          "properties": {
+            "kind": { "enum": ["toast", "alert"] },
+            "text": { "type": "string", "minLength": 1 }
+          },
+          "required": ["kind", "text"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["kind", "callbackQueryId"],
+      "additionalProperties": false
+    },
+    "intent": {
+      "oneOf": [
+        { "$ref": "#/$defs/viewIntent" },
+        { "$ref": "#/$defs/effectIntent" },
+        { "$ref": "#/$defs/timerIntent" },
+        { "$ref": "#/$defs/pressAnswerIntent" }
+      ]
+    },
+    "coreError": {
+      "type": "object",
+      "properties": {
+        "code": { "type": "string", "minLength": 1 },
+        "path": { "type": "string", "minLength": 1 },
+        "message": { "type": "string", "minLength": 1 }
+      },
+      "required": ["code", "path", "message"],
+      "additionalProperties": false
+    },
+    "coreResult": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": { "const": "ok" },
+            "session": {
+              "oneOf": [
+                { "$ref": "#/$defs/session" },
+                { "type": "null" }
+              ]
+            },
+            "intents": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/intent" }
+            }
+          },
+          "required": ["kind", "session", "intents"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": { "const": "error" },
+            "session": { "$ref": "#/$defs/session" },
+            "intents": { "type": "array", "maxItems": 0 },
+            "error": { "$ref": "#/$defs/coreError" }
+          },
+          "required": ["kind", "session", "intents", "error"],
+          "additionalProperties": false
+        }
+      ]
+    }
+  }
+}

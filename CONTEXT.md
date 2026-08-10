@@ -193,11 +193,24 @@ Press, timer, and lifecycle events enter their distinct source and use the same 
 
 ### Runtime
 
+**Core input**:
+A portable tagged event or feedback value passed to the interpreter. Telegram events are normalized, while a raw event can retain raw JSON.
+
 **Scope**:
 The axis that derives a session key. Its values are `user`, `chat`, `chat+user`, and `global`. Authoring defaults to `chat+user`, and canonical JSON always states the value.
 
 **Session**:
-The stored state of one conversation, keyed by the scope axis. It holds a position, context, state history, and call stack.
+The stored state of one conversation, keyed by the scope axis. It holds a position, context, state history, call stack, `seq`, view slots, and callback records.
+
+**Semantic session snapshot**:
+The storage-independent, complete session state that can change later interpreter behavior.
+
+**Golden transcript**:
+A versioned conformance record for one spec and a sequence of pure interpreter steps. It is also input for simulator replay.
+
+**Transcript step**:
+One pure interpreter call with one core input. It records the input origin, resulting semantic session snapshot, and emitted intents.
+On failure, it preserves the prior session and emits no intents.
 
 **Call frame**:
 The suspended caller and immutable inputs for one active unit call. Call frames form a stack and share the session context.
