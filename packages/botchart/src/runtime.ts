@@ -209,6 +209,7 @@ function evaluationError(code: string, path: string, message: string): Evaluatio
 type SelectedTransition = {
   readonly transition: Transition;
   readonly path: string;
+  readonly input: CoreInput;
 };
 
 export function createSession<Context extends JsonObject = JsonObject>(
@@ -243,16 +244,7 @@ function runStep<Context extends JsonObject>(
   request: CoreRunnerRequest<Context>,
   options: CreateRunnerOptions<Context>,
 ): CoreResult<Context> {
-  const state = stateAt(request.spec, request.session.position);
-  const transitions = request.input.source === "message"
-    ? messageTransitions(state, request.input.name)
-    : undefined;
-  const selection = selectTransition(
-    transitions,
-    `${statePath(request.session.position)}.on.message.${request.input.name}`,
-    request,
-    options,
-  );
+  const selection = selectEventTransition(request, options);
   if (selection.kind === "error") {
     return {
       kind: "error",
@@ -263,13 +255,16 @@ function runStep<Context extends JsonObject>(
   }
   const selected = selection.value;
   const transition = selected?.transition;
+  const selectedRequest = selected === undefined
+    ? request
+    : { ...request, input: selected.input };
 
   const assignment = transition?.assign === undefined
     ? { kind: "ok", value: request.session.context } as const
     : applyAssignments(
         transition.assign,
         `${selected!.path}.assign`,
-        request,
+        selectedRequest,
         options,
       );
   if (assignment.kind === "error") {
@@ -318,6 +313,119 @@ function runStep<Context extends JsonObject>(
   };
 }
 
+function selectEventTransition<Context extends JsonObject>(
+  request: CoreRunnerRequest<Context>,
+  options: CreateRunnerOptions<Context>,
+): Evaluation<SelectedTransition | undefined> {
+  const featureSource = isFeatureSource(request);
+  if (
+    request.input.source !== "press"
+    && request.input.source !== "command"
+    && request.input.source !== "text"
+    && request.input.source !== "message"
+    && request.input.source !== "timer"
+    && request.input.source !== "lifecycle"
+    && request.input.source !== "raw"
+    && !featureSource
+  ) {
+    return { kind: "ok", value: undefined };
+  }
+
+  const selection = request.input.source === "raw"
+    ? selectRawTransitionInHierarchy(request, options)
+    : selectSourceTransitionInHierarchy(request, options);
+  if (selection.kind === "error" || selection.value !== undefined) return selection;
+
+  if (
+    request.input.source === "command"
+    || request.input.source === "text"
+    || request.input.source === "message"
+    || featureSource
+  ) {
+    const rawSelection = selectRawTransitionInHierarchy(request, options);
+    if (rawSelection.kind === "error" || rawSelection.value !== undefined) {
+      return rawSelection;
+    }
+  }
+  return request.input.source === "lifecycle"
+    ? selection
+    : selectUnhandledTransition(request, options);
+}
+
+function isFeatureSource<Context extends JsonObject>(
+  request: CoreRunnerRequest<Context>,
+): boolean {
+  return request.input.origin === "telegram"
+    && request.spec.packs?.length > 0
+    && ![
+      "press",
+      "command",
+      "text",
+      "message",
+      "timer",
+      "lifecycle",
+      "raw",
+      "after",
+    ].includes(request.input.source);
+}
+
+function selectUnhandledTransition<Context extends JsonObject>(
+  request: CoreRunnerRequest<Context>,
+  options: CreateRunnerOptions<Context>,
+): Evaluation<SelectedTransition | undefined> {
+  return selectSourceTransitionInHierarchy(
+    {
+      ...request,
+      input: {
+        ...request.input,
+        source: "lifecycle",
+        name: "unhandled",
+      },
+    },
+    options,
+  );
+}
+
+function selectSourceTransitionInHierarchy<Context extends JsonObject>(
+  request: CoreRunnerRequest<Context>,
+  options: CreateRunnerOptions<Context>,
+): Evaluation<SelectedTransition | undefined> {
+  for (const scope of handlerScopes(request.spec, request.session.position)) {
+    const selection = selectOwnerTransition(
+      scope.owner,
+      scope.path,
+      request,
+      options,
+    );
+    if (selection.kind === "error" || selection.value !== undefined) return selection;
+  }
+  return { kind: "ok", value: undefined };
+}
+
+function selectOwnerTransition<Context extends JsonObject>(
+  owner: StateNode | BotchartSpec | undefined,
+  ownerPath: string,
+  request: CoreRunnerRequest<Context>,
+  options: CreateRunnerOptions<Context>,
+): Evaluation<SelectedTransition | undefined> {
+  const source = request.input.source;
+  if (source === "text") {
+    return selectTextTransition(owner, ownerPath, request, options);
+  }
+  if (source === "command") {
+    return selectCommandTransition(owner, ownerPath, request, options);
+  }
+  if (source === "timer") {
+    return selectAfterTransition(owner, ownerPath, request, options);
+  }
+  return selectTransition(
+    directTransitions(owner, source, request.input.name),
+    `${ownerPath}.on.${source}.${request.input.name}`,
+    request,
+    options,
+  );
+}
+
 function selectTransition<Context extends JsonObject>(
   transitions: readonly Transition[] | undefined,
   path: string,
@@ -329,7 +437,10 @@ function selectTransition<Context extends JsonObject>(
   for (const [index, transition] of transitions.entries()) {
     const transitionPath = `${path}[${index}]`;
     if (transition.when === undefined) {
-      return { kind: "ok", value: { transition, path: transitionPath } };
+      return {
+        kind: "ok",
+        value: { transition, path: transitionPath, input: request.input },
+      };
     }
     const condition = evaluateCondition(
       transition.when,
@@ -339,7 +450,10 @@ function selectTransition<Context extends JsonObject>(
     );
     if (condition.kind === "error") return condition;
     if (condition.value) {
-      return { kind: "ok", value: { transition, path: transitionPath } };
+      return {
+        kind: "ok",
+        value: { transition, path: transitionPath, input: request.input },
+      };
     }
   }
 
@@ -693,16 +807,185 @@ function stateAt(spec: BotchartSpec, stateId: StateId): StateNode | undefined {
   return state;
 }
 
-function messageTransitions(
-  state: StateNode | undefined,
-  name: string,
-): readonly Transition[] | undefined {
-  if (state === undefined || state.kind === "final" || state.kind === "return") {
+type HandlerOwner = StateNode | BotchartSpec;
+
+function handlerScopes(
+  spec: BotchartSpec,
+  position: StateId,
+): readonly { readonly owner: HandlerOwner; readonly path: string }[] {
+  const scopes: { owner: HandlerOwner; path: string }[] = [];
+  const segments = position.split(".");
+  for (let length = segments.length; length > 0; length -= 1) {
+    const stateId = segments.slice(0, length).join(".");
+    const state = stateAt(spec, stateId);
+    if (state !== undefined) scopes.push({ owner: state, path: statePath(stateId) });
+  }
+  scopes.push({ owner: spec, path: "$" });
+  return scopes;
+}
+
+function ownerOn(owner: HandlerOwner | undefined): Readonly<Record<string, unknown>> | undefined {
+  if (owner === undefined) return undefined;
+  if ("kind" in owner && (owner.kind === "final" || owner.kind === "return")) {
     return undefined;
   }
+  return owner.on as Readonly<Record<string, unknown>> | undefined;
+}
 
-  const handlers = state.on?.message as Readonly<Record<string, readonly Transition[]>> | undefined;
+function directTransitions(
+  owner: HandlerOwner | undefined,
+  source: string,
+  name: string,
+): readonly Transition[] | undefined {
+  const handlers = ownerOn(owner)?.[source] as
+    | Readonly<Record<string, readonly Transition[]>>
+    | undefined;
   return handlers?.[name];
+}
+
+function selectCommandTransition<Context extends JsonObject>(
+  owner: HandlerOwner | undefined,
+  ownerPath: string,
+  request: CoreRunnerRequest<Context>,
+  options: CreateRunnerOptions<Context>,
+): Evaluation<SelectedTransition | undefined> {
+  const handlers = ownerOn(owner)?.command as
+    | Readonly<Record<string, { readonly pattern?: string; readonly do: readonly Transition[] }>>
+    | undefined;
+  const entry = handlers?.[request.input.name];
+  if (entry === undefined) return { kind: "ok", value: undefined };
+
+  const input = entry.pattern === undefined
+    ? request.input
+    : matchPatternInput(request.input, entry.pattern, payloadString(request.input, "remainder"));
+  if (input === undefined) return { kind: "ok", value: undefined };
+
+  return selectTransition(
+    entry.do,
+    `${ownerPath}.on.command.${request.input.name}.do`,
+    { ...request, input },
+    options,
+  );
+}
+
+function selectTextTransition<Context extends JsonObject>(
+  owner: HandlerOwner | undefined,
+  ownerPath: string,
+  request: CoreRunnerRequest<Context>,
+  options: CreateRunnerOptions<Context>,
+): Evaluation<SelectedTransition | undefined> {
+  const entries = ownerOn(owner)?.text as
+    | readonly { readonly pattern: string; readonly do: readonly Transition[] }[]
+    | undefined;
+  const text = payloadString(request.input, "text");
+  if (entries === undefined || text === undefined) return { kind: "ok", value: undefined };
+
+  for (const [index, entry] of entries.entries()) {
+    const input = matchPatternInput(request.input, entry.pattern, text);
+    if (input === undefined) continue;
+    const selection = selectTransition(
+      entry.do,
+      `${ownerPath}.on.text[${index}].do`,
+      { ...request, input },
+      options,
+    );
+    if (selection.kind === "error" || selection.value !== undefined) return selection;
+  }
+
+  return { kind: "ok", value: undefined };
+}
+
+function payloadString(input: CoreInput, name: string): string | undefined {
+  const payload = isJsonObject(input.payload) ? input.payload : undefined;
+  const value = payload?.[name];
+  return typeof value === "string" ? value : undefined;
+}
+
+function matchPatternInput(
+  input: CoreInput,
+  pattern: string,
+  value: string | undefined,
+): CoreInput | undefined {
+  if (value === undefined) return undefined;
+  const match = new RegExp(pattern, "u").exec(value);
+  if (match === null) return undefined;
+  const captures = Object.fromEntries(
+    Object.entries(match.groups ?? {}).filter((entry): entry is [string, string] =>
+      entry[1] !== undefined
+    ),
+  );
+  const payload = isJsonObject(input.payload) ? input.payload : {};
+  return { ...input, payload: { ...payload, ...captures } };
+}
+
+function selectAfterTransition<Context extends JsonObject>(
+  owner: HandlerOwner | undefined,
+  ownerPath: string,
+  request: CoreRunnerRequest<Context>,
+  options: CreateRunnerOptions<Context>,
+): Evaluation<SelectedTransition | undefined> {
+  const handlers = ownerOn(owner)?.after as
+    | Readonly<Record<string, { readonly do: readonly Transition[] }>>
+    | undefined;
+  return selectTransition(
+    handlers?.[request.input.name]?.do,
+    `${ownerPath}.on.after.${request.input.name}.do`,
+    request,
+    options,
+  );
+}
+
+function selectRawTransitionInHierarchy<Context extends JsonObject>(
+  request: CoreRunnerRequest<Context>,
+  options: CreateRunnerOptions<Context>,
+): Evaluation<SelectedTransition | undefined> {
+  for (const scope of handlerScopes(request.spec, request.session.position)) {
+    const selection = selectRawTransition(
+      scope.owner,
+      scope.path,
+      request,
+      options,
+    );
+    if (selection.kind === "error" || selection.value !== undefined) return selection;
+  }
+  return { kind: "ok", value: undefined };
+}
+
+function selectRawTransition<Context extends JsonObject>(
+  owner: HandlerOwner | undefined,
+  ownerPath: string,
+  request: CoreRunnerRequest<Context>,
+  options: CreateRunnerOptions<Context>,
+): Evaluation<SelectedTransition | undefined> {
+  const entries = ownerOn(owner)?.raw as
+    | readonly {
+        readonly when?: Condition;
+        readonly do: readonly Transition[];
+      }[]
+    | undefined;
+  if (entries === undefined) return { kind: "ok", value: undefined };
+
+  for (const [index, entry] of entries.entries()) {
+    if (entry.when !== undefined) {
+      const condition = evaluateCondition(
+        entry.when,
+        `${ownerPath}.on.raw[${index}].when`,
+        request,
+        options,
+      );
+      if (condition.kind === "error") return condition;
+      if (!condition.value) continue;
+    }
+    const selection = selectTransition(
+      entry.do,
+      `${ownerPath}.on.raw[${index}].do`,
+      request,
+      options,
+    );
+    if (selection.kind === "error" || selection.value !== undefined) return selection;
+  }
+
+  return { kind: "ok", value: undefined };
 }
 
 function statePath(stateId: StateId): string {

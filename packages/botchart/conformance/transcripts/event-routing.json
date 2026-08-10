@@ -1,0 +1,398 @@
+{
+  "$schema": "https://svyatov.github.io/botchart/conformance/0.1.0/transcript.schema.json",
+  "initial": {
+    "now": "2026-08-10T14:00:00Z",
+    "session": {
+      "callStack": [],
+      "callbacks": {},
+      "context": {
+        "name": "",
+        "referrer": "",
+        "route": "initial"
+      },
+      "history": {},
+      "position": "main",
+      "seq": 0,
+      "viewSlots": {}
+    }
+  },
+  "name": "event routing and transition selection",
+  "schemaRevision": "0.1.0",
+  "spec": {
+    "path": "../specs/event-routing.json",
+    "sha256": "7027f0a23527ac619723236b6f93940d953158b385d04478fed5dbb17bc79ade"
+  },
+  "steps": [
+    {
+      "covers": [
+        "runtime.event.hierarchy",
+        "runtime.event.press"
+      ],
+      "input": {
+        "name": "pick",
+        "origin": "telegram",
+        "payload": {},
+        "source": "press"
+      },
+      "name": "bubble a press to the root",
+      "result": {
+        "intents": [],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {
+            "name": "",
+            "referrer": "",
+            "route": "press"
+          },
+          "history": {},
+          "position": "main",
+          "seq": 0,
+          "viewSlots": {}
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.event.commandBare"
+      ],
+      "input": {
+        "name": "help",
+        "origin": "telegram",
+        "payload": {
+          "remainder": "preserved text"
+        },
+        "source": "command"
+      },
+      "name": "route a bare command without a pattern",
+      "result": {
+        "intents": [],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {
+            "name": "",
+            "referrer": "",
+            "route": "commandBare"
+          },
+          "history": {},
+          "position": "main",
+          "seq": 0,
+          "viewSlots": {}
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.event.command",
+        "runtime.event.commandNormalization",
+        "runtime.event.commandPattern",
+        "runtime.event.namedCaptures"
+      ],
+      "input": {
+        "name": "start",
+        "origin": "telegram",
+        "payload": {
+          "remainder": "ref_alice"
+        },
+        "source": "command"
+      },
+      "name": "match a command remainder",
+      "result": {
+        "intents": [],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {
+            "name": "",
+            "referrer": "alice",
+            "route": "command"
+          },
+          "history": {},
+          "position": "main",
+          "seq": 0,
+          "viewSlots": {}
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.event.text",
+        "runtime.event.textOrder"
+      ],
+      "input": {
+        "name": "message",
+        "origin": "telegram",
+        "payload": {
+          "text": "hello Ada"
+        },
+        "source": "text"
+      },
+      "name": "select an ordered text pattern",
+      "result": {
+        "intents": [],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {
+            "name": "Ada",
+            "referrer": "alice",
+            "route": "text"
+          },
+          "history": {},
+          "position": "main",
+          "seq": 0,
+          "viewSlots": {}
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.event.guardedAlternatives",
+        "runtime.event.message"
+      ],
+      "input": {
+        "name": "photo",
+        "origin": "telegram",
+        "payload": {},
+        "source": "message"
+      },
+      "name": "select a guarded message alternative",
+      "result": {
+        "intents": [],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {
+            "name": "Ada",
+            "referrer": "alice",
+            "route": "message"
+          },
+          "history": {},
+          "position": "main",
+          "seq": 0,
+          "viewSlots": {}
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.event.timer"
+      ],
+      "input": {
+        "name": "remind",
+        "origin": "scheduler",
+        "payload": {
+          "timerId": "timer:1"
+        },
+        "source": "timer"
+      },
+      "name": "route a timer through after",
+      "result": {
+        "intents": [],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {
+            "name": "Ada",
+            "referrer": "alice",
+            "route": "timer"
+          },
+          "history": {},
+          "position": "main",
+          "seq": 0,
+          "viewSlots": {}
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.event.lifecycle"
+      ],
+      "input": {
+        "name": "blocked",
+        "origin": "adapter",
+        "payload": {
+          "chainId": "failure:1"
+        },
+        "source": "lifecycle"
+      },
+      "name": "route a lifecycle event",
+      "result": {
+        "intents": [],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {
+            "name": "Ada",
+            "referrer": "alice",
+            "route": "lifecycle"
+          },
+          "history": {},
+          "position": "main",
+          "seq": 0,
+          "viewSlots": {}
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.event.feature",
+        "runtime.event.sourceOrder"
+      ],
+      "input": {
+        "name": "submitted",
+        "origin": "telegram",
+        "payload": {
+          "data": "confirmed"
+        },
+        "source": "webApp"
+      },
+      "name": "route a feature source before raw",
+      "result": {
+        "intents": [],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {
+            "name": "Ada",
+            "referrer": "alice",
+            "route": "feature"
+          },
+          "history": {},
+          "position": "main",
+          "seq": 0,
+          "viewSlots": {}
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.event.raw"
+      ],
+      "input": {
+        "name": "update",
+        "origin": "telegram",
+        "payload": {
+          "updateId": 1
+        },
+        "source": "raw"
+      },
+      "name": "route a direct raw event",
+      "result": {
+        "intents": [],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {
+            "name": "Ada",
+            "referrer": "alice",
+            "route": "raw"
+          },
+          "history": {},
+          "position": "main",
+          "seq": 0,
+          "viewSlots": {}
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.event.rawFallback",
+        "runtime.event.rawLast"
+      ],
+      "input": {
+        "name": "document",
+        "origin": "telegram",
+        "payload": {},
+        "source": "message"
+      },
+      "name": "fall through to raw last",
+      "result": {
+        "intents": [],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {
+            "name": "Ada",
+            "referrer": "alice",
+            "route": "rawFallback"
+          },
+          "history": {},
+          "position": "plain",
+          "seq": 1,
+          "viewSlots": {}
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.event.consumed"
+      ],
+      "input": {
+        "name": "voice",
+        "origin": "telegram",
+        "payload": {},
+        "source": "message"
+      },
+      "name": "consume a non-moving event",
+      "result": {
+        "intents": [],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {
+            "name": "Ada",
+            "referrer": "alice",
+            "route": "rawFallback"
+          },
+          "history": {},
+          "position": "plain",
+          "seq": 1,
+          "viewSlots": {}
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.event.unmatched"
+      ],
+      "input": {
+        "name": "document",
+        "origin": "telegram",
+        "payload": {},
+        "source": "message"
+      },
+      "name": "emit one unhandled lifecycle event",
+      "result": {
+        "intents": [],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {
+            "name": "Ada",
+            "referrer": "alice",
+            "route": "unhandled"
+          },
+          "history": {},
+          "position": "unhandled",
+          "seq": 2,
+          "viewSlots": {}
+        }
+      }
+    }
+  ],
+  "transcriptVersion": 1
+}
