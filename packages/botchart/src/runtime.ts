@@ -3,6 +3,9 @@ import type {
   BotchartSpec,
   Condition,
   ContextJsonSchema,
+  FieldMap,
+  ProducedAssignment,
+  Run,
   ScalarValue,
   StateId,
   StateNode,
@@ -20,6 +23,28 @@ export type CoreInput = {
   readonly name: string;
   readonly payload: JsonValue;
 };
+
+export type EffectFeedbackPayload = {
+  readonly id: string;
+  readonly token: StalenessToken;
+  readonly output: JsonObject;
+};
+
+export type EffectProgressInput = {
+  readonly origin: "effect";
+  readonly source: "progress";
+  readonly name: string;
+  readonly payload: EffectFeedbackPayload;
+};
+
+export type EffectOutcomeInput = {
+  readonly origin: "effect";
+  readonly source: "outcome";
+  readonly name: string;
+  readonly payload: EffectFeedbackPayload;
+};
+
+export type EffectFeedbackInput = EffectProgressInput | EffectOutcomeInput;
 
 export type ChatTarget = {
   readonly kind: "chat";
@@ -257,6 +282,9 @@ function runStep<Context extends JsonObject>(
   request: CoreRunnerRequest<Context>,
   options: CreateRunnerOptions<Context>,
 ): CoreResult<Context> {
+  if (request.input.origin === "effect") {
+    return runEffectFeedback(request, options);
+  }
   const selection = selectEventTransition(request, options);
   if (selection.kind === "error") {
     return {
@@ -371,6 +399,9 @@ function settleStateEntry<Context extends JsonObject>(
     const descended = { ...session, position: child };
     return settleStateEntry(descended, child, 0, request, options);
   }
+  if (node?.kind === "run") {
+    return startEffect(session, stateId, entryIndex, node, request);
+  }
   if (node?.kind !== "call") {
     return { kind: "ok", value: { kind: "ok", session, intents: [] } };
   }
@@ -378,6 +409,453 @@ function settleStateEntry<Context extends JsonObject>(
   return called.kind === "error"
     ? called
     : settleStateEntry(called.value, called.value.position, 0, request, options);
+}
+
+function startEffect<Context extends JsonObject>(
+  session: Session<Context>,
+  stateId: StateId,
+  entryIndex: number,
+  run: Run,
+  request: CoreRunnerRequest<Context>,
+): Evaluation<CoreResult<Context>> {
+  const sessionKey = inputSessionKey(request.input);
+  if (sessionKey === undefined) {
+    return evaluationError(
+      "missing_session_key",
+      "$.input.payload.sessionKey",
+      "Add the sessionKey value before this entry starts an effect.",
+    );
+  }
+
+  const input: Record<string, JsonValue> = {};
+  for (const [name, value] of Object.entries(run.input)) {
+    const resolved = resolveValue(
+      value,
+      `${activeStatePath(request.spec, session, stateId)}.entry[${entryIndex}].input.${name}`,
+      { ...request, session },
+    );
+    if (resolved.kind === "error") return resolved;
+    input[name] = resolved.value;
+  }
+
+  const token = { sessionKey, stateId, seq: session.seq };
+  return {
+    kind: "ok",
+    value: {
+      kind: "ok",
+      session,
+      intents: [{
+        kind: "effect",
+        id: effectId(token, entryIndex),
+        effect: run.effect,
+        input: cloneData(input),
+        token,
+      }],
+    },
+  };
+}
+
+function inputSessionKey(input: CoreInput): string | undefined {
+  if (!isJsonObject(input.payload)) return undefined;
+  const direct = input.payload.sessionKey;
+  if (typeof direct === "string" && direct.length > 0) return direct;
+  const token = input.payload.token;
+  if (!isJsonObject(token)) return undefined;
+  return typeof token.sessionKey === "string" && token.sessionKey.length > 0
+    ? token.sessionKey
+    : undefined;
+}
+
+function effectId(token: StalenessToken, entryIndex: number): string {
+  return `${token.sessionKey}:${token.stateId}:${token.seq}:${entryIndex}`;
+}
+
+function runEffectFeedback<Context extends JsonObject>(
+  request: CoreRunnerRequest<Context>,
+  options: CreateRunnerOptions<Context>,
+): CoreResult<Context> {
+  const handled = handleEffectFeedback(request, options);
+  return handled.kind === "error"
+    ? { kind: "error", session: request.session, intents: [], error: handled.error }
+    : handled.value;
+}
+
+function handleEffectFeedback<Context extends JsonObject>(
+  request: CoreRunnerRequest<Context>,
+  options: CreateRunnerOptions<Context>,
+): Evaluation<CoreResult<Context>> {
+  const payload = effectFeedbackPayload(request.input);
+  if (payload.kind === "error") return payload;
+  const { id, token, output } = payload.value;
+  if (
+    token.stateId !== request.session.position
+    || token.seq !== request.session.seq
+  ) {
+    return {
+      kind: "ok",
+      value: { kind: "ok", session: request.session, intents: [] },
+    };
+  }
+
+  const state = activeStateAt(request.spec, request.session, token.stateId);
+  const entry = state !== undefined && state.kind !== "final" && state.kind !== "return"
+    ? state.entry
+    : undefined;
+  const entryIndex = entry?.findIndex((node, index) =>
+    node.kind === "run" && effectId(token, index) === id
+  ) ?? -1;
+  const run = entry?.[entryIndex];
+  if (run?.kind !== "run") {
+    return evaluationError(
+      "invalid_feedback",
+      "$.input.payload.id",
+      "Use the id from the active effect intent.",
+    );
+  }
+  if (request.input.source === "progress") {
+    if (request.input.name !== run.effect || run.onProgress === undefined) {
+      return evaluationError(
+        "invalid_feedback",
+        "$.input.name",
+        "Use the active effect name for declared progress feedback.",
+      );
+    }
+    const path = `${activeStatePath(request.spec, request.session, token.stateId)}.entry[${entryIndex}].onProgress.assign`;
+    const effect = request.spec.effects[run.effect];
+    const fields = effect?.progress as FieldMap | undefined;
+    const validation = validateFeedbackOutput(output, fields);
+    if (validation.kind === "error") return validation;
+    const mapped = applyFeedbackAssignments(
+      run.onProgress.assign,
+      fields,
+      output,
+      path,
+      request,
+      options,
+    );
+    if (mapped.kind === "error") return mapped;
+    const session = { ...request.session, context: mapped.value };
+    const rendered = renderActiveState(session, state);
+    return rendered.kind === "error"
+      ? rendered
+      : {
+          kind: "ok",
+          value: { kind: "ok", session, intents: rendered.value },
+        };
+  }
+  if (request.input.source !== "outcome") {
+    return evaluationError(
+      "invalid_feedback",
+      "$.input.source",
+      "Use progress or outcome for effect feedback.",
+    );
+  }
+
+  const outcome = run.outcomes[request.input.name];
+  if (outcome === undefined) {
+    return evaluationError(
+      "invalid_feedback",
+      "$.input.name",
+      "Use a declared effect outcome.",
+    );
+  }
+  const path = `${activeStatePath(request.spec, request.session, token.stateId)}.entry[${entryIndex}].outcomes.${request.input.name}`;
+  const fields = request.spec.effects[run.effect]?.outcomes[request.input.name];
+  const validation = validateFeedbackOutput(output, fields);
+  if (validation.kind === "error") return validation;
+  const feedbackRequest = {
+    ...request,
+    input: { ...request.input, payload: output },
+  };
+  const mapped = applyFeedbackAssignments(
+    outcome.assign,
+    fields,
+    output,
+    `${path}.assign`,
+    request,
+    options,
+  );
+  if (mapped.kind === "error") return mapped;
+  const mappedSession = { ...request.session, context: mapped.value };
+  const mappedRequest = { ...feedbackRequest, session: mappedSession };
+  const selected = selectTransition(outcome.do, `${path}.do`, mappedRequest, options);
+  if (selected.kind === "error") return selected;
+  const transition = selected.value?.transition;
+  const assigned = transition?.assign === undefined
+    ? { kind: "ok", value: mappedSession.context } as const
+    : applyAssignments(
+        transition.assign,
+        `${selected.value!.path}.assign`,
+        { ...mappedRequest, input: selected.value!.input },
+        options,
+      );
+  if (assigned.kind === "error") return assigned;
+  const assignedSession = { ...mappedSession, context: assigned.value };
+  if (transition?.target === undefined) {
+    return settleStateEntry(
+      assignedSession,
+      token.stateId,
+      entryIndex + 1,
+      request,
+      options,
+    );
+  }
+
+  const targetState = activeStateAt(request.spec, assignedSession, transition.target);
+  if (targetState === undefined) {
+    return evaluationError(
+      "invalid_transition_target",
+      selected.value!.path,
+      `Declare the ${transition.target} state before you target it.`,
+    );
+  }
+  if (targetState.kind === "final") {
+    const result = enterFinalState(assignedSession, targetState);
+    return result.kind === "error"
+      ? { kind: "error", error: result.error }
+      : { kind: "ok", value: result };
+  }
+  if (targetState.kind === "return") {
+    return completeUnitReturn(
+      { ...assignedSession, position: transition.target, seq: assignedSession.seq + 1 },
+      targetState,
+      request,
+      options,
+    );
+  }
+  const history = recordExitedHistory(request.spec, assignedSession, transition.target);
+  const entered: Session<Context> = {
+    ...assignedSession,
+    history,
+    position: transition.target,
+    seq: assignedSession.seq + 1,
+  };
+  return settleStateEntry(entered, transition.target, 0, request, options);
+}
+
+function effectFeedbackPayload(input: CoreInput): Evaluation<EffectFeedbackPayload> {
+  const payload = input.payload;
+  if (!isJsonObject(payload)) {
+    return evaluationError(
+      "invalid_feedback",
+      "$.input.payload",
+      "Use an effect feedback object with id, token, and output fields.",
+    );
+  }
+  const unknownField = Object.keys(payload).find((name) =>
+    name !== "id" && name !== "token" && name !== "output"
+  );
+  if (unknownField !== undefined) {
+    return evaluationError(
+      "invalid_feedback",
+      `$.input.payload.${unknownField}`,
+      `Remove the ${unknownField} effect feedback field.`,
+    );
+  }
+  const id = payload.id;
+  const token = payload.token;
+  const output = payload.output;
+  if (typeof id !== "string" || id.length === 0) {
+    return evaluationError(
+      "invalid_feedback",
+      "$.input.payload.id",
+      "Use the id from the effect intent.",
+    );
+  }
+  if (
+    !isJsonObject(token)
+    || typeof token.sessionKey !== "string"
+    || token.sessionKey.length === 0
+    || typeof token.stateId !== "string"
+    || !Number.isInteger(token.seq)
+    || Number(token.seq) < 0
+  ) {
+    return evaluationError(
+      "invalid_feedback",
+      "$.input.payload.token",
+      "Use the token from the effect intent.",
+    );
+  }
+  const unknownTokenField = Object.keys(token).find((name) =>
+    name !== "sessionKey" && name !== "stateId" && name !== "seq"
+  );
+  if (unknownTokenField !== undefined) {
+    return evaluationError(
+      "invalid_feedback",
+      `$.input.payload.token.${unknownTokenField}`,
+      `Remove the ${unknownTokenField} staleness token field.`,
+    );
+  }
+  if (!isJsonObject(output)) {
+    return evaluationError(
+      "invalid_feedback",
+      "$.input.payload.output",
+      "Set output to a JSON object.",
+    );
+  }
+  return {
+    kind: "ok",
+    value: { id, token: token as StalenessToken, output },
+  };
+}
+
+function validateFeedbackOutput(
+  output: JsonObject,
+  fields: FieldMap | undefined,
+): Evaluation<undefined> {
+  if (fields === undefined) {
+    return evaluationError(
+      "invalid_feedback",
+      "$.input.payload.output",
+      "Declare this feedback record on the active effect.",
+    );
+  }
+  for (const name of Object.keys(output)) {
+    if (fields[name] === undefined) {
+      return evaluationError(
+        "invalid_feedback",
+        `$.input.payload.output.${name}`,
+        `Remove the undeclared ${name} effect output.`,
+      );
+    }
+  }
+  for (const [name, field] of Object.entries(fields)) {
+    const value = output[name];
+    const optional = "optional" in field && field.optional === true;
+    if (value === undefined) {
+      if (optional) continue;
+      return evaluationError(
+        "invalid_feedback",
+        `$.input.payload.output.${name}`,
+        `Provide the required ${name} effect output.`,
+      );
+    }
+    if (!matchesField(value, field)) {
+      return evaluationError(
+        "invalid_feedback",
+        `$.input.payload.output.${name}`,
+        `Set ${name} to a value that matches its effect field declaration.`,
+      );
+    }
+  }
+  return { kind: "ok", value: undefined };
+}
+
+function matchesField(value: JsonValue, field: FieldMap[string]): boolean {
+  if (field.type !== "array") return matchesScalarField(value, field);
+  if (!Array.isArray(value)) return false;
+  const items = field.items;
+  if (items.type !== "record") {
+    return value.every((item) => matchesScalarField(item, items));
+  }
+  const itemFields = items.fields;
+  return value.every((item) => {
+    if (!isJsonObject(item)) return false;
+    if (Object.keys(item).some((name) => itemFields[name] === undefined)) return false;
+    return Object.entries(itemFields).every(([name, itemField]) => {
+      const itemValue = item[name];
+      return itemValue === undefined
+        ? itemField.optional === true
+        : matchesScalarField(itemValue, itemField);
+    });
+  });
+}
+
+function matchesScalarField(
+  value: JsonValue,
+  field: {
+    readonly type: "string" | "number" | "boolean";
+    readonly enum?: readonly (string | number)[];
+  },
+): boolean {
+  if (typeof value !== field.type) return false;
+  if (field.type === "number" && !Number.isFinite(value)) return false;
+  return field.enum === undefined || field.enum.some((item) => item === value);
+}
+
+function applyFeedbackAssignments<Context extends JsonObject>(
+  assignments: ProducedAssignment,
+  fields: FieldMap | undefined,
+  output: JsonObject,
+  path: string,
+  request: CoreRunnerRequest<Context>,
+  options: CreateRunnerOptions<Context>,
+): Evaluation<Context> {
+  const mapped: Record<string, AssignmentValue> = {};
+  for (const [destination, assignment] of Object.entries(assignments)) {
+    const field = fields?.[assignment.from];
+    mapped[destination] = output[assignment.from] === undefined
+      && field !== undefined
+      && "optional" in field
+      && field.optional === true
+      ? { unset: true }
+      : assignment;
+  }
+  return applyAssignments(
+    mapped,
+    path,
+    { ...request, input: { ...request.input, payload: output } },
+    options,
+  );
+}
+
+function renderActiveState<Context extends JsonObject>(
+  session: Session<Context>,
+  state: StateNode | undefined,
+): Evaluation<readonly Intent[]> {
+  if (state?.kind !== "state" || state.render === "keep") {
+    return { kind: "ok", value: [] };
+  }
+  const slot = session.viewSlots.main;
+  if (state.render === "delete") {
+    return {
+      kind: "ok",
+      value: slot?.current === undefined
+        ? []
+        : [{
+            kind: "view",
+            operation: "delete",
+            slot: "main",
+            handle: slot.current.handle,
+          }],
+    };
+  }
+  if (!("view" in state)) {
+    return evaluationError(
+      "missing_state_view",
+      "$.session.position",
+      "Add a view before you use the edit or append render policy.",
+    );
+  }
+  if (state.render === "edit" && slot?.current !== undefined) {
+    return {
+      kind: "ok",
+      value: [{
+        kind: "view",
+        operation: "edit",
+        slot: "main",
+        handle: slot.current.handle,
+        view: state.view as unknown as JsonObject,
+      }],
+    };
+  }
+  if (slot === undefined) {
+    return evaluationError(
+      "missing_view_target",
+      "$.session.viewSlots.main",
+      "Add the main view slot before you render this state.",
+    );
+  }
+  return {
+    kind: "ok",
+    value: [{
+      kind: "view",
+      operation: "send",
+      slot: "main",
+      target: slot.target,
+      view: state.view as unknown as JsonObject,
+    }],
+  };
 }
 
 function completeUnitReturn<Context extends JsonObject>(
@@ -1013,7 +1491,7 @@ function assignmentError(path: string, message: string): Evaluation<never> {
   return evaluationError("invalid_assignment", path, message);
 }
 
-function isJsonObject(value: JsonValue): value is JsonObject {
+function isJsonObject(value: unknown): value is JsonObject {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 

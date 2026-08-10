@@ -56,6 +56,10 @@ export type TranscriptIdCounters = {
   readonly stable: (kind: TranscriptIdKind, value: string) => string;
 };
 
+type ReplayTranscriptIdCounters = TranscriptIdCounters & {
+  readonly original: (kind: TranscriptIdKind, value: string) => string;
+};
+
 export type ReplayTranscriptOptions = {
   readonly transcript: GoldenTranscript;
   readonly spec: BotchartSpec;
@@ -598,6 +602,10 @@ function isJsonValue(value: unknown): value is JsonValue {
 }
 
 export function createTranscriptIdCounters(): TranscriptIdCounters {
+  return createReplayTranscriptIdCounters();
+}
+
+function createReplayTranscriptIdCounters(): ReplayTranscriptIdCounters {
   const values = new Map<TranscriptIdKind, {
     readonly mapped: Map<string, string>;
     next: number;
@@ -619,6 +627,14 @@ export function createTranscriptIdCounters(): TranscriptIdCounters {
       state.next = Math.max(state.next + Number(typed === null), Number(typed?.groups?.counter ?? 0) + 1);
       state.mapped.set(value, stable);
       return stable;
+    },
+    original(kind, value) {
+      const state = values.get(kind);
+      if (state === undefined) return value;
+      for (const [original, stable] of state.mapped) {
+        if (stable === value) return original;
+      }
+      return value;
     },
   };
 }
@@ -694,7 +710,7 @@ function runTranscript(
 ): TranscriptReplay {
   const { runner, spec, transcript } = options;
   const issues: TranscriptIssue[] = [];
-  const counters = createTranscriptIdCounters();
+  const counters = createReplayTranscriptIdCounters();
   for (const callbackId of Object.keys(transcript.initial.session.callbacks)) {
     counters.stable("callback", callbackId);
   }
@@ -720,7 +736,7 @@ function runTranscript(
     const result = normalizeResult(runner({
       spec,
       session,
-      input: step.input,
+      input: restoreInputIds(step.input, counters),
       now: new Date(now).toISOString(),
     }), counters);
 
@@ -763,6 +779,24 @@ function runTranscript(
   return {
     transcript: { ...transcript, steps },
     issues,
+  };
+}
+
+function restoreInputIds(
+  input: CoreInput,
+  counters: ReplayTranscriptIdCounters,
+): CoreInput {
+  if (
+    input.origin !== "effect"
+    || !isRecord(input.payload)
+    || typeof input.payload.id !== "string"
+  ) return input;
+  return {
+    ...input,
+    payload: {
+      ...input.payload,
+      id: counters.original("effect", input.payload.id),
+    },
   };
 }
 

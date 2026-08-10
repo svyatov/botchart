@@ -4,6 +4,7 @@ import type {
   CoreResult,
   CoreRunner,
   CoreRunnerRequest,
+  EffectFeedbackInput,
   Intent,
   JsonValue,
   SemanticSessionSnapshot,
@@ -23,8 +24,16 @@ const effectInput = {
   origin: "effect",
   source: "outcome",
   name: "loaded",
-  payload: { products: [] },
-} satisfies CoreInput;
+  payload: {
+    id: "chat:42:catalog.list:3:0",
+    token: {
+      sessionKey: "chat:42",
+      stateId: "catalog.list",
+      seq: 3,
+    },
+    output: { products: [] },
+  },
+} satisfies EffectFeedbackInput;
 
 const schedulerInput = {
   origin: "scheduler",
