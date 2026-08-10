@@ -1,5 +1,6 @@
 import { expect, test } from "bun:test";
 import Ajv2020 from "ajv/dist/2020";
+import guardSpec from "botchart/conformance/specs/guards-and-assignments.json" with { type: "json" };
 import lifecycleSpec from "botchart/conformance/specs/session-lifecycle.json" with { type: "json" };
 import schema from "botchart/schema" with { type: "json" };
 
@@ -60,6 +61,10 @@ test("published schema accepts a minimal canonical spec", () => {
 
 test("published schema accepts the session lifecycle conformance spec", () => {
   expect(validate(lifecycleSpec), JSON.stringify(validate.errors)).toBe(true);
+});
+
+test("published schema accepts the guards and assignments conformance spec", () => {
+  expect(validate(guardSpec), JSON.stringify(validate.errors)).toBe(true);
 });
 
 const completeSpec = {

@@ -10,6 +10,7 @@ import type {
   Session,
   BotchartSpec,
 } from "botchart";
+import { createRunner } from "botchart";
 
 const telegramInput = {
   origin: "telegram",
@@ -240,3 +241,13 @@ const runner: CoreRunner = ({ session: currentSession }) => ({
 
 void request;
 void runner;
+
+const configuredRunner = createRunner({
+  guards: {
+    allowed: ({ context, event }) => context.page === 2 && event.name === "start",
+  },
+  validateContext: ({ context, schema }) =>
+    context.page === 2 && schema.type === "object",
+});
+
+configuredRunner satisfies CoreRunner;

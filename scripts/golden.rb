@@ -15,8 +15,11 @@ WORKER = <<~'JAVASCRIPT'.strip.freeze
     console.log(JSON.stringify(simulator.verifyCoverage(input)));
   } else {
     const core = await import("./packages/botchart/src/index.ts");
-    if (typeof core.step !== "function") throw new Error("Export step from botchart before you process transcripts.");
-    const options = { transcript: input.transcript, spec: input.spec, runner: core.step };
+    const Ajv2020 = (await import("ajv/dist/2020")).default;
+    if (typeof core.createRunner !== "function") throw new Error("Export createRunner before you process transcripts.");
+    const validate = new Ajv2020({ allErrors: true, strict: true }).compile(input.spec.context);
+    const runner = core.createRunner({ validateContext: ({ context }) => validate(context) });
+    const options = { transcript: input.transcript, spec: input.spec, runner };
     if (input.action === "update") {
       const replay = await simulator.updateTranscript(options);
       if (replay.issues.length > 0) throw new Error(replay.issues.map((issue) => `${issue.path}: ${issue.message}`).join("\n"));
