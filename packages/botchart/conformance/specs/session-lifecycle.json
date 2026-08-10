@@ -1,0 +1,101 @@
+{
+  "$schema": "https://svyatov.github.io/botchart/schema/0.1.0.json",
+  "version": 1,
+  "schemaRevision": "0.1.0",
+  "packs": [],
+  "scope": "chat+user",
+  "context": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {},
+    "additionalProperties": false,
+    "default": {}
+  },
+  "parameters": {},
+  "guards": {},
+  "effects": {},
+  "presses": {},
+  "units": {},
+  "stalePress": {
+    "action": "ignore"
+  },
+  "initial": "start",
+  "on": {},
+  "states": {
+    "start": {
+      "kind": "state",
+      "render": "keep",
+      "on": {
+        "message": {
+          "photo": [
+            {}
+          ],
+          "document": [
+            {
+              "target": "left.child"
+            }
+          ],
+          "video": [
+            {
+              "target": "done"
+            }
+          ]
+        }
+      }
+    },
+    "left": {
+      "kind": "compound",
+      "initial": "child",
+      "states": {
+        "child": {
+          "kind": "state",
+          "render": "keep",
+          "on": {
+            "message": {
+              "photo": [
+                {
+                  "target": "left.child"
+                }
+              ],
+              "document": [
+                {
+                  "target": "right.child"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "right": {
+      "kind": "compound",
+      "initial": "child",
+      "states": {
+        "child": {
+          "kind": "state",
+          "render": "keep",
+          "on": {
+            "message": {
+              "photo": [
+                {
+                  "target": "done"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "done": {
+      "kind": "final",
+      "view": {
+        "kind": "text",
+        "text": [
+          "Done"
+        ],
+        "parseMode": "plain"
+      },
+      "render": "append"
+    }
+  }
+}

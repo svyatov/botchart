@@ -1,5 +1,6 @@
 import { expect, test } from "bun:test";
 import Ajv2020 from "ajv/dist/2020";
+import lifecycleSpec from "botchart/conformance/specs/session-lifecycle.json" with { type: "json" };
 import schema from "botchart/schema" with { type: "json" };
 
 const schemaId = "https://svyatov.github.io/botchart/schema/0.1.0.json";
@@ -55,6 +56,10 @@ const minimalSpec = {
 
 test("published schema accepts a minimal canonical spec", () => {
   expect(validate(minimalSpec), JSON.stringify(validate.errors)).toBe(true);
+});
+
+test("published schema accepts the session lifecycle conformance spec", () => {
+  expect(validate(lifecycleSpec), JSON.stringify(validate.errors)).toBe(true);
 });
 
 const completeSpec = {
