@@ -318,6 +318,51 @@ test("ordered text patterns expose named captures to assignments", () => {
   });
 });
 
+test("the first matching text pattern stops later patterns at that state", () => {
+  const spec = {
+    initial: "main",
+    context: { default: {} },
+    parameters: {},
+    on: {
+      text: [{ pattern: "^hello$", do: [{ target: "done" }] }],
+    },
+    states: {
+      main: {
+        kind: "state",
+        render: "keep",
+        on: {
+          text: [
+            {
+              pattern: "^hello$",
+              do: [{ when: { compare: { left: 1, op: "eq", right: 2 } } }],
+            },
+            { pattern: "^hello$", do: [{ target: "wrong" }] },
+          ],
+        },
+      },
+      wrong: { kind: "state", render: "keep" },
+      done: { kind: "state", render: "keep" },
+    },
+  } as unknown as BotchartSpec;
+  const current = createSession({ spec });
+
+  expect(step({
+    spec,
+    session: current,
+    input: {
+      origin: "telegram",
+      source: "text",
+      name: "message",
+      payload: { text: "hello" },
+    },
+    now: "2026-08-10T14:00:00Z",
+  })).toEqual({
+    kind: "ok",
+    session: { ...current, position: "done", seq: 1 },
+    intents: [],
+  });
+});
+
 test("a command pattern matches its preserved remainder and exposes captures", () => {
   const spec = {
     initial: "main",
