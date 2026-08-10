@@ -1,0 +1,201 @@
+{
+  "$schema": "https://svyatov.github.io/botchart/conformance/0.1.0/transcript.schema.json",
+  "initial": {
+    "now": "2026-08-10T14:00:00Z",
+    "session": {
+      "callStack": [],
+      "callbacks": {},
+      "context": {},
+      "history": {},
+      "position": "start",
+      "seq": 0,
+      "viewSlots": {
+        "main": {
+          "revision": 0,
+          "target": {
+            "chatId": 42,
+            "kind": "chat"
+          }
+        }
+      }
+    }
+  },
+  "name": "session lifecycle",
+  "schemaRevision": "0.1.0",
+  "spec": {
+    "path": "../specs/session-lifecycle.json",
+    "sha256": "366777127b0335a9ec4ebdc036e5aea7e052971c9cd221525e27a5d89bb5b3ac"
+  },
+  "steps": [
+    {
+      "covers": [
+        "runtime.session.initial",
+        "runtime.transition.nonMoving"
+      ],
+      "input": {
+        "name": "photo",
+        "origin": "telegram",
+        "payload": {},
+        "source": "message"
+      },
+      "name": "consume without moving",
+      "result": {
+        "intents": [],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {},
+          "history": {},
+          "position": "start",
+          "seq": 0,
+          "viewSlots": {
+            "main": {
+              "revision": 0,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.transition.external",
+        "runtime.transition.seq"
+      ],
+      "input": {
+        "name": "document",
+        "origin": "telegram",
+        "payload": {},
+        "source": "message"
+      },
+      "name": "move to a nested state",
+      "result": {
+        "intents": [],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {},
+          "history": {},
+          "position": "left.child",
+          "seq": 1,
+          "viewSlots": {
+            "main": {
+              "revision": 0,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.transition.selfExternal"
+      ],
+      "input": {
+        "name": "photo",
+        "origin": "telegram",
+        "payload": {},
+        "source": "message"
+      },
+      "name": "exit and re-enter the active state",
+      "result": {
+        "intents": [],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {},
+          "history": {},
+          "position": "left.child",
+          "seq": 2,
+          "viewSlots": {
+            "main": {
+              "revision": 0,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.state.exit",
+        "runtime.state.entry"
+      ],
+      "input": {
+        "name": "document",
+        "origin": "telegram",
+        "payload": {},
+        "source": "message"
+      },
+      "name": "cross compound state paths",
+      "result": {
+        "intents": [],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {},
+          "history": {},
+          "position": "right.child",
+          "seq": 3,
+          "viewSlots": {
+            "main": {
+              "revision": 0,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.session.final"
+      ],
+      "input": {
+        "name": "photo",
+        "origin": "telegram",
+        "payload": {},
+        "source": "message"
+      },
+      "name": "emit the final view and remove the session",
+      "result": {
+        "intents": [
+          {
+            "kind": "view",
+            "operation": "send",
+            "slot": "main",
+            "target": {
+              "chatId": 42,
+              "kind": "chat"
+            },
+            "view": {
+              "kind": "text",
+              "parseMode": "plain",
+              "text": [
+                "Done"
+              ]
+            }
+          }
+        ],
+        "kind": "ok",
+        "session": null
+      }
+    }
+  ],
+  "transcriptVersion": 1
+}

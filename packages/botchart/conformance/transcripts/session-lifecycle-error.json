@@ -1,0 +1,54 @@
+{
+  "$schema": "https://svyatov.github.io/botchart/conformance/0.1.0/transcript.schema.json",
+  "initial": {
+    "now": "2026-08-10T14:00:00Z",
+    "session": {
+      "callStack": [],
+      "callbacks": {},
+      "context": {},
+      "history": {},
+      "position": "start",
+      "seq": 0,
+      "viewSlots": {}
+    }
+  },
+  "name": "atomic session lifecycle failure",
+  "schemaRevision": "0.1.0",
+  "spec": {
+    "path": "../specs/session-lifecycle.json",
+    "sha256": "366777127b0335a9ec4ebdc036e5aea7e052971c9cd221525e27a5d89bb5b3ac"
+  },
+  "steps": [
+    {
+      "covers": [
+        "runtime.error.atomic"
+      ],
+      "input": {
+        "name": "video",
+        "origin": "telegram",
+        "payload": {},
+        "source": "message"
+      },
+      "name": "preserve the session when the final view has no target",
+      "result": {
+        "error": {
+          "code": "missing_view_target",
+          "message": "Add the main view slot before you enter a final state with a view.",
+          "path": "$.session.viewSlots.main"
+        },
+        "intents": [],
+        "kind": "error",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {},
+          "history": {},
+          "position": "start",
+          "seq": 0,
+          "viewSlots": {}
+        }
+      }
+    }
+  ],
+  "transcriptVersion": 1
+}

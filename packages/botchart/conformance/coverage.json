@@ -1,4 +1,14 @@
 {
   "schemaRevision": "0.1.0",
-  "rules": []
+  "rules": [
+    "runtime.error.atomic",
+    "runtime.session.final",
+    "runtime.session.initial",
+    "runtime.state.entry",
+    "runtime.state.exit",
+    "runtime.transition.external",
+    "runtime.transition.nonMoving",
+    "runtime.transition.selfExternal",
+    "runtime.transition.seq"
+  ]
 }
