@@ -1,0 +1,364 @@
+{
+  "$schema": "https://svyatov.github.io/botchart/conformance/0.1.0/transcript.schema.json",
+  "initial": {
+    "now": "2026-08-10T14:00:00Z",
+    "session": {
+      "callStack": [],
+      "callbacks": {},
+      "context": {
+        "error": "old",
+        "loaded": 0,
+        "query": "Ada",
+        "status": "pending"
+      },
+      "history": {},
+      "position": "start",
+      "seq": 0,
+      "viewSlots": {
+        "main": {
+          "revision": 0,
+          "target": {
+            "chatId": 42,
+            "kind": "chat"
+          }
+        }
+      }
+    }
+  },
+  "name": "effect pipelines and feedback",
+  "schemaRevision": "0.1.0",
+  "spec": {
+    "path": "../specs/effects-and-feedback.json",
+    "sha256": "8ead057f51d9afb24e4ae89b6f8b919a4ef6b9241dc52183450b63e935579c93"
+  },
+  "steps": [
+    {
+      "covers": [
+        "runtime.effect.intent",
+        "runtime.effect.inputSnapshot",
+        "runtime.effect.pipelineOrder"
+      ],
+      "input": {
+        "name": "photo",
+        "origin": "telegram",
+        "payload": {
+          "sessionKey": "chat:42"
+        },
+        "source": "message"
+      },
+      "name": "start the first effect",
+      "result": {
+        "intents": [
+          {
+            "effect": "load",
+            "id": "effect:1",
+            "input": {
+              "query": "Ada"
+            },
+            "kind": "effect",
+            "token": {
+              "seq": 1,
+              "sessionKey": "chat:42",
+              "stateId": "loading"
+            }
+          }
+        ],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {
+            "error": "old",
+            "loaded": 0,
+            "query": "Ada",
+            "status": "pending"
+          },
+          "history": {},
+          "position": "loading",
+          "seq": 1,
+          "viewSlots": {
+            "main": {
+              "revision": 0,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.effect.feedback",
+        "runtime.effect.progress"
+      ],
+      "input": {
+        "name": "load",
+        "origin": "effect",
+        "payload": {
+          "id": "effect:1",
+          "output": {
+            "loaded": 1
+          },
+          "token": {
+            "seq": 1,
+            "sessionKey": "chat:42",
+            "stateId": "loading"
+          }
+        },
+        "source": "progress"
+      },
+      "name": "report effect progress",
+      "result": {
+        "intents": [
+          {
+            "kind": "view",
+            "operation": "send",
+            "slot": "main",
+            "target": {
+              "chatId": 42,
+              "kind": "chat"
+            },
+            "view": {
+              "kind": "text",
+              "parseMode": "plain",
+              "text": [
+                "Loading"
+              ]
+            }
+          }
+        ],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {
+            "error": "old",
+            "loaded": 1,
+            "query": "Ada",
+            "status": "pending"
+          },
+          "history": {},
+          "position": "loading",
+          "seq": 1,
+          "viewSlots": {
+            "main": {
+              "revision": 0,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.effect.nonMoving",
+        "runtime.effect.optionalOutput",
+        "runtime.effect.outcomeOrdering"
+      ],
+      "input": {
+        "name": "done",
+        "origin": "effect",
+        "payload": {
+          "id": "effect:1",
+          "output": {
+            "status": "ok"
+          },
+          "token": {
+            "seq": 1,
+            "sessionKey": "chat:42",
+            "stateId": "loading"
+          }
+        },
+        "source": "outcome"
+      },
+      "name": "continue after a non-moving outcome",
+      "result": {
+        "intents": [
+          {
+            "effect": "publish",
+            "id": "effect:2",
+            "input": {
+              "status": "ok"
+            },
+            "kind": "effect",
+            "token": {
+              "seq": 1,
+              "sessionKey": "chat:42",
+              "stateId": "loading"
+            }
+          }
+        ],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {
+            "loaded": 1,
+            "query": "Ada",
+            "status": "ok"
+          },
+          "history": {},
+          "position": "loading",
+          "seq": 1,
+          "viewSlots": {
+            "main": {
+              "revision": 0,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.effect.stale"
+      ],
+      "input": {
+        "name": "load",
+        "origin": "effect",
+        "payload": {
+          "id": "effect:1",
+          "output": {
+            "loaded": 2
+          },
+          "token": {
+            "seq": 0,
+            "sessionKey": "chat:42",
+            "stateId": "loading"
+          }
+        },
+        "source": "progress"
+      },
+      "name": "ignore stale effect progress",
+      "result": {
+        "intents": [],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {
+            "loaded": 1,
+            "query": "Ada",
+            "status": "ok"
+          },
+          "history": {},
+          "position": "loading",
+          "seq": 1,
+          "viewSlots": {
+            "main": {
+              "revision": 0,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.effect.exhaustive"
+      ],
+      "input": {
+        "name": "failed",
+        "origin": "effect",
+        "payload": {
+          "id": "effect:2",
+          "output": {},
+          "token": {
+            "seq": 1,
+            "sessionKey": "chat:42",
+            "stateId": "loading"
+          }
+        },
+        "source": "outcome"
+      },
+      "name": "reject an undeclared outcome",
+      "result": {
+        "error": {
+          "code": "invalid_feedback",
+          "message": "Use a declared effect outcome.",
+          "path": "$.input.name"
+        },
+        "intents": [],
+        "kind": "error",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {
+            "loaded": 1,
+            "query": "Ada",
+            "status": "ok"
+          },
+          "history": {},
+          "position": "loading",
+          "seq": 1,
+          "viewSlots": {
+            "main": {
+              "revision": 0,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.effect.moving"
+      ],
+      "input": {
+        "name": "done",
+        "origin": "effect",
+        "payload": {
+          "id": "effect:2",
+          "output": {},
+          "token": {
+            "seq": 1,
+            "sessionKey": "chat:42",
+            "stateId": "loading"
+          }
+        },
+        "source": "outcome"
+      },
+      "name": "move after the final outcome",
+      "result": {
+        "intents": [],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {
+            "loaded": 1,
+            "query": "Ada",
+            "status": "ok"
+          },
+          "history": {},
+          "position": "done",
+          "seq": 2,
+          "viewSlots": {
+            "main": {
+              "revision": 0,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "transcriptVersion": 1
+}

@@ -370,6 +370,74 @@ test("replay uses virtual time and preserves atomic failures", () => {
   expect(times).toEqual(["2026-08-10T14:00:30.000Z", "2026-08-10T14:01:30.000Z"]);
 });
 
+test("replay maps stable effect feedback ids to runtime ids", () => {
+  const active = { ...session, position: "loading", seq: 1 } as const;
+  const token = { sessionKey: "chat:42", stateId: "loading", seq: 1 } as const;
+  const scenario = {
+    ...transcript,
+    steps: [
+      {
+        name: "start the effect",
+        input: {
+          origin: "telegram",
+          source: "message",
+          name: "photo",
+          payload: { sessionKey: "chat:42" },
+        },
+        covers: ["runtime.effect.start"],
+        result: {
+          kind: "ok",
+          session: active,
+          intents: [{
+            kind: "effect",
+            id: "effect:1",
+            effect: "load",
+            input: {},
+            token,
+          }],
+        },
+      },
+      {
+        name: "complete the effect",
+        input: {
+          origin: "effect",
+          source: "outcome",
+          name: "done",
+          payload: { id: "effect:1", token, output: {} },
+        },
+        covers: ["runtime.effect.outcome"],
+        result: { kind: "ok", session: active, intents: [] },
+      },
+    ],
+  } satisfies GoldenTranscript;
+  const feedbackIds: string[] = [];
+  const runner: CoreRunner = (request) => {
+    if (request.input.origin === "effect") {
+      const payload = request.input.payload as { id: string };
+      feedbackIds.push(payload.id);
+      return { kind: "ok", session: request.session, intents: [] };
+    }
+    return {
+      kind: "ok",
+      session: active,
+      intents: [{
+        kind: "effect",
+        id: "chat:42:loading:1:0",
+        effect: "load",
+        input: {},
+        token,
+      }],
+    };
+  };
+
+  expect(replayTranscript({
+    transcript: scenario,
+    spec: {} as BotchartSpec,
+    runner,
+  }).issues).toEqual([]);
+  expect(feedbackIds).toEqual(["chat:42:loading:1:0"]);
+});
+
 test("coverage rejects missing, duplicate, and unknown claims", () => {
   const manifest = {
     schemaRevision: "0.1.0",

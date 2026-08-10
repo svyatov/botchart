@@ -1,0 +1,123 @@
+{
+  "$schema": "https://svyatov.github.io/botchart/schema/0.1.0.json",
+  "version": 1,
+  "schemaRevision": "0.1.0",
+  "packs": [],
+  "scope": "chat+user",
+  "context": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+      "query": { "type": "string" },
+      "loaded": { "type": "number" },
+      "status": { "type": "string" },
+      "error": { "type": "string" }
+    },
+    "required": ["query", "loaded", "status"],
+    "additionalProperties": false,
+    "default": {
+      "query": "Ada",
+      "loaded": 0,
+      "status": "pending",
+      "error": "old"
+    }
+  },
+  "parameters": {},
+  "guards": {},
+  "effects": {
+    "load": {
+      "input": { "query": { "type": "string" } },
+      "progress": { "loaded": { "type": "number" } },
+      "outcomes": {
+        "done": {
+          "status": { "type": "string" },
+          "error": { "type": "string", "optional": true }
+        }
+      }
+    },
+    "publish": {
+      "input": { "status": { "type": "string" } },
+      "outcomes": { "done": {} }
+    },
+    "skipped": {
+      "input": {},
+      "outcomes": { "done": {} }
+    }
+  },
+  "presses": {},
+  "units": {},
+  "stalePress": { "action": "ignore" },
+  "initial": "start",
+  "on": {},
+  "states": {
+    "start": {
+      "kind": "state",
+      "render": "keep",
+      "on": {
+        "message": {
+          "photo": [{ "target": "loading" }]
+        }
+      }
+    },
+    "loading": {
+      "kind": "state",
+      "view": {
+        "kind": "text",
+        "text": ["Loading"],
+        "parseMode": "plain"
+      },
+      "render": "edit",
+      "entry": [
+        {
+          "kind": "run",
+          "effect": "load",
+          "input": { "query": { "context": "query" } },
+          "onProgress": {
+            "assign": { "loaded": { "from": "loaded" } }
+          },
+          "outcomes": {
+            "done": {
+              "assign": {
+                "status": { "from": "status" },
+                "error": { "from": "error" }
+              },
+              "do": [
+                {
+                  "when": {
+                    "compare": {
+                      "left": { "context": "status" },
+                      "op": "eq",
+                      "right": "ok"
+                    }
+                  }
+                },
+                { "target": "failed" }
+              ]
+            }
+          }
+        },
+        {
+          "kind": "run",
+          "effect": "publish",
+          "input": { "status": { "context": "status" } },
+          "outcomes": {
+            "done": {
+              "assign": {},
+              "do": [{ "target": "done" }]
+            }
+          }
+        },
+        {
+          "kind": "run",
+          "effect": "skipped",
+          "input": {},
+          "outcomes": {
+            "done": { "assign": {}, "do": [{}] }
+          }
+        }
+      ]
+    },
+    "failed": { "kind": "state", "render": "keep" },
+    "done": { "kind": "state", "render": "keep" }
+  }
+}

@@ -251,6 +251,526 @@ test("deep history restores the last active leaf", () => {
   });
 });
 
+test("an effect receives one immutable snapshot and stops the entry pipeline", () => {
+  const spec = {
+    initial: "start",
+    context: {
+      default: { query: "Ada" },
+      properties: { query: { type: "string" } },
+      required: ["query"],
+    },
+    parameters: {},
+    effects: {
+      first: { input: { query: { type: "string" } }, outcomes: { done: {} } },
+      second: { input: {}, outcomes: { done: {} } },
+    },
+    states: {
+      start: {
+        kind: "state",
+        render: "keep",
+        on: { message: { photo: [{ target: "loading" }] } },
+      },
+      loading: {
+        kind: "state",
+        render: "keep",
+        entry: [
+          {
+            kind: "run",
+            effect: "first",
+            input: { query: { context: "query" } },
+            outcomes: { done: { assign: {}, do: [{}] } },
+          },
+          {
+            kind: "run",
+            effect: "second",
+            input: {},
+            outcomes: { done: { assign: {}, do: [{}] } },
+          },
+        ],
+      },
+    },
+  } as unknown as BotchartSpec;
+  const current = createSession({ spec });
+
+  expect(step({
+    spec,
+    session: current,
+    input: {
+      origin: "telegram",
+      source: "message",
+      name: "photo",
+      payload: { sessionKey: "chat:42" },
+    },
+    now: "2026-08-10T14:00:00Z",
+  })).toEqual({
+    kind: "ok",
+    session: { ...current, position: "loading", seq: 1 },
+    intents: [{
+      kind: "effect",
+      id: "chat:42:loading:1:0",
+      effect: "first",
+      input: { query: "Ada" },
+      token: { sessionKey: "chat:42", stateId: "loading", seq: 1 },
+    }],
+  });
+});
+
+test("a non-moving effect outcome continues the entry pipeline", () => {
+  const spec = {
+    initial: "loading",
+    context: { default: {} },
+    parameters: {},
+    effects: {
+      first: { input: {}, outcomes: { done: {} } },
+      second: { input: {}, outcomes: { done: {} } },
+    },
+    states: {
+      loading: {
+        kind: "state",
+        render: "keep",
+        entry: [
+          {
+            kind: "run",
+            effect: "first",
+            input: {},
+            outcomes: { done: { assign: {}, do: [{}] } },
+          },
+          {
+            kind: "run",
+            effect: "second",
+            input: {},
+            outcomes: { done: { assign: {}, do: [{}] } },
+          },
+        ],
+      },
+    },
+  } as unknown as BotchartSpec;
+  const current = { ...createSession({ spec }), seq: 1 };
+  const token = { sessionKey: "chat:42", stateId: "loading", seq: 1 } as const;
+
+  expect(step({
+    spec,
+    session: current,
+    input: {
+      origin: "effect",
+      source: "outcome",
+      name: "done",
+      payload: {
+        id: "chat:42:loading:1:0",
+        token,
+        output: {},
+      },
+    },
+    now: "2026-08-10T14:00:01Z",
+  })).toEqual({
+    kind: "ok",
+    session: current,
+    intents: [{
+      kind: "effect",
+      id: "chat:42:loading:1:1",
+      effect: "second",
+      input: {},
+      token,
+    }],
+  });
+});
+
+test("a moving effect outcome maps output before it selects a transition", () => {
+  const spec = {
+    initial: "loading",
+    context: {
+      default: { status: "pending" },
+      properties: { status: { type: "string" } },
+      required: ["status"],
+    },
+    parameters: {},
+    effects: {
+      load: { input: {}, outcomes: { done: { status: { type: "string" } } } },
+      skipped: { input: {}, outcomes: { done: {} } },
+    },
+    states: {
+      loading: {
+        kind: "state",
+        render: "keep",
+        entry: [
+          {
+            kind: "run",
+            effect: "load",
+            input: {},
+            outcomes: {
+              done: {
+                assign: { status: { from: "status" } },
+                do: [
+                  {
+                    when: {
+                      compare: {
+                        left: { context: "status" },
+                        op: "eq",
+                        right: "ok",
+                      },
+                    },
+                    target: "success",
+                  },
+                  { target: "failure" },
+                ],
+              },
+            },
+          },
+          {
+            kind: "run",
+            effect: "skipped",
+            input: {},
+            outcomes: { done: { assign: {}, do: [{}] } },
+          },
+        ],
+      },
+      success: { kind: "state", render: "keep" },
+      failure: { kind: "state", render: "keep" },
+    },
+  } as unknown as BotchartSpec;
+  const current = { ...createSession({ spec }), seq: 1 };
+  const runner = createRunner({ validateContext: () => true });
+
+  expect(runner({
+    spec,
+    session: current,
+    input: {
+      origin: "effect",
+      source: "outcome",
+      name: "done",
+      payload: {
+        id: "chat:42:loading:1:0",
+        token: { sessionKey: "chat:42", stateId: "loading", seq: 1 },
+        output: { status: "ok" },
+      },
+    },
+    now: "2026-08-10T14:00:01Z",
+  })).toEqual({
+    kind: "ok",
+    session: {
+      ...current,
+      context: { status: "ok" },
+      position: "success",
+      seq: 2,
+    },
+    intents: [],
+  });
+});
+
+test("effect progress updates context and renders without moving", () => {
+  const spec = {
+    initial: "loading",
+    context: {
+      default: { loaded: 0 },
+      properties: { loaded: { type: "number" } },
+      required: ["loaded"],
+    },
+    parameters: {},
+    effects: {
+      load: {
+        input: {},
+        progress: { loaded: { type: "number" } },
+        outcomes: { done: {} },
+      },
+    },
+    states: {
+      loading: {
+        kind: "state",
+        view: { kind: "text", text: ["Loading"], parseMode: "plain" },
+        render: "edit",
+        entry: [{
+          kind: "run",
+          effect: "load",
+          input: {},
+          onProgress: { assign: { loaded: { from: "loaded" } } },
+          outcomes: { done: { assign: {}, do: [{}] } },
+        }],
+      },
+    },
+  } as unknown as BotchartSpec;
+  const current = {
+    ...createSession({ spec, target: { kind: "chat", chatId: 42 } }),
+    seq: 1,
+  };
+  const runner = createRunner({ validateContext: () => true });
+
+  expect(runner({
+    spec,
+    session: current,
+    input: {
+      origin: "effect",
+      source: "progress",
+      name: "load",
+      payload: {
+        id: "chat:42:loading:1:0",
+        token: { sessionKey: "chat:42", stateId: "loading", seq: 1 },
+        output: { loaded: 1 },
+      },
+    },
+    now: "2026-08-10T14:00:01Z",
+  })).toEqual({
+    kind: "ok",
+    session: { ...current, context: { loaded: 1 } },
+    intents: [{
+      kind: "view",
+      operation: "send",
+      slot: "main",
+      target: { kind: "chat", chatId: 42 },
+      view: { kind: "text", text: ["Loading"], parseMode: "plain" },
+    }],
+  });
+});
+
+test("a missing optional effect output unsets its context field", () => {
+  const spec = {
+    initial: "loading",
+    context: {
+      default: { error: "old" },
+      properties: { error: { type: "string" } },
+      additionalProperties: false,
+    },
+    parameters: {},
+    effects: {
+      load: {
+        input: {},
+        outcomes: { done: { message: { type: "string", optional: true } } },
+      },
+    },
+    states: {
+      loading: {
+        kind: "state",
+        render: "keep",
+        entry: [{
+          kind: "run",
+          effect: "load",
+          input: {},
+          outcomes: {
+            done: {
+              assign: { error: { from: "message" } },
+              do: [{}],
+            },
+          },
+        }],
+      },
+    },
+  } as unknown as BotchartSpec;
+  const current = { ...createSession({ spec }), seq: 1 };
+  const runner = createRunner({ validateContext: () => true });
+
+  expect(runner({
+    spec,
+    session: current,
+    input: {
+      origin: "effect",
+      source: "outcome",
+      name: "done",
+      payload: {
+        id: "chat:42:loading:1:0",
+        token: { sessionKey: "chat:42", stateId: "loading", seq: 1 },
+        output: {},
+      },
+    },
+    now: "2026-08-10T14:00:01Z",
+  })).toEqual({
+    kind: "ok",
+    session: { ...current, context: {} },
+    intents: [],
+  });
+});
+
+test("effect feedback requires every declared output field", () => {
+  const spec = {
+    initial: "loading",
+    context: {
+      default: { error: "" },
+      properties: { error: { type: "string" } },
+      required: ["error"],
+    },
+    parameters: {},
+    effects: {
+      load: { input: {}, outcomes: { failed: { message: { type: "string" } } } },
+    },
+    states: {
+      loading: {
+        kind: "state",
+        render: "keep",
+        entry: [{
+          kind: "run",
+          effect: "load",
+          input: {},
+          outcomes: {
+            failed: {
+              assign: { error: { from: "message" } },
+              do: [{}],
+            },
+          },
+        }],
+      },
+    },
+  } as unknown as BotchartSpec;
+  const current = { ...createSession({ spec }), seq: 1 };
+  const runner = createRunner({ validateContext: () => true });
+
+  expect(runner({
+    spec,
+    session: current,
+    input: {
+      origin: "effect",
+      source: "outcome",
+      name: "failed",
+      payload: {
+        id: "chat:42:loading:1:0",
+        token: { sessionKey: "chat:42", stateId: "loading", seq: 1 },
+        output: {},
+      },
+    },
+    now: "2026-08-10T14:00:01Z",
+  })).toEqual({
+    kind: "error",
+    session: current,
+    intents: [],
+    error: {
+      code: "invalid_feedback",
+      path: "$.input.payload.output.message",
+      message: "Provide the required message effect output.",
+    },
+  });
+});
+
+test("feedback from an exited state is stale", () => {
+  const spec = {
+    initial: "done",
+    context: { default: {} },
+    parameters: {},
+    effects: { load: { input: {}, outcomes: { done: {} } } },
+    states: {
+      loading: {
+        kind: "state",
+        render: "keep",
+        entry: [{
+          kind: "run",
+          effect: "load",
+          input: {},
+          outcomes: { done: { assign: {}, do: [{}] } },
+        }],
+      },
+      done: { kind: "state", render: "keep" },
+    },
+  } as unknown as BotchartSpec;
+  const current = { ...createSession({ spec }), seq: 2 };
+
+  expect(step({
+    spec,
+    session: current,
+    input: {
+      origin: "effect",
+      source: "outcome",
+      name: "done",
+      payload: {
+        id: "chat:42:loading:1:0",
+        token: { sessionKey: "chat:42", stateId: "loading", seq: 1 },
+        output: {},
+      },
+    },
+    now: "2026-08-10T14:00:01Z",
+  })).toEqual({ kind: "ok", session: current, intents: [] });
+});
+
+test("effect feedback rejects an undeclared outcome", () => {
+  const spec = {
+    initial: "loading",
+    context: { default: {} },
+    parameters: {},
+    effects: { load: { input: {}, outcomes: { done: {} } } },
+    states: {
+      loading: {
+        kind: "state",
+        render: "keep",
+        entry: [{
+          kind: "run",
+          effect: "load",
+          input: {},
+          outcomes: { done: { assign: {}, do: [{}] } },
+        }],
+      },
+    },
+  } as unknown as BotchartSpec;
+  const current = { ...createSession({ spec }), seq: 1 };
+
+  expect(step({
+    spec,
+    session: current,
+    input: {
+      origin: "effect",
+      source: "outcome",
+      name: "failed",
+      payload: {
+        id: "chat:42:loading:1:0",
+        token: { sessionKey: "chat:42", stateId: "loading", seq: 1 },
+        output: {},
+      },
+    },
+    now: "2026-08-10T14:00:01Z",
+  })).toEqual({
+    kind: "error",
+    session: current,
+    intents: [],
+    error: {
+      code: "invalid_feedback",
+      path: "$.input.name",
+      message: "Use a declared effect outcome.",
+    },
+  });
+});
+
+test("effect feedback rejects an unknown payload field", () => {
+  const spec = {
+    initial: "loading",
+    context: { default: {} },
+    parameters: {},
+    effects: { load: { input: {}, outcomes: { done: {} } } },
+    states: {
+      loading: {
+        kind: "state",
+        render: "keep",
+        entry: [{
+          kind: "run",
+          effect: "load",
+          input: {},
+          outcomes: { done: { assign: {}, do: [{}] } },
+        }],
+      },
+    },
+  } as unknown as BotchartSpec;
+  const current = { ...createSession({ spec }), seq: 1 };
+
+  expect(step({
+    spec,
+    session: current,
+    input: {
+      origin: "effect",
+      source: "outcome",
+      name: "done",
+      payload: {
+        id: "chat:42:loading:1:0",
+        token: { sessionKey: "chat:42", stateId: "loading", seq: 1 },
+        output: {},
+        attempt: 1,
+      },
+    },
+    now: "2026-08-10T14:00:01Z",
+  })).toEqual({
+    kind: "error",
+    session: current,
+    intents: [],
+    error: {
+      code: "invalid_feedback",
+      path: "$.input.payload.attempt",
+      message: "Remove the attempt effect feedback field.",
+    },
+  });
+});
+
 test("a unit call stores immutable input and suspends its caller", () => {
   const spec = {
     initial: "start",
