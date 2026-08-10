@@ -889,7 +889,7 @@ function selectTextTransition<Context extends JsonObject>(
       { ...request, input },
       options,
     );
-    if (selection.kind === "error" || selection.value !== undefined) return selection;
+    return selection;
   }
 
   return { kind: "ok", value: undefined };
