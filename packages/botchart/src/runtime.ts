@@ -57,6 +57,11 @@ export type EffectOutcomeInput = {
 
 export type EffectFeedbackInput = EffectProgressInput | EffectOutcomeInput;
 
+export type TimerFiringPayload = {
+  readonly id: string;
+  readonly token: StalenessToken;
+};
+
 export type ChatTarget = {
   readonly kind: "chat";
   readonly chatId: number;
@@ -333,6 +338,20 @@ function executeStep<Context extends JsonObject>(
   if (request.input.origin === "effect") {
     return runEffectFeedback(request, options);
   }
+  if (request.input.origin === "scheduler" && request.input.source === "timer") {
+    const prepared = prepareTimerFiring(request);
+    if (prepared.kind === "error") {
+      return {
+        kind: "error",
+        session: request.session,
+        intents: [],
+        error: prepared.error,
+      };
+    }
+    if (prepared.value === "stale") {
+      return { kind: "ok", session: request.session, intents: [] };
+    }
+  }
   let acceptedPress: AcceptedPress | undefined;
   if (request.input.origin === "telegram" && request.input.source === "press") {
     const prepared = preparePress(request);
@@ -422,6 +441,20 @@ function executeStep<Context extends JsonObject>(
     };
   }
 
+  const cancelled = cancelExitedStateTimers(
+    nextSession,
+    transition.target,
+    request,
+  );
+  if (cancelled.kind === "error") {
+    return {
+      kind: "error",
+      session: originalRequest.session,
+      intents: [],
+      error: cancelled.error,
+    };
+  }
+
   if (targetState.kind === "final") {
     const result = enterFinalState(
       nextSession,
@@ -432,7 +465,7 @@ function executeStep<Context extends JsonObject>(
     );
     return result.kind === "error"
       ? { ...result, session: originalRequest.session }
-      : withPressAnswer(result, answer.value);
+      : withPressAnswer(prependIntents(result, cancelled.value), answer.value);
   }
 
   if (targetState.kind === "return") {
@@ -444,7 +477,7 @@ function executeStep<Context extends JsonObject>(
     );
     return returned.kind === "error"
       ? { kind: "error", session: originalRequest.session, intents: [], error: returned.error }
-      : withPressAnswer(returned.value, answer.value);
+      : withPressAnswer(prependIntents(returned.value, cancelled.value), answer.value);
   }
 
   const history = recordExitedHistory(
@@ -467,7 +500,7 @@ function executeStep<Context extends JsonObject>(
   const settled = settleStateEntry(entered.session, target, 0, request, options);
   return settled.kind === "error"
     ? { kind: "error", session: originalRequest.session, intents: [], error: settled.error }
-    : withPressAnswer(settled.value, answer.value);
+    : withPressAnswer(prependIntents(settled.value, cancelled.value), answer.value);
 }
 
 function removeObsoleteCallbacks<Context extends JsonObject>(
@@ -870,6 +903,33 @@ function settleStateEntry<Context extends JsonObject>(
   request: CoreRunnerRequest<Context>,
   options: CreateRunnerOptions<Context>,
 ): Evaluation<CoreResult<Context>> {
+  const scheduled = entryIndex === 0
+    ? scheduleStateTimers(session, stateId, request)
+    : { kind: "ok", value: [] } as const;
+  if (scheduled.kind === "error") return scheduled;
+
+  const settled = continueStateEntry(session, stateId, entryIndex, request, options);
+  if (
+    settled.kind === "error"
+    || settled.value.kind === "error"
+    || scheduled.value.length === 0
+  ) return settled;
+  return {
+    kind: "ok",
+    value: {
+      ...settled.value,
+      intents: [...scheduled.value, ...settled.value.intents],
+    },
+  };
+}
+
+function continueStateEntry<Context extends JsonObject>(
+  session: Session<Context>,
+  stateId: StateId,
+  entryIndex: number,
+  request: CoreRunnerRequest<Context>,
+  options: CreateRunnerOptions<Context>,
+): Evaluation<CoreResult<Context>> {
   const state = activeStateAt(request.spec, session, stateId);
   if (state?.kind === "return") {
     return completeUnitReturn(session, state, request, options);
@@ -897,6 +957,232 @@ function settleStateEntry<Context extends JsonObject>(
   return called.kind === "error"
     ? called
     : settleStateEntry(called.value, called.value.position, 0, request, options);
+}
+
+function scheduleStateTimers<Context extends JsonObject>(
+  session: Session<Context>,
+  stateId: StateId,
+  request: CoreRunnerRequest<Context>,
+): Evaluation<readonly TimerIntent[]> {
+  const state = activeStateAt(request.spec, session, stateId);
+  const after = ownerOn(state)?.after as
+    | Readonly<Record<string, { readonly delay: string }>>
+    | undefined;
+  if (after === undefined) return { kind: "ok", value: [] };
+
+  const sessionKey = inputSessionKey(request.input);
+  if (sessionKey === undefined) {
+    return evaluationError(
+      "missing_session_key",
+      "$.input.payload.sessionKey",
+      "Add the sessionKey value before this state schedules a timer.",
+    );
+  }
+  const now = Date.parse(request.now);
+  if (!Number.isFinite(now)) {
+    return evaluationError(
+      "invalid_time",
+      "$.now",
+      "Set now to an RFC 3339 UTC time before this state schedules a timer.",
+    );
+  }
+
+  const token = { sessionKey, stateId, seq: session.seq };
+  const intents: TimerIntent[] = [];
+  for (const [timer, entry] of Object.entries(after)) {
+    const delay = timerDelayMilliseconds(entry.delay);
+    if (delay === undefined) {
+      return evaluationError(
+        "invalid_timer_delay",
+        `${activeStatePath(request.spec, session, stateId)}.on.after.${timer}.delay`,
+        "Use one positive delay with an ms, s, m, h, or d unit.",
+      );
+    }
+    const fireAt = new Date(now + delay);
+    if (Number.isNaN(fireAt.valueOf())) {
+      return evaluationError(
+        "invalid_timer_delay",
+        `${activeStatePath(request.spec, session, stateId)}.on.after.${timer}.delay`,
+        "Use a delay that produces a valid future time.",
+      );
+    }
+    intents.push({
+      kind: "timer",
+      operation: "schedule",
+      id: timerId(token, timer),
+      timer,
+      fireAt: fireAt.toISOString(),
+      token,
+    });
+  }
+  return { kind: "ok", value: intents };
+}
+
+function cancelExitedStateTimers<Context extends JsonObject>(
+  session: Session<Context>,
+  target: StateId,
+  request: CoreRunnerRequest<Context>,
+): Evaluation<readonly TimerIntent[]> {
+  const sourceSegments = session.position.split(".");
+  const targetSegments = target.split(".");
+  let retained = 0;
+  while (
+    retained < sourceSegments.length
+    && retained < targetSegments.length
+    && sourceSegments[retained] === targetSegments[retained]
+  ) retained += 1;
+  if (
+    retained === sourceSegments.length
+    && retained === targetSegments.length
+  ) retained -= 1;
+  if (
+    retained === targetSegments.length
+    && retained < sourceSegments.length
+    && activeStateAt(request.spec, session, target)?.kind === "compound"
+  ) retained -= 1;
+
+  const exited: StateId[] = [];
+  for (let length = sourceSegments.length; length > retained; length -= 1) {
+    exited.push(sourceSegments.slice(0, length).join(".") as StateId);
+  }
+  const hasTimers = exited.some((stateId) =>
+    ownerOn(activeStateAt(request.spec, session, stateId))?.after !== undefined
+  );
+  if (!hasTimers) return { kind: "ok", value: [] };
+
+  const sessionKey = inputSessionKey(request.input);
+  if (sessionKey === undefined) {
+    return evaluationError(
+      "missing_session_key",
+      "$.input.payload.sessionKey",
+      "Add the sessionKey value before this transition cancels a timer.",
+    );
+  }
+  const intents: TimerIntent[] = [];
+  for (const stateId of exited) {
+    const after = ownerOn(activeStateAt(request.spec, session, stateId))?.after as
+      | Readonly<Record<string, unknown>>
+      | undefined;
+    if (after === undefined) continue;
+    const token = { sessionKey, stateId, seq: session.seq };
+    for (const timer of Object.keys(after)) {
+      intents.push({
+        kind: "timer",
+        operation: "cancel",
+        id: timerId(token, timer),
+      });
+    }
+  }
+  return { kind: "ok", value: intents };
+}
+
+function prependIntents<Context extends JsonObject>(
+  result: CoreResult<Context>,
+  intents: readonly Intent[],
+): CoreResult<Context> {
+  return result.kind === "error" || intents.length === 0
+    ? result
+    : { ...result, intents: [...intents, ...result.intents] };
+}
+
+function timerDelayMilliseconds(delay: string): number | undefined {
+  const match = /^(?<amount>[1-9][0-9]*)(?<unit>ms|s|m|h|d)$/.exec(delay);
+  if (match?.groups === undefined) return undefined;
+  const units: Readonly<Record<string, number>> = {
+    ms: 1,
+    s: 1_000,
+    m: 60_000,
+    h: 3_600_000,
+    d: 86_400_000,
+  };
+  const milliseconds = Number(match.groups.amount) * (units[match.groups.unit ?? ""] ?? 0);
+  return Number.isSafeInteger(milliseconds) ? milliseconds : undefined;
+}
+
+function timerId(token: StalenessToken, timer: string): string {
+  return `${token.sessionKey}:${token.stateId}:${token.seq}:${timer}`;
+}
+
+function prepareTimerFiring<Context extends JsonObject>(
+  request: CoreRunnerRequest<Context>,
+): Evaluation<"fresh" | "stale"> {
+  const parsed = timerFiringPayload(request.input);
+  if (parsed.kind === "error") return parsed;
+  const { id, token } = parsed.value;
+  if (
+    token.seq !== request.session.seq
+    || (
+      request.session.position !== token.stateId
+      && !request.session.position.startsWith(`${token.stateId}.`)
+    )
+  ) return { kind: "ok", value: "stale" };
+  if (id !== timerId(token, request.input.name)) {
+    return evaluationError(
+      "invalid_timer_input",
+      "$.input.payload.id",
+      "Use the id from the active timer intent.",
+    );
+  }
+  return { kind: "ok", value: "fresh" };
+}
+
+function timerFiringPayload(input: CoreInput): Evaluation<TimerFiringPayload> {
+  const payload = input.payload;
+  if (!isJsonObject(payload)) {
+    return evaluationError(
+      "invalid_timer_input",
+      "$.input.payload",
+      "Use a timer input object with id and token fields.",
+    );
+  }
+  const unknownField = Object.keys(payload).find((name) =>
+    name !== "id" && name !== "token"
+  );
+  if (unknownField !== undefined) {
+    return evaluationError(
+      "invalid_timer_input",
+      `$.input.payload.${unknownField}`,
+      `Remove the ${unknownField} timer input field.`,
+    );
+  }
+  const id = payload.id;
+  const token = payload.token;
+  if (typeof id !== "string" || id.length === 0) {
+    return evaluationError(
+      "invalid_timer_input",
+      "$.input.payload.id",
+      "Use the id from the timer intent.",
+    );
+  }
+  if (
+    !isJsonObject(token)
+    || typeof token.sessionKey !== "string"
+    || token.sessionKey.length === 0
+    || typeof token.stateId !== "string"
+    || token.stateId.length === 0
+    || !Number.isInteger(token.seq)
+    || Number(token.seq) < 0
+  ) {
+    return evaluationError(
+      "invalid_timer_input",
+      "$.input.payload.token",
+      "Use the token from the timer intent.",
+    );
+  }
+  const unknownTokenField = Object.keys(token).find((name) =>
+    name !== "sessionKey" && name !== "stateId" && name !== "seq"
+  );
+  if (unknownTokenField !== undefined) {
+    return evaluationError(
+      "invalid_timer_input",
+      `$.input.payload.token.${unknownTokenField}`,
+      `Remove the ${unknownTokenField} staleness token field.`,
+    );
+  }
+  return {
+    kind: "ok",
+    value: { id, token: token as StalenessToken },
+  };
 }
 
 function startEffect<Context extends JsonObject>(
@@ -1099,6 +1385,12 @@ function handleEffectFeedback<Context extends JsonObject>(
       `Declare the ${transition.target} state before you target it.`,
     );
   }
+  const cancelled = cancelExitedStateTimers(
+    assignedSession,
+    transition.target,
+    request,
+  );
+  if (cancelled.kind === "error") return cancelled;
   if (targetState.kind === "final") {
     const result = enterFinalState(
       assignedSession,
@@ -1109,15 +1401,18 @@ function handleEffectFeedback<Context extends JsonObject>(
     );
     return result.kind === "error"
       ? { kind: "error", error: result.error }
-      : { kind: "ok", value: result };
+      : { kind: "ok", value: prependIntents(result, cancelled.value) };
   }
   if (targetState.kind === "return") {
-    return completeUnitReturn(
+    const returned = completeUnitReturn(
       { ...assignedSession, position: transition.target, seq: assignedSession.seq + 1 },
       targetState,
       request,
       options,
     );
+    return returned.kind === "error"
+      ? returned
+      : { kind: "ok", value: prependIntents(returned.value, cancelled.value) };
   }
   const history = recordExitedHistory(request.spec, assignedSession, transition.target);
   const entered: Session<Context> = {
@@ -1126,7 +1421,10 @@ function handleEffectFeedback<Context extends JsonObject>(
     position: transition.target,
     seq: assignedSession.seq + 1,
   };
-  return settleStateEntry(entered, transition.target, 0, request, options);
+  const settled = settleStateEntry(entered, transition.target, 0, request, options);
+  return settled.kind === "error"
+    ? settled
+    : { kind: "ok", value: prependIntents(settled.value, cancelled.value) };
 }
 
 function effectFeedbackPayload(input: CoreInput): Evaluation<EffectFeedbackPayload> {

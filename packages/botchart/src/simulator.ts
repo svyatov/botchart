@@ -803,8 +803,13 @@ function restoreInputIds(
   if (input.origin === "telegram" && input.source === "press") {
     return { ...input, name: counters.original("callback", input.name) };
   }
+  const kind = input.origin === "effect"
+    ? "effect"
+    : input.origin === "scheduler" && input.source === "timer"
+    ? "timer"
+    : undefined;
   if (
-    input.origin !== "effect"
+    kind === undefined
     || !isRecord(input.payload)
     || typeof input.payload.id !== "string"
   ) return input;
@@ -812,7 +817,7 @@ function restoreInputIds(
     ...input,
     payload: {
       ...input.payload,
-      id: counters.original("effect", input.payload.id),
+      id: counters.original(kind, input.payload.id),
     },
   };
 }
