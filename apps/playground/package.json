@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "ruby scripts/build.rb",
+    "smoke": "ruby scripts/smoke.rb dist",
     "test": "bun test"
   },
   "dependencies": {
