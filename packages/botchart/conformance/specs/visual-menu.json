@@ -1,0 +1,615 @@
+{
+  "$schema": "https://svyatov.github.io/botchart/schema/0.1.0.json",
+  "version": 1,
+  "schemaRevision": "0.1.0",
+  "packs": [],
+  "scope": "chat+user",
+  "context": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+      "callSign": { "type": "string" },
+      "lastSignal": { "type": "string" }
+    },
+    "required": ["callSign", "lastSignal"],
+    "additionalProperties": false,
+    "default": {
+      "callSign": "Traveler",
+      "lastSignal": "Aurora 7"
+    }
+  },
+  "parameters": {
+    "edition": { "type": "string", "default": "Northern field edition" }
+  },
+  "guards": {},
+  "effects": {},
+  "presses": {
+    "openAtlas": { "payload": {} },
+    "openNotes": { "payload": {} },
+    "openAbout": { "payload": {} },
+    "openSignals": { "payload": {} },
+    "openArchives": { "payload": {} },
+    "openFieldKit": { "payload": {} },
+    "openRelays": { "payload": {} },
+    "openBeacons": { "payload": {} },
+    "openInterference": { "payload": {} },
+    "openPolar": { "payload": {} },
+    "openOrbital": { "payload": {} },
+    "openCoastal": { "payload": {} },
+    "openAurora": { "payload": {} },
+    "openIce": { "payload": {} },
+    "openNight": { "payload": {} },
+    "back": { "payload": {} }
+  },
+  "units": {},
+  "stalePress": {
+    "action": "rerender",
+    "answer": {
+      "kind": "toast",
+      "text": ["This menu changed. The current menu is shown."]
+    }
+  },
+  "initial": "home",
+  "on": {
+    "command": {
+      "start": { "do": [{ "target": "home" }] },
+      "menu": { "do": [{ "target": "home" }] }
+    }
+  },
+  "states": {
+    "home": {
+      "kind": "state",
+      "view": {
+        "kind": "text",
+        "text": [
+          "Field Signal Atlas\n",
+          { "parameter": "edition", "escape": "text" },
+          "\n\nWelcome, ",
+          { "context": "callSign", "escape": "text" },
+          ". Last logged signal: ",
+          { "context": "lastSignal", "escape": "text" },
+          "."
+        ],
+        "parseMode": "plain",
+        "keyboard": [
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": ["Open signal atlas"],
+                "press": "openAtlas",
+                "durable": false
+              }
+            ]
+          },
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": ["Recent notes"],
+                "press": "openNotes",
+                "durable": false
+              },
+              {
+                "kind": "button",
+                "label": ["About"],
+                "press": "openAbout",
+                "durable": false
+              }
+            ]
+          }
+        ]
+      },
+      "render": "edit",
+      "on": {
+        "press": {
+          "openAtlas": [{ "target": "atlas" }],
+          "openNotes": [{ "target": "notes" }],
+          "openAbout": [{ "target": "about" }]
+        }
+      }
+    },
+    "notes": {
+      "kind": "state",
+      "view": {
+        "kind": "text",
+        "text": ["Recent notes\n\nThree quiet nights. One clear polar relay."],
+        "parseMode": "plain",
+        "keyboard": [
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": ["Back"],
+                "press": "back",
+                "durable": false
+              }
+            ]
+          }
+        ]
+      },
+      "render": "edit",
+      "on": { "press": { "back": [{ "target": "home" }] } }
+    },
+    "about": {
+      "kind": "state",
+      "view": {
+        "kind": "text",
+        "text": ["A compact field guide for reading remote signal stations."],
+        "parseMode": "plain",
+        "keyboard": [
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": ["Back"],
+                "press": "back",
+                "durable": false
+              }
+            ]
+          }
+        ]
+      },
+      "render": "edit",
+      "on": { "press": { "back": [{ "target": "home" }] } }
+    },
+    "atlas": {
+      "kind": "compound",
+      "initial": "directory",
+      "states": {
+        "directory": {
+          "kind": "state",
+          "view": {
+            "kind": "text",
+            "text": ["Signal atlas\n\nChoose a collection."],
+            "parseMode": "plain",
+            "keyboard": [
+              {
+                "kind": "row",
+                "buttons": [
+                  {
+                    "kind": "button",
+                    "label": ["Live signals"],
+                    "press": "openSignals",
+                    "durable": false
+                  },
+                  {
+                    "kind": "button",
+                    "label": ["Archives"],
+                    "press": "openArchives",
+                    "durable": false
+                  }
+                ]
+              },
+              {
+                "kind": "row",
+                "buttons": [
+                  {
+                    "kind": "button",
+                    "label": ["Field kit"],
+                    "press": "openFieldKit",
+                    "durable": false
+                  },
+                  {
+                    "kind": "button",
+                    "label": ["Back"],
+                    "press": "back",
+                    "durable": false
+                  }
+                ]
+              }
+            ]
+          },
+          "render": "edit",
+          "on": {
+            "press": {
+              "openSignals": [{ "target": "atlas.signals" }],
+              "openArchives": [{ "target": "atlas.archives" }],
+              "openFieldKit": [{ "target": "atlas.fieldKit" }]
+            }
+          }
+        },
+        "archives": {
+          "kind": "state",
+          "view": {
+            "kind": "text",
+            "text": ["Archives\n\nSeasonal logs and retired station maps."],
+            "parseMode": "plain",
+            "keyboard": [
+              {
+                "kind": "row",
+                "buttons": [
+                  {
+                    "kind": "button",
+                    "label": ["Back"],
+                    "press": "back",
+                    "durable": false
+                  }
+                ]
+              }
+            ]
+          },
+          "render": "edit"
+        },
+        "fieldKit": {
+          "kind": "state",
+          "view": {
+            "kind": "text",
+            "text": ["Field kit\n\nReceiver, compass, spare cell, and paper log."],
+            "parseMode": "plain",
+            "keyboard": [
+              {
+                "kind": "row",
+                "buttons": [
+                  {
+                    "kind": "button",
+                    "label": ["Back"],
+                    "press": "back",
+                    "durable": false
+                  }
+                ]
+              }
+            ]
+          },
+          "render": "edit"
+        },
+        "signals": {
+          "kind": "compound",
+          "initial": "directory",
+          "states": {
+            "directory": {
+              "kind": "state",
+              "view": {
+                "kind": "text",
+                "text": ["Live signals\n\nChoose a signal family."],
+                "parseMode": "plain",
+                "keyboard": [
+                  {
+                    "kind": "row",
+                    "buttons": [
+                      {
+                        "kind": "button",
+                        "label": ["Relay network"],
+                        "press": "openRelays",
+                        "durable": false
+                      },
+                      {
+                        "kind": "button",
+                        "label": ["Beacon watch"],
+                        "press": "openBeacons",
+                        "durable": false
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "row",
+                    "buttons": [
+                      {
+                        "kind": "button",
+                        "label": ["Interference map"],
+                        "press": "openInterference",
+                        "durable": false
+                      },
+                      {
+                        "kind": "button",
+                        "label": ["Back"],
+                        "press": "back",
+                        "durable": false
+                      }
+                    ]
+                  }
+                ]
+              },
+              "render": "edit",
+              "on": {
+                "press": {
+                  "openRelays": [{ "target": "atlas.signals.relays" }],
+                  "openBeacons": [{ "target": "atlas.signals.beacons" }],
+                  "openInterference": [{ "target": "atlas.signals.interference" }]
+                }
+              }
+            },
+            "beacons": {
+              "kind": "state",
+              "view": {
+                "kind": "text",
+                "text": ["Beacon watch\n\nFour stations report a steady carrier."],
+                "parseMode": "plain",
+                "keyboard": [
+                  {
+                    "kind": "row",
+                    "buttons": [
+                      {
+                        "kind": "button",
+                        "label": ["Back"],
+                        "press": "back",
+                        "durable": false
+                      }
+                    ]
+                  }
+                ]
+              },
+              "render": "edit"
+            },
+            "interference": {
+              "kind": "state",
+              "view": {
+                "kind": "text",
+                "text": ["Interference map\n\nThe western ridge is noisy after dusk."],
+                "parseMode": "plain",
+                "keyboard": [
+                  {
+                    "kind": "row",
+                    "buttons": [
+                      {
+                        "kind": "button",
+                        "label": ["Back"],
+                        "press": "back",
+                        "durable": false
+                      }
+                    ]
+                  }
+                ]
+              },
+              "render": "edit"
+            },
+            "relays": {
+              "kind": "compound",
+              "initial": "directory",
+              "states": {
+                "directory": {
+                  "kind": "state",
+                  "view": {
+                    "kind": "text",
+                    "text": ["Relay network\n\nChoose a relay zone."],
+                    "parseMode": "plain",
+                    "keyboard": [
+                      {
+                        "kind": "row",
+                        "buttons": [
+                          {
+                            "kind": "button",
+                            "label": ["Polar relays"],
+                            "press": "openPolar",
+                            "durable": false
+                          },
+                          {
+                            "kind": "button",
+                            "label": ["Orbital relays"],
+                            "press": "openOrbital",
+                            "durable": false
+                          }
+                        ]
+                      },
+                      {
+                        "kind": "row",
+                        "buttons": [
+                          {
+                            "kind": "button",
+                            "label": ["Coastal relays"],
+                            "press": "openCoastal",
+                            "durable": false
+                          },
+                          {
+                            "kind": "button",
+                            "label": ["Back"],
+                            "press": "back",
+                            "durable": false
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  "render": "edit",
+                  "on": {
+                    "press": {
+                      "openPolar": [{ "target": "atlas.signals.relays.polar" }],
+                      "openOrbital": [{ "target": "atlas.signals.relays.orbital" }],
+                      "openCoastal": [{ "target": "atlas.signals.relays.coastal" }]
+                    }
+                  }
+                },
+                "orbital": {
+                  "kind": "state",
+                  "view": {
+                    "kind": "text",
+                    "text": ["Orbital relays\n\nTwo passes remain before the daily reset."],
+                    "parseMode": "plain",
+                    "keyboard": [
+                      {
+                        "kind": "row",
+                        "buttons": [
+                          {
+                            "kind": "button",
+                            "label": ["Back"],
+                            "press": "back",
+                            "durable": false
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  "render": "edit"
+                },
+                "coastal": {
+                  "kind": "state",
+                  "view": {
+                    "kind": "text",
+                    "text": ["Coastal relays\n\nFog has reduced the eastern link margin."],
+                    "parseMode": "plain",
+                    "keyboard": [
+                      {
+                        "kind": "row",
+                        "buttons": [
+                          {
+                            "kind": "button",
+                            "label": ["Back"],
+                            "press": "back",
+                            "durable": false
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  "render": "edit"
+                },
+                "polar": {
+                  "kind": "compound",
+                  "initial": "directory",
+                  "states": {
+                    "directory": {
+                      "kind": "state",
+                      "view": {
+                        "kind": "text",
+                        "text": ["Polar relays\n\nChoose a station log."],
+                        "parseMode": "plain",
+                        "keyboard": [
+                          {
+                            "kind": "row",
+                            "buttons": [
+                              {
+                                "kind": "button",
+                                "label": ["Aurora station"],
+                                "press": "openAurora",
+                                "durable": false
+                              },
+                              {
+                                "kind": "button",
+                                "label": ["Ice station"],
+                                "press": "openIce",
+                                "durable": false
+                              }
+                            ]
+                          },
+                          {
+                            "kind": "row",
+                            "buttons": [
+                              {
+                                "kind": "button",
+                                "label": ["Night station"],
+                                "press": "openNight",
+                                "durable": false
+                              },
+                              {
+                                "kind": "button",
+                                "label": ["Back"],
+                                "press": "back",
+                                "durable": false
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      "render": "edit",
+                      "on": {
+                        "press": {
+                          "openAurora": [{ "target": "atlas.signals.relays.polar.aurora" }],
+                          "openIce": [{ "target": "atlas.signals.relays.polar.ice" }],
+                          "openNight": [{ "target": "atlas.signals.relays.polar.night" }]
+                        }
+                      }
+                    },
+                    "aurora": {
+                      "kind": "state",
+                      "view": {
+                        "kind": "text",
+                        "text": [
+                          "Aurora station\n\nLast signal: ",
+                          { "context": "lastSignal", "escape": "text" },
+                          ". The carrier is clear."
+                        ],
+                        "parseMode": "plain",
+                        "keyboard": [
+                          {
+                            "kind": "row",
+                            "buttons": [
+                              {
+                                "kind": "button",
+                                "label": ["Back"],
+                                "press": "back",
+                                "durable": false
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      "render": "edit"
+                    },
+                    "ice": {
+                      "kind": "state",
+                      "view": {
+                        "kind": "text",
+                        "text": ["Ice station\n\nThe backup channel is active."],
+                        "parseMode": "plain",
+                        "keyboard": [
+                          {
+                            "kind": "row",
+                            "buttons": [
+                              {
+                                "kind": "button",
+                                "label": ["Back"],
+                                "press": "back",
+                                "durable": false
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      "render": "edit"
+                    },
+                    "night": {
+                      "kind": "state",
+                      "view": {
+                        "kind": "text",
+                        "text": ["Night station\n\nThe low-band receiver opens at 22:00 UTC."],
+                        "parseMode": "plain",
+                        "keyboard": [
+                          {
+                            "kind": "row",
+                            "buttons": [
+                              {
+                                "kind": "button",
+                                "label": ["Back"],
+                                "press": "back",
+                                "durable": false
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      "render": "edit"
+                    }
+                  },
+                  "on": {
+                    "press": {
+                      "back": [{ "target": "atlas.signals.relays" }]
+                    }
+                  }
+                }
+              },
+              "on": {
+                "press": {
+                  "back": [{ "target": "atlas.signals" }]
+                }
+              }
+            }
+          },
+          "on": {
+            "press": {
+              "back": [{ "target": "atlas" }]
+            }
+          }
+        }
+      },
+      "on": {
+        "press": {
+          "back": [{ "target": "home" }]
+        }
+      }
+    }
+  }
+}

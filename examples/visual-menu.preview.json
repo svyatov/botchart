@@ -1,0 +1,16 @@
+{
+  "name": "Field Signal Atlas",
+  "source": {
+    "repository": "https://github.com/vladik4il/INCS2bot",
+    "commit": "e32fcfce3140a6d85da87ce649b6f8eb66e96bc0"
+  },
+  "spec": "../packages/botchart/conformance/specs/visual-menu.json",
+  "transcript": "../packages/botchart/conformance/transcripts/visual-menu.json",
+  "context": {
+    "callSign": "Northstar",
+    "lastSignal": "Beacon 12"
+  },
+  "parameters": {
+    "edition": "Northern field edition"
+  }
+}

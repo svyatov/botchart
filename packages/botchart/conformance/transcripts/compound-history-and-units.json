@@ -24,7 +24,7 @@
   "steps": [
     {
       "covers": [
-        "runtime.state.compoundInitial"
+        "runtime.session.initial"
       ],
       "input": {
         "name": "photo",
@@ -82,7 +82,7 @@
     },
     {
       "covers": [
-        "runtime.state.deepLeaf"
+        "runtime.event.message"
       ],
       "input": {
         "name": "video",

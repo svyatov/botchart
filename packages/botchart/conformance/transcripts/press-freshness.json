@@ -31,8 +31,6 @@
   "steps": [
     {
       "covers": [
-        "runtime.callback.identifier",
-        "runtime.callback.payload",
         "runtime.callback.stalenessToken"
       ],
       "input": {
@@ -125,7 +123,7 @@
     },
     {
       "covers": [
-        "runtime.callback.revision"
+        "runtime.view.slot.send"
       ],
       "input": {
         "name": "send",
@@ -210,7 +208,6 @@
     },
     {
       "covers": [
-        "runtime.callback.accepted",
         "runtime.callback.answer.accepted",
         "runtime.callback.recovery"
       ],
@@ -604,7 +601,7 @@
     },
     {
       "covers": [
-        "runtime.callback.cleanup.edit"
+        "runtime.view.reconcile.edit"
       ],
       "input": {
         "name": "edit",
@@ -682,7 +679,6 @@
     },
     {
       "covers": [
-        "runtime.callback.answer.required",
         "runtime.callback.cleanup.session",
         "runtime.callback.durable"
       ],
