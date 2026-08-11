@@ -3,9 +3,15 @@ import type {
   CoverageManifest,
   GoldenTranscript,
   ReplayTranscriptOptions,
+  SimulateConversationOptions,
+  SimulationStep,
   TranscriptStep,
 } from "botchart/simulator";
-import { digestSpec, stringifyTranscript } from "botchart/simulator";
+import {
+  digestSpec,
+  simulateConversation,
+  stringifyTranscript,
+} from "botchart/simulator";
 
 declare const spec: BotchartSpec;
 declare const runner: CoreRunner;
@@ -15,11 +21,34 @@ const replay = {
   transcript,
   spec,
   runner,
+  startAt: "finish",
 } satisfies ReplayTranscriptOptions;
 
 void replay;
 void digestSpec(spec);
 void stringifyTranscript(transcript);
+
+const simulationStep = {
+  name: "finish",
+  input: {
+    origin: "telegram",
+    source: "message",
+    name: "photo",
+    payload: {},
+  },
+  covers: ["simulator.session.final"],
+} satisfies SimulationStep;
+
+const simulation = {
+  name: "finish",
+  spec,
+  specPath: "../specs/final.json",
+  runner,
+  initial: transcript.initial,
+  steps: [simulationStep],
+} satisfies SimulateConversationOptions;
+
+void simulateConversation(simulation);
 
 const manifest = {
   schemaRevision: "0.1.0",
