@@ -152,8 +152,7 @@
     {
       "covers": [
         "runtime.effect.nonMoving",
-        "runtime.effect.optionalOutput",
-        "runtime.effect.outcomeOrdering"
+        "runtime.effect.optionalOutput"
       ],
       "input": {
         "name": "done",
@@ -311,7 +310,7 @@
     },
     {
       "covers": [
-        "runtime.effect.moving"
+        "runtime.assignment.context"
       ],
       "input": {
         "name": "done",

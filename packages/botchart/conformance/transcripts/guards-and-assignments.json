@@ -31,9 +31,7 @@
     {
       "covers": [
         "runtime.guard.comparison",
-        "runtime.assignment.context",
         "runtime.assignment.parameter",
-        "runtime.assignment.event",
         "runtime.assignment.arithmetic",
         "runtime.assignment.unset"
       ],

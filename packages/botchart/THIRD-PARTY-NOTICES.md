@@ -1,5 +1,18 @@
 # Third-party notices
 
+## DEV-X-HUB/telegram-bot
+
+The long-form derived asset uses the thirteen-question form scenario from
+DEV-X-HUB/telegram-bot.
+The asset contains independently authored flow, text, errors, labels, and sample data.
+It contains no source code or user-visible text from the source repository.
+
+Source: https://github.com/DEV-X-HUB/telegram-bot
+
+Pinned commit: `3de7cce8f327d78dfb4b115a7aef50afecd83932`
+
+At the pinned commit, the source repository does not include a complete ISC notice.
+
 ## INCS2bot
 
 The visual menu derived asset uses the menu-tree structure from INCS2bot.

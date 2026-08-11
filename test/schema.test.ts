@@ -8,6 +8,7 @@ import guardSpec from "botchart/conformance/specs/guards-and-assignments.json" w
 import lifecycleErrorSpec from "botchart/conformance/specs/lifecycle-and-errors.json" with { type: "json" };
 import lifecycleIgnoreSpec from "botchart/conformance/specs/lifecycle-ignore.json" with { type: "json" };
 import lifecycleSpec from "botchart/conformance/specs/session-lifecycle.json" with { type: "json" };
+import longFormSpec from "botchart/conformance/specs/long-form.json" with { type: "json" };
 import markdownV2Spec from "botchart/conformance/specs/markdown-v2-escaping.json" with { type: "json" };
 import pressFreshnessSpec from "botchart/conformance/specs/press-freshness.json" with { type: "json" };
 import staleAnswerSpec from "botchart/conformance/specs/stale-press-answer.json" with { type: "json" };
@@ -122,6 +123,10 @@ test("published schema accepts the streaming effect derived asset", () => {
 
 test("published schema accepts the admin surface derived asset", () => {
   expect(validate(adminSurfaceSpec), JSON.stringify(validate.errors)).toBe(true);
+});
+
+test("published schema accepts the long form derived asset", () => {
+  expect(validate(longFormSpec), JSON.stringify(validate.errors)).toBe(true);
 });
 
 const completeSpec = {

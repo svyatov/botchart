@@ -63,7 +63,6 @@
     {
       "covers": [
         "runtime.view.binding.item",
-        "runtime.view.keyboard",
         "runtime.view.projection",
         "runtime.view.reconcile.replace"
       ],

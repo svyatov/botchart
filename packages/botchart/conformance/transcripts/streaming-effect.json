@@ -288,7 +288,7 @@
     },
     {
       "covers": [
-        "runtime.effect.intent"
+        "runtime.effect.moving"
       ],
       "input": {
         "name": "tooLong",

@@ -1,0 +1,554 @@
+{
+  "$schema": "https://svyatov.github.io/botchart/schema/0.1.0.json",
+  "version": 1,
+  "schemaRevision": "0.1.0",
+  "packs": [],
+  "scope": "chat+user",
+  "context": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+      "title": { "type": "string" },
+      "location": { "type": "string" },
+      "visitDate": { "type": "string" },
+      "habitat": { "type": "string" },
+      "subject": { "type": "string" },
+      "count": { "type": "string" },
+      "conditions": { "type": "string" },
+      "behavior": { "type": "string" },
+      "urgency": { "type": "string" },
+      "contact": { "type": "string" },
+      "equipment": { "type": "string" },
+      "notes": { "type": "string" },
+      "photoReady": { "type": "boolean" }
+    },
+    "required": [
+      "title",
+      "location",
+      "visitDate",
+      "habitat",
+      "subject",
+      "count",
+      "conditions",
+      "behavior",
+      "urgency",
+      "contact",
+      "equipment",
+      "notes",
+      "photoReady"
+    ],
+    "additionalProperties": false,
+    "default": {
+      "title": "",
+      "location": "",
+      "visitDate": "",
+      "habitat": "",
+      "subject": "",
+      "count": "",
+      "conditions": "",
+      "behavior": "",
+      "urgency": "",
+      "contact": "",
+      "equipment": "",
+      "notes": "",
+      "photoReady": false
+    }
+  },
+  "parameters": {},
+  "guards": {},
+  "effects": {
+    "inspectPhoto": {
+      "input": {},
+      "outcomes": {
+        "accepted": {},
+        "unreadable": {}
+      }
+    }
+  },
+  "presses": {
+    "chooseHabitat": { "payload": { "value": { "type": "string" } } },
+    "chooseUrgency": { "payload": { "value": { "type": "string" } } },
+    "back": { "payload": {} },
+    "retryPhoto": { "payload": {} },
+    "editLocation": { "payload": {} },
+    "submit": { "payload": {} }
+  },
+  "units": {},
+  "stalePress": { "action": "ignore" },
+  "initial": "title",
+  "on": {
+    "command": {
+      "start": { "do": [{ "target": "title" }] },
+      "cancel": {
+        "do": [
+          {
+            "assign": {
+              "title": "",
+              "location": "",
+              "visitDate": "",
+              "habitat": "",
+              "subject": "",
+              "count": "",
+              "conditions": "",
+              "behavior": "",
+              "urgency": "",
+              "contact": "",
+              "equipment": "",
+              "notes": "",
+              "photoReady": false
+            },
+            "target": "abandoned"
+          }
+        ]
+      }
+    }
+  },
+  "states": {
+    "title": {
+      "kind": "state",
+      "view": {
+        "kind": "text",
+        "text": ["Field report 1 of 13\n\nGive this report a title."],
+        "parseMode": "plain"
+      },
+      "render": "edit",
+      "on": {
+        "text": [
+          {
+            "pattern": "^(?<title>.{3,80})$",
+            "do": [{ "assign": { "title": { "from": "title" } }, "target": "location" }]
+          },
+          { "pattern": "^.*$", "do": [{ "target": "titleError" }] }
+        ]
+      }
+    },
+    "titleError": {
+      "kind": "state",
+      "view": {
+        "kind": "text",
+        "text": ["Use 3 to 80 characters for the report title."],
+        "parseMode": "plain"
+      },
+      "render": "edit",
+      "on": {
+        "text": [
+          {
+            "pattern": "^(?<title>.{3,80})$",
+            "do": [{ "assign": { "title": { "from": "title" } }, "target": "location" }]
+          },
+          { "pattern": "^.*$", "do": [{}] }
+        ]
+      }
+    },
+    "location": {
+      "kind": "state",
+      "view": {
+        "kind": "text",
+        "text": ["Field report 2 of 13\n\nWhere did you make the observation?"],
+        "parseMode": "plain"
+      },
+      "render": "edit",
+      "on": {
+        "text": [
+          {
+            "pattern": "^(?<location>.{3,80})$",
+            "do": [{ "assign": { "location": { "from": "location" } }, "target": "visitDate" }]
+          }
+        ]
+      }
+    },
+    "visitDate": {
+      "kind": "state",
+      "view": {
+        "kind": "text",
+        "text": ["Field report 3 of 13\n\nEnter the visit date as YYYY-MM-DD."],
+        "parseMode": "plain"
+      },
+      "render": "edit",
+      "on": {
+        "text": [
+          {
+            "pattern": "^(?<visitDate>[0-9]{4}-[0-9]{2}-[0-9]{2})$",
+            "do": [{ "assign": { "visitDate": { "from": "visitDate" } }, "target": "habitat" }]
+          }
+        ]
+      }
+    },
+    "habitat": {
+      "kind": "state",
+      "view": {
+        "kind": "text",
+        "text": ["Field report 4 of 13\n\nChoose the habitat."],
+        "parseMode": "plain",
+        "keyboard": [
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": ["Wetland"],
+                "press": "chooseHabitat",
+                "payload": { "value": "wetland" },
+                "durable": false
+              },
+              {
+                "kind": "button",
+                "label": ["Woodland"],
+                "press": "chooseHabitat",
+                "payload": { "value": "woodland" },
+                "durable": false
+              },
+              {
+                "kind": "button",
+                "label": ["Grassland"],
+                "press": "chooseHabitat",
+                "payload": { "value": "grassland" },
+                "durable": false
+              }
+            ]
+          }
+        ]
+      },
+      "render": "edit",
+      "on": {
+        "press": {
+          "chooseHabitat": [
+            { "assign": { "habitat": { "from": "value" } }, "target": "subject" }
+          ]
+        }
+      }
+    },
+    "subject": {
+      "kind": "state",
+      "view": {
+        "kind": "text",
+        "text": ["Field report 5 of 13\n\nWhat did you observe?"],
+        "parseMode": "plain",
+        "keyboard": [
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": ["Previous question"],
+                "press": "back",
+                "durable": false
+              }
+            ]
+          }
+        ]
+      },
+      "render": "edit",
+      "on": {
+        "press": { "back": [{ "target": "habitat" }] },
+        "text": [
+          {
+            "pattern": "^(?<subject>.{2,80})$",
+            "do": [{ "assign": { "subject": { "from": "subject" } }, "target": "count" }]
+          }
+        ]
+      }
+    },
+    "count": {
+      "kind": "state",
+      "view": {
+        "kind": "text",
+        "text": ["Field report 6 of 13\n\nHow many did you observe?"],
+        "parseMode": "plain"
+      },
+      "render": "edit",
+      "on": {
+        "text": [
+          {
+            "pattern": "^(?<count>[1-9][0-9]{0,3})$",
+            "do": [{ "assign": { "count": { "from": "count" } }, "target": "conditions" }]
+          }
+        ]
+      }
+    },
+    "conditions": {
+      "kind": "state",
+      "view": {
+        "kind": "text",
+        "text": ["Field report 7 of 13\n\nDescribe the weather and light."],
+        "parseMode": "plain"
+      },
+      "render": "edit",
+      "on": {
+        "text": [
+          {
+            "pattern": "^(?<conditions>.{3,120})$",
+            "do": [{ "assign": { "conditions": { "from": "conditions" } }, "target": "behavior" }]
+          }
+        ]
+      }
+    },
+    "behavior": {
+      "kind": "state",
+      "view": {
+        "kind": "text",
+        "text": ["Field report 8 of 13\n\nDescribe the observed behavior."],
+        "parseMode": "plain"
+      },
+      "render": "edit",
+      "on": {
+        "text": [
+          {
+            "pattern": "^(?<behavior>.{3,120})$",
+            "do": [{ "assign": { "behavior": { "from": "behavior" } }, "target": "urgency" }]
+          }
+        ]
+      }
+    },
+    "urgency": {
+      "kind": "state",
+      "view": {
+        "kind": "text",
+        "text": ["Field report 9 of 13\n\nChoose the review priority."],
+        "parseMode": "plain",
+        "keyboard": [
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": ["Urgent"],
+                "press": "chooseUrgency",
+                "payload": { "value": "urgent" },
+                "durable": false
+              },
+              {
+                "kind": "button",
+                "label": ["Routine"],
+                "press": "chooseUrgency",
+                "payload": { "value": "routine" },
+                "durable": false
+              },
+              {
+                "kind": "button",
+                "label": ["Monitor"],
+                "press": "chooseUrgency",
+                "payload": { "value": "monitor" },
+                "durable": false
+              }
+            ]
+          }
+        ]
+      },
+      "render": "edit",
+      "on": {
+        "press": {
+          "chooseUrgency": [
+            { "assign": { "urgency": { "from": "value" } }, "target": "contact" }
+          ]
+        }
+      }
+    },
+    "contact": {
+      "kind": "state",
+      "view": {
+        "kind": "text",
+        "text": ["Field report 10 of 13\n\nWho can answer follow-up questions?"],
+        "parseMode": "plain"
+      },
+      "render": "edit",
+      "on": {
+        "text": [
+          {
+            "pattern": "^(?<contact>.{2,80})$",
+            "do": [{ "assign": { "contact": { "from": "contact" } }, "target": "equipment" }]
+          }
+        ]
+      }
+    },
+    "equipment": {
+      "kind": "state",
+      "view": {
+        "kind": "text",
+        "text": ["Field report 11 of 13\n\nList the equipment you used."],
+        "parseMode": "plain"
+      },
+      "render": "edit",
+      "on": {
+        "text": [
+          {
+            "pattern": "^(?<equipment>.{2,120})$",
+            "do": [{ "assign": { "equipment": { "from": "equipment" } }, "target": "notes" }]
+          }
+        ]
+      }
+    },
+    "notes": {
+      "kind": "state",
+      "view": {
+        "kind": "text",
+        "text": ["Field report 12 of 13\n\nAdd a short field note."],
+        "parseMode": "plain"
+      },
+      "render": "edit",
+      "on": {
+        "text": [
+          {
+            "pattern": "^(?<notes>.{3,240})$",
+            "do": [{ "assign": { "notes": { "from": "notes" } }, "target": "photo" }]
+          }
+        ]
+      }
+    },
+    "photo": {
+      "kind": "state",
+      "view": {
+        "kind": "text",
+        "text": ["Field report 13 of 13\n\nSend one clear photo."],
+        "parseMode": "plain"
+      },
+      "render": "edit",
+      "on": { "message": { "photo": [{ "target": "checkingPhoto" }] } }
+    },
+    "checkingPhoto": {
+      "kind": "state",
+      "view": {
+        "kind": "text",
+        "text": ["Checking the photo."],
+        "parseMode": "plain"
+      },
+      "render": "edit",
+      "entry": [
+        {
+          "kind": "run",
+          "effect": "inspectPhoto",
+          "input": {},
+          "outcomes": {
+            "accepted": {
+              "assign": {},
+              "do": [{ "assign": { "photoReady": true }, "target": "summary" }]
+            },
+            "unreadable": {
+              "assign": {},
+              "do": [{ "assign": { "photoReady": false }, "target": "photoError" }]
+            }
+          }
+        }
+      ]
+    },
+    "photoError": {
+      "kind": "state",
+      "view": {
+        "kind": "text",
+        "text": ["The photo is too unclear. Send a sharper image."],
+        "parseMode": "plain",
+        "keyboard": [
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": ["Try another photo"],
+                "press": "retryPhoto",
+                "durable": false
+              }
+            ]
+          }
+        ]
+      },
+      "render": "edit",
+      "on": { "press": { "retryPhoto": [{ "target": "photo" }] } }
+    },
+    "summary": {
+      "kind": "state",
+      "view": {
+        "kind": "text",
+        "text": [
+          "Field report summary\n\nTitle: ",
+          { "context": "title", "escape": "text" },
+          "\nLocation: ",
+          { "context": "location", "escape": "text" },
+          "\nDate: ",
+          { "context": "visitDate", "escape": "text" },
+          "\nHabitat: ",
+          { "context": "habitat", "escape": "text" },
+          "\nSubject: ",
+          { "context": "subject", "escape": "text" },
+          "\nCount: ",
+          { "context": "count", "escape": "text" },
+          "\nConditions: ",
+          { "context": "conditions", "escape": "text" },
+          "\nBehavior: ",
+          { "context": "behavior", "escape": "text" },
+          "\nPriority: ",
+          { "context": "urgency", "escape": "text" },
+          "\nContact: ",
+          { "context": "contact", "escape": "text" },
+          "\nEquipment: ",
+          { "context": "equipment", "escape": "text" },
+          "\nNotes: ",
+          { "context": "notes", "escape": "text" },
+          "\nPhoto accepted: ",
+          { "context": "photoReady", "escape": "text" }
+        ],
+        "parseMode": "plain",
+        "keyboard": [
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": ["Edit location"],
+                "press": "editLocation",
+                "durable": false
+              },
+              {
+                "kind": "button",
+                "label": ["Submit report"],
+                "press": "submit",
+                "durable": false
+              }
+            ]
+          }
+        ]
+      },
+      "render": "edit",
+      "on": {
+        "press": {
+          "editLocation": [{ "target": "editLocation" }],
+          "submit": [{ "target": "submitted" }]
+        }
+      }
+    },
+    "editLocation": {
+      "kind": "state",
+      "view": {
+        "kind": "text",
+        "text": ["Enter the corrected observation location."],
+        "parseMode": "plain"
+      },
+      "render": "edit",
+      "on": {
+        "text": [
+          {
+            "pattern": "^(?<location>.{3,80})$",
+            "do": [{ "assign": { "location": { "from": "location" } }, "target": "summary" }]
+          }
+        ]
+      }
+    },
+    "abandoned": {
+      "kind": "state",
+      "view": {
+        "kind": "text",
+        "text": ["The draft was discarded. Send /start to begin a new report."],
+        "parseMode": "plain"
+      },
+      "render": "edit"
+    },
+    "submitted": {
+      "kind": "state",
+      "view": {
+        "kind": "text",
+        "text": ["The field report is ready for review."],
+        "parseMode": "plain"
+      },
+      "render": "edit"
+    }
+  }
+}
