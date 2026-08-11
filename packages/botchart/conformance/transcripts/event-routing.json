@@ -151,8 +151,7 @@
     {
       "covers": [
         "runtime.event.commandNormalization",
-        "runtime.event.commandPattern",
-        "runtime.event.namedCaptures"
+        "runtime.event.commandPattern"
       ],
       "input": {
         "name": "start",
@@ -202,7 +201,6 @@
     },
     {
       "covers": [
-        "runtime.event.text",
         "runtime.event.textOrder"
       ],
       "input": {

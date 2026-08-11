@@ -31,14 +31,11 @@
     {
       "covers": [
         "runtime.guard.comparison",
-        "runtime.assignment.batch",
-        "runtime.assignment.direct",
         "runtime.assignment.context",
         "runtime.assignment.parameter",
         "runtime.assignment.event",
         "runtime.assignment.arithmetic",
-        "runtime.assignment.unset",
-        "runtime.context.complete"
+        "runtime.assignment.unset"
       ],
       "input": {
         "name": "photo",
