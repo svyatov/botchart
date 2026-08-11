@@ -1,10 +1,15 @@
-import { expect, test } from "bun:test";
-import { createSession } from "botchart";
-import type { BotchartSpec, CoreRunnerRequest } from "botchart";
+import { expect, spyOn, test } from "bun:test";
+import { createSession, step } from "botchart";
+import type {
+  BotchartSpec,
+  CoreRunnerRequest,
+  Scheduler,
+  TimerPayload,
+} from "botchart";
 import {
   CoreRunnerError,
   createBotchartMiddleware,
-  IntentExecutionError,
+  memoryScheduler,
   memoryStorage,
   SessionKeyError,
   SessionStorageError,
@@ -29,12 +34,14 @@ const spec = {
   states: { main: { kind: "state", render: "keep" } },
 } as unknown as BotchartSpec;
 
-function createTestBot() {
+function createTestBot(
+  resultFor: (method: string, payload: unknown) => unknown = () => true,
+) {
   const calls: Array<{ method: string; payload: unknown }> = [];
   const bot = new Bot("test", { botInfo });
   bot.api.config.use(async (_previous, method, payload) => {
     calls.push({ method, payload });
-    return { ok: true, result: true } as never;
+    return { ok: true, result: resultFor(method, payload) } as never;
   });
   return { bot, calls };
 }
@@ -45,6 +52,52 @@ test("the grammY middleware requires a non-negative album debounce", () => {
     storage: memoryStorage(),
     albumDebounceMs: -1,
   })).toThrow("Set albumDebounceMs to a non-negative integer.");
+});
+
+test("the grammY middleware requires every declared effect binding at boot", () => {
+  const effectSpec = {
+    ...spec,
+    effects: { load: { input: {}, outcomes: { done: {} } } },
+  } as BotchartSpec;
+
+  expect(() => createBotchartMiddleware({
+    spec: effectSpec,
+    storage: memoryStorage(),
+  })).toThrow("Effect load has no binding. Add it to the effects option.");
+});
+
+test("the grammY middleware requires a scheduler for state timers at boot", () => {
+  const timerSpec = {
+    ...spec,
+    states: {
+      main: {
+        kind: "state",
+        render: "keep",
+        on: { after: { remind: { delay: "1s", do: [{}] } } },
+      },
+    },
+  } as unknown as BotchartSpec;
+
+  expect(() => createBotchartMiddleware({
+    spec: timerSpec,
+    storage: memoryStorage(),
+  })).toThrow(
+    "This spec uses state timers. Add a durable Scheduler or memoryScheduler() to the scheduler option.",
+  );
+});
+
+test("the grammY middleware requires an API for scheduler callbacks at boot", () => {
+  const scheduler: Scheduler = {
+    schedule: async () => {},
+    cancel: async () => {},
+    onFire: () => {},
+  };
+
+  expect(() => createBotchartMiddleware({
+    spec,
+    storage: memoryStorage(),
+    scheduler,
+  })).toThrow("A scheduler needs a grammY API. Pass bot.api in the api option.");
 });
 
 test("the grammY middleware runs a normalized command in its stored session", async () => {
@@ -491,20 +544,24 @@ test("the grammY middleware deletes a final session", async () => {
   expect(await storage.read(key)).toBeUndefined();
 });
 
-test("the grammY middleware does not store a session before intents execute", async () => {
+test("the grammY middleware answers a press before it stores the session", async () => {
   const storage = memoryStorage();
   const update = {
     update_id: 14,
-    message: {
-      message_id: 14,
-      date: 1,
-      chat: { id: 7, type: "private", first_name: "Ada" },
+    callback_query: {
+      id: "query:2",
+      chat_instance: "chat:2",
       from: { id: 7, is_bot: false, first_name: "Ada" },
-      text: "hello",
+      data: "callback:2",
+      message: {
+        message_id: 14,
+        date: 1,
+        chat: { id: 7, type: "private", first_name: "Ada" },
+      },
     },
   } as Update;
-  const context = new Context(update, {} as never, botInfo);
-  const middleware = createBotchartMiddleware({
+  const { bot, calls } = createTestBot();
+  bot.use(createBotchartMiddleware({
     spec,
     storage,
     runner: (request) => ({
@@ -515,19 +572,375 @@ test("the grammY middleware does not store a session before intents execute", as
         callbackQueryId: "query:2",
       }],
     }),
+  }));
+
+  await bot.handleUpdate(update);
+
+  expect(calls).toEqual([{
+    method: "answerCallbackQuery",
+    payload: { callback_query_id: "query:2" },
+  }]);
+  expect(await storage.read("chat:7:user:7")).toBeDefined();
+});
+
+test("the grammY middleware sends a text view and commits its message handle", async () => {
+  const storage = memoryStorage();
+  const requests: CoreRunnerRequest[] = [];
+  const runner = (request: CoreRunnerRequest) => {
+    requests.push(request);
+    if (request.input.origin === "adapter") return step(request);
+    return {
+      kind: "ok" as const,
+      session: request.session,
+      intents: [{
+        kind: "view" as const,
+        operation: "send" as const,
+        slot: "main",
+        target: { kind: "chat" as const, chatId: 7 },
+        view: {
+          kind: "text",
+          text: "Choose",
+          parseMode: "HTML",
+          keyboard: [{
+            kind: "row",
+            buttons: [{ kind: "button", label: "Open", callbackId: "c0.0.0" }],
+          }],
+        },
+      }],
+    };
+  };
+  const { bot, calls } = createTestBot((method) => method === "sendMessage"
+    ? {
+        message_id: 21,
+        date: 1,
+        chat: { id: 7, type: "private", first_name: "Ada" },
+        text: "Choose",
+      }
+    : true);
+  bot.use(createBotchartMiddleware({ spec, storage, runner }));
+
+  await bot.handleUpdate({
+    update_id: 16,
+    message: {
+      message_id: 16,
+      date: 1,
+      chat: { id: 7, type: "private", first_name: "Ada" },
+      from: { id: 7, is_bot: false, first_name: "Ada" },
+      text: "menu",
+    },
+  } as Update);
+
+  expect(calls).toEqual([{
+    method: "sendMessage",
+    payload: {
+      chat_id: 7,
+      text: "Choose",
+      parse_mode: "HTML",
+      reply_markup: {
+        inline_keyboard: [[{ text: "Open", callback_data: "c0.0.0" }]],
+      },
+    },
+  }]);
+  expect(requests[1]!.input).toEqual({
+    origin: "adapter",
+    source: "view",
+    name: "send",
+    payload: {
+      slot: "main",
+      handle: { kind: "chat", chatId: 7, messageId: 21 },
+      viewKind: "text",
+      interactive: true,
+    },
   });
-  let thrown: unknown;
+  expect(JSON.parse((await storage.read("chat:7:user:7"))!).session.viewSlots.main)
+    .toEqual({
+      target: { kind: "chat", chatId: 7 },
+      revision: 1,
+      current: {
+        handle: { kind: "chat", chatId: 7, messageId: 21 },
+        viewKind: "text",
+      },
+    });
+});
 
-  try {
-    await middleware(context, async () => {});
-  } catch (error) {
-    thrown = error;
-  }
+test("the grammY middleware edits, replaces, and deletes one text view", async () => {
+  const storage = memoryStorage();
+  const key = "chat:7:user:7";
+  const session = createSession({ spec, target: { kind: "chat", chatId: 7 } });
+  await storage.write(key, JSON.stringify({
+    formatVersion: 1,
+    session: {
+      ...session,
+      viewSlots: {
+        main: {
+          ...session.viewSlots.main,
+          current: {
+            handle: { kind: "chat", chatId: 7, messageId: 7 },
+            viewKind: "text",
+          },
+        },
+      },
+    },
+  }));
+  const runner = (request: CoreRunnerRequest) => {
+    if (request.input.origin === "adapter") return step(request);
+    const handle = request.session.viewSlots.main?.current?.handle;
+    if (handle === undefined) throw new Error("Seed the current message handle.");
+    const text = (request.input.payload as { text: string }).text;
+    if (text === "delete") {
+      return {
+        kind: "ok" as const,
+        session: request.session,
+        intents: [{ kind: "view" as const, operation: "delete" as const, slot: "main", handle }],
+      };
+    }
+    const view = { kind: "text", text, parseMode: "plain" };
+    return {
+      kind: "ok" as const,
+      session: request.session,
+      intents: [text === "Edited"
+        ? { kind: "view" as const, operation: "edit" as const, slot: "main", handle, view }
+        : {
+            kind: "view" as const,
+            operation: "replace" as const,
+            slot: "main",
+            handle,
+            target: { kind: "chat" as const, chatId: 7 },
+            view,
+          }],
+    };
+  };
+  const { bot, calls } = createTestBot((method) => method === "sendMessage"
+    ? {
+        message_id: 8,
+        date: 1,
+        chat: { id: 7, type: "private", first_name: "Ada" },
+        text: "Replacement",
+      }
+    : true);
+  bot.use(createBotchartMiddleware({ spec, storage, runner }));
+  const update = (updateId: number, text: string) => ({
+    update_id: updateId,
+    message: {
+      message_id: updateId,
+      date: 1,
+      chat: { id: 7, type: "private", first_name: "Ada" },
+      from: { id: 7, is_bot: false, first_name: "Ada" },
+      text,
+    },
+  }) as Update;
 
-  expect(thrown).toBeInstanceOf(IntentExecutionError);
-  expect(thrown).toHaveProperty(
-    "message",
-    "Core emitted 1 intent. Execute every intent before this session is stored.",
+  await bot.handleUpdate(update(19, "Edited"));
+  await bot.handleUpdate(update(20, "Replacement"));
+  await bot.handleUpdate(update(21, "delete"));
+
+  expect(calls).toEqual([
+    {
+      method: "editMessageText",
+      payload: { chat_id: 7, message_id: 7, text: "Edited" },
+    },
+    { method: "deleteMessage", payload: { chat_id: 7, message_id: 7 } },
+    { method: "sendMessage", payload: { chat_id: 7, text: "Replacement" } },
+    { method: "deleteMessage", payload: { chat_id: 7, message_id: 8 } },
+  ]);
+  expect(JSON.parse((await storage.read(key))!).session.viewSlots.main).toEqual({
+    target: { kind: "chat", chatId: 7 },
+    revision: 0,
+  });
+});
+
+test("the grammY middleware queues effect progress and its outcome", async () => {
+  const storage = memoryStorage();
+  const seen: Array<{ input: CoreRunnerRequest["input"]; seq: number }> = [];
+  let finishOutcome: () => void = () => {};
+  const outcomeFinished = new Promise<void>((resolve) => {
+    finishOutcome = resolve;
+  });
+  const runner = (request: CoreRunnerRequest) => {
+    seen.push({ input: request.input, seq: request.session.seq });
+    if (request.input.origin === "telegram") {
+      return {
+        kind: "ok" as const,
+        session: { ...request.session, seq: 1 },
+        intents: [{
+          kind: "effect" as const,
+          id: "chat:7:user:7:main:1:0",
+          effect: "load",
+          input: { query: "Ada" },
+          token: {
+            sessionKey: "chat:7:user:7",
+            stateId: "main" as const,
+            seq: 1,
+          },
+        }],
+      };
+    }
+    if (request.input.source === "progress") {
+      return {
+        kind: "ok" as const,
+        session: { ...request.session, seq: 2 },
+        intents: [],
+      };
+    }
+    finishOutcome();
+    return {
+      kind: "ok" as const,
+      session: { ...request.session, seq: 3 },
+      intents: [],
+    };
+  };
+  const { bot } = createTestBot();
+  bot.use(createBotchartMiddleware({
+    spec,
+    storage,
+    runner,
+    effects: {
+      load: async ({ input, progress }) => {
+        expect(input).toEqual({ query: "Ada" });
+        await progress({ loaded: 1 });
+        return { outcome: "done", output: { status: "ok" } };
+      },
+    },
+  }));
+
+  await bot.handleUpdate({
+    update_id: 17,
+    message: {
+      message_id: 17,
+      date: 1,
+      chat: { id: 7, type: "private", first_name: "Ada" },
+      from: { id: 7, is_bot: false, first_name: "Ada" },
+      text: "load",
+    },
+  } as Update);
+  await outcomeFinished;
+
+  expect(seen.map(({ input, seq }) => ({
+    origin: input.origin,
+    source: input.source,
+    name: input.name,
+    seq,
+  }))).toEqual([
+    { origin: "telegram", source: "text", name: "message", seq: 0 },
+    { origin: "effect", source: "progress", name: "load", seq: 1 },
+    { origin: "effect", source: "outcome", name: "done", seq: 2 },
+  ]);
+  expect(seen[1]!.input.payload).toEqual({
+    id: "chat:7:user:7:main:1:0",
+    token: { sessionKey: "chat:7:user:7", stateId: "main", seq: 1 },
+    output: { loaded: 1 },
+  });
+  expect(JSON.parse((await storage.read("chat:7:user:7"))!).session.seq).toBe(3);
+});
+
+test("the grammY middleware queues a scheduler firing and cancels its timer", async () => {
+  const storage = memoryStorage();
+  const scheduled: Array<{
+    id: string;
+    fireAt: Date;
+    payload: TimerPayload;
+  }> = [];
+  const cancelled: string[] = [];
+  let fire: (payload: TimerPayload) => Promise<void> = async () => {};
+  const scheduler: Scheduler = {
+    schedule: async (id, fireAt, payload) => {
+      scheduled.push({ id, fireAt, payload });
+    },
+    cancel: async (id) => {
+      cancelled.push(id);
+    },
+    onFire: (handler) => {
+      fire = handler;
+    },
+  };
+  const seen: Array<{ origin: string; seq: number }> = [];
+  const runner = (request: CoreRunnerRequest) => {
+    seen.push({ origin: request.input.origin, seq: request.session.seq });
+    if (request.input.origin === "telegram") {
+      return {
+        kind: "ok" as const,
+        session: { ...request.session, seq: 1 },
+        intents: [{
+          kind: "timer" as const,
+          operation: "schedule" as const,
+          id: "chat:7:user:7:main:1:remind",
+          timer: "remind",
+          fireAt: "2026-08-11T12:01:00.000Z",
+          token: {
+            sessionKey: "chat:7:user:7",
+            stateId: "main" as const,
+            seq: 1,
+          },
+        }],
+      };
+    }
+    return {
+      kind: "ok" as const,
+      session: { ...request.session, seq: 2 },
+      intents: [{
+        kind: "timer" as const,
+        operation: "cancel" as const,
+        id: "chat:7:user:7:main:1:remind",
+      }],
+    };
+  };
+  const { bot } = createTestBot();
+  bot.use(createBotchartMiddleware({
+    api: bot.api,
+    spec,
+    storage,
+    runner,
+    scheduler,
+  }));
+
+  await bot.handleUpdate({
+    update_id: 18,
+    message: {
+      message_id: 18,
+      date: 1,
+      chat: { id: 7, type: "private", first_name: "Ada" },
+      from: { id: 7, is_bot: false, first_name: "Ada" },
+      text: "wait",
+    },
+  } as Update);
+  await fire(scheduled[0]!.payload);
+
+  expect(scheduled).toEqual([{
+    id: "chat:7:user:7:main:1:remind",
+    fireAt: new Date("2026-08-11T12:01:00.000Z"),
+    payload: {
+      sessionKey: "chat:7:user:7",
+      stateId: "main",
+      seq: 1,
+      timer: "remind",
+    },
+  }]);
+  expect(seen).toEqual([
+    { origin: "telegram", seq: 0 },
+    { origin: "scheduler", seq: 1 },
+  ]);
+  expect(cancelled).toEqual(["chat:7:user:7:main:1:remind"]);
+  expect(JSON.parse((await storage.read("chat:7:user:7"))!).session.seq).toBe(2);
+});
+
+test("memoryScheduler replaces one pending timer with the same id", async () => {
+  const warning = spyOn(console, "warn").mockImplementation(() => {});
+  const scheduler = memoryScheduler();
+  let finish: (payload: TimerPayload) => void = () => {};
+  const fired = new Promise<TimerPayload>((resolve) => {
+    finish = resolve;
+  });
+  scheduler.onFire(async (payload) => {
+    finish(payload);
+  });
+  const token = { sessionKey: "chat:7", stateId: "main", seq: 1 } as const;
+
+  await scheduler.schedule("timer:1", new Date(0), { ...token, timer: "first" });
+  await scheduler.schedule("timer:1", new Date(0), { ...token, timer: "second" });
+
+  expect(await fired).toEqual({ ...token, timer: "second" });
+  expect(warning).toHaveBeenCalledWith(
+    "memoryScheduler() is non-durable. Use a durable Scheduler for production timers.",
   );
-  expect(await storage.read("chat:7:user:7")).toBeUndefined();
+  warning.mockRestore();
 });
