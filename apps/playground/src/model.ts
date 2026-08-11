@@ -1,4 +1,5 @@
 import type { BotchartSpec } from "botchart";
+import type { GoldenTranscript } from "botchart/simulator";
 
 type StateNode = BotchartSpec["states"][string];
 type ValueRef =
@@ -72,6 +73,39 @@ export type ViewPreview = {
   }[])[];
   readonly usesSampleData: boolean;
 };
+
+export type TranscriptFrame = {
+  readonly cursor: number;
+  readonly total: number;
+  readonly stepName: string;
+  readonly session: GoldenTranscript["initial"]["session"] | null;
+};
+
+export function transcriptFrame(
+  transcript: GoldenTranscript,
+  cursor: number,
+): TranscriptFrame {
+  const total = transcript.steps.length;
+  const integer = Number.isFinite(cursor) ? Math.trunc(cursor) : 0;
+  const bounded = Math.min(total, Math.max(0, integer));
+  const step = transcript.steps[bounded - 1];
+
+  return {
+    cursor: bounded,
+    total,
+    stepName: step?.name ?? "Initial session",
+    session: step === undefined ? transcript.initial.session : step.result.session,
+  };
+}
+
+export function transcriptPreviewSidecar(
+  transcript: GoldenTranscript,
+  cursor: number,
+  sidecar: PreviewSidecar,
+): PreviewSidecar {
+  const session = transcriptFrame(transcript, cursor).session;
+  return session === null ? sidecar : { ...sidecar, context: session.context };
+}
 
 export type ElkPoint = {
   readonly x: number;

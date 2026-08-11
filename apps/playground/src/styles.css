@@ -311,9 +311,21 @@ body[data-mode="inspector"] .workbench {
   border-color: var(--accent);
 }
 
+.diagram-node.is-active {
+  border-color: var(--accent);
+  box-shadow: 0 8px 20px rgba(4, 10, 15, 0.24), 0 0 0 2px rgba(107, 193, 255, 0.25);
+}
+
 .diagram-node.is-selected {
   border-color: var(--sample);
   box-shadow: 0 8px 20px rgba(4, 10, 15, 0.24), 0 0 0 2px rgba(243, 199, 109, 0.28);
+}
+
+.diagram-node.is-active.is-selected {
+  box-shadow:
+    0 8px 20px rgba(4, 10, 15, 0.24),
+    inset 0 0 0 1px var(--accent),
+    0 0 0 2px rgba(243, 199, 109, 0.28);
 }
 
 .diagram-node.is-initial .node-title::after {
@@ -363,6 +375,15 @@ body[data-mode="inspector"] .workbench {
 }
 
 .diagram-group.is-selected {
+  border-color: var(--sample);
+}
+
+.diagram-group.is-active {
+  border-color: var(--accent);
+  background: rgba(43, 82, 120, 0.24);
+}
+
+.diagram-group.is-active.is-selected {
   border-color: var(--sample);
 }
 
@@ -467,6 +488,70 @@ body[data-mode="canvas"] .inspector-pane {
   color: var(--danger);
 }
 
+.replay-panel {
+  display: grid;
+  min-height: 64px;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  padding: 9px 13px;
+  border-top: 1px solid var(--line);
+  background: var(--panel-deep);
+}
+
+.replay-controls {
+  display: flex;
+  gap: 6px;
+}
+
+.replay-controls button {
+  min-height: 40px;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  background: var(--panel-soft);
+  color: var(--ink);
+  cursor: pointer;
+  padding: 7px 11px;
+}
+
+.replay-controls button:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: var(--accent-deep);
+}
+
+.replay-controls button:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+.replay-readout {
+  min-width: 0;
+}
+
+#replay-step,
+#replay-session {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#replay-step {
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+#replay-session,
+#replay-status {
+  color: var(--dim);
+  font: 11px/1.5 ui-monospace, "SFMono-Regular", Consolas, monospace;
+}
+
+#replay-status {
+  white-space: nowrap;
+}
+
 #measurement-layer {
   position: absolute;
   top: 0;
@@ -548,6 +633,22 @@ body[data-mode="canvas"] .inspector-pane {
   .footer {
     align-items: flex-start;
     flex-direction: column;
+  }
+}
+
+@media (max-width: 540px) {
+  .replay-panel {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .replay-readout {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  #replay-status {
+    grid-column: 2;
+    grid-row: 1;
   }
 }
 
