@@ -623,7 +623,12 @@ test("a keyboard projection renders one authored row for each matching item", ()
   const result = step({
     spec,
     session: current,
-    input: { origin: "telegram", source: "message", name: "photo", payload: {} },
+    input: {
+      origin: "telegram",
+      source: "message",
+      name: "photo",
+      payload: { sessionKey: "chat:42" },
+    },
     now: "2026-08-10T14:00:00Z",
   });
 
@@ -642,9 +647,7 @@ test("a keyboard projection renders one authored row for each matching item", ()
           buttons: [{
             kind: "button",
             label: "First",
-            press: "pick",
-            payload: { id: "first" },
-            durable: false,
+            callbackId: "c1.1.0",
           }],
         },
         {
@@ -652,14 +655,447 @@ test("a keyboard projection renders one authored row for each matching item", ()
           buttons: [{
             kind: "button",
             label: "Third",
-            press: "pick",
-            payload: { id: "third" },
-            durable: false,
+            callbackId: "c1.1.1",
           }],
         },
       ],
     },
   }]);
+});
+
+test("an interactive view stores callback records and renders short identifiers", () => {
+  const spec = {
+    initial: "start",
+    context: { default: {} },
+    parameters: {},
+    stalePress: { action: "ignore" },
+    states: {
+      start: {
+        kind: "state",
+        render: "keep",
+        on: { message: { photo: [{ target: "menu" }] } },
+      },
+      menu: {
+        kind: "state",
+        view: {
+          kind: "text",
+          text: ["Menu"],
+          parseMode: "plain",
+          keyboard: [{
+            kind: "row",
+            buttons: [{
+              kind: "button",
+              label: ["Pick"],
+              press: "pick",
+              payload: { id: "first" },
+              durable: false,
+            }],
+          }],
+        },
+        render: "edit",
+      },
+    },
+  } as unknown as BotchartSpec;
+  const current = createSession({
+    spec,
+    target: { kind: "chat", chatId: 42 },
+  });
+  const result = step({
+    spec,
+    session: current,
+    input: {
+      origin: "telegram",
+      source: "message",
+      name: "photo",
+      payload: { sessionKey: "chat:42" },
+    },
+    now: "2026-08-11T09:00:00Z",
+  });
+
+  if (result.kind !== "ok" || result.session === null) throw new Error("Expected a session.");
+  const callbackId = Object.keys(result.session.callbacks)[0];
+  expect(callbackId).toMatch(/^c[0-9a-z]+\.[0-9a-z]+\.[0-9a-z]+$/);
+  expect(new TextEncoder().encode(callbackId).length).toBeLessThanOrEqual(64);
+  expect(result.session.callbacks[callbackId!]).toEqual({
+    sessionKey: "chat:42",
+    stateId: "menu",
+    seq: 1,
+    viewSlot: "main",
+    viewRevision: 1,
+    press: "pick",
+    payload: { id: "first" },
+    durable: false,
+  });
+  expect(result.intents).toEqual([{
+    kind: "view",
+    operation: "send",
+    slot: "main",
+    target: { kind: "chat", chatId: 42 },
+    view: {
+      kind: "text",
+      text: "Menu",
+      parseMode: "plain",
+      keyboard: [{
+        kind: "row",
+        buttons: [{ kind: "button", label: "Pick", callbackId }],
+      }],
+    },
+  }]);
+});
+
+test("an accepted callback recovers its press payload and emits its answer", () => {
+  const spec = {
+    initial: "menu",
+    context: {
+      default: { choice: "", authoredSession: "" },
+      properties: {
+        choice: { type: "string" },
+        authoredSession: { type: "string" },
+      },
+      required: ["choice", "authoredSession"],
+    },
+    parameters: {},
+    stalePress: { action: "ignore" },
+    states: {
+      menu: {
+        kind: "state",
+        render: "keep",
+        on: {
+          press: {
+            pick: [{
+              assign: {
+                choice: { from: "id" },
+                authoredSession: { from: "sessionKey" },
+              },
+              answer: {
+                kind: "toast",
+                text: ["Picked ", { context: "choice", escape: "text" }],
+              },
+            }],
+          },
+        },
+      },
+    },
+  } as unknown as BotchartSpec;
+  const current = {
+    ...createSession({ spec, target: { kind: "chat", chatId: 42 } }),
+    seq: 1,
+    viewSlots: {
+      main: {
+        target: { kind: "chat" as const, chatId: 42 },
+        revision: 1,
+        current: {
+          handle: { kind: "chat" as const, chatId: 42, messageId: 7 },
+          viewKind: "text" as const,
+        },
+      },
+    },
+    callbacks: {
+      "callback:1": {
+        sessionKey: "chat:42",
+        stateId: "menu" as const,
+        seq: 1,
+        viewSlot: "main",
+        viewRevision: 1,
+        press: "pick",
+        payload: {
+          id: "first",
+          sessionKey: "authored",
+          callbackQueryId: "authored-query",
+        },
+        durable: false,
+      },
+    },
+  };
+  const runner = createRunner({ validateContext: () => true });
+
+  expect(runner({
+    spec,
+    session: current,
+    input: {
+      origin: "telegram",
+      source: "press",
+      name: "callback:1",
+      payload: { sessionKey: "chat:42", callbackQueryId: "query:1" },
+    },
+    now: "2026-08-11T09:01:00Z",
+  })).toEqual({
+    kind: "ok",
+    session: {
+      ...current,
+      context: { choice: "first", authoredSession: "authored" },
+    },
+    intents: [{
+      kind: "pressAnswer",
+      callbackQueryId: "query:1",
+      answer: { kind: "toast", text: "Picked first" },
+    }],
+  });
+});
+
+test("a stale callback emits the configured answer", () => {
+  const spec = {
+    initial: "menu",
+    context: { default: { name: "Ada" } },
+    parameters: {},
+    stalePress: {
+      action: "answer",
+      answer: {
+        kind: "alert",
+        text: ["Expired for ", { context: "name", escape: "text" }],
+      },
+    },
+    states: { menu: { kind: "state", render: "keep" } },
+  } as unknown as BotchartSpec;
+  const current = {
+    ...createSession({ spec }),
+    seq: 2,
+    callbacks: {
+      "callback:1": {
+        sessionKey: "chat:42",
+        stateId: "menu" as const,
+        seq: 1,
+        viewSlot: "main",
+        viewRevision: 1,
+        press: "pick",
+        payload: {},
+        durable: false,
+      },
+    },
+  };
+
+  expect(step({
+    spec,
+    session: current,
+    input: {
+      origin: "telegram",
+      source: "press",
+      name: "callback:1",
+      payload: { sessionKey: "chat:42", callbackQueryId: "query:2" },
+    },
+    now: "2026-08-11T09:02:00Z",
+  })).toEqual({
+    kind: "ok",
+    session: { ...current, callbacks: {} },
+    intents: [{
+      kind: "pressAnswer",
+      callbackQueryId: "query:2",
+      answer: { kind: "alert", text: "Expired for Ada" },
+    }],
+  });
+});
+
+test("a stale callback rerenders the active leaf with edit semantics", () => {
+  const spec = {
+    initial: "menu",
+    context: { default: {} },
+    parameters: {},
+    stalePress: {
+      action: "rerender",
+      answer: { kind: "toast", text: ["Updated"] },
+    },
+    states: {
+      menu: {
+        kind: "state",
+        view: {
+          kind: "text",
+          text: ["Current"],
+          parseMode: "plain",
+          keyboard: [{
+            kind: "row",
+            buttons: [{
+              kind: "button",
+              label: ["Pick"],
+              press: "pick",
+              payload: {},
+              durable: false,
+            }],
+          }],
+        },
+        render: "keep",
+      },
+    },
+  } as unknown as BotchartSpec;
+  const current = {
+    ...createSession({ spec, target: { kind: "chat", chatId: 42 } }),
+    seq: 1,
+    viewSlots: {
+      main: {
+        target: { kind: "chat" as const, chatId: 42 },
+        revision: 1,
+        current: {
+          handle: { kind: "chat" as const, chatId: 42, messageId: 7 },
+          viewKind: "text" as const,
+        },
+      },
+    },
+  };
+
+  expect(step({
+    spec,
+    session: current,
+    input: {
+      origin: "telegram",
+      source: "press",
+      name: "missing",
+      payload: { sessionKey: "chat:42", callbackQueryId: "query:3" },
+    },
+    now: "2026-08-11T09:03:00Z",
+  })).toEqual({
+    kind: "ok",
+    session: {
+      ...current,
+      callbacks: {
+        "c1.2.0": {
+          sessionKey: "chat:42",
+          stateId: "menu",
+          seq: 1,
+          viewSlot: "main",
+          viewRevision: 2,
+          press: "pick",
+          payload: {},
+          durable: false,
+        },
+      },
+    },
+    intents: [
+      {
+        kind: "pressAnswer",
+        callbackQueryId: "query:3",
+        answer: { kind: "toast", text: "Updated" },
+      },
+      {
+        kind: "view",
+        operation: "edit",
+        slot: "main",
+        handle: { kind: "chat", chatId: 42, messageId: 7 },
+        view: {
+          kind: "text",
+          text: "Current",
+          parseMode: "plain",
+          keyboard: [{
+            kind: "row",
+            buttons: [{ kind: "button", label: "Pick", callbackId: "c1.2.0" }],
+          }],
+        },
+      },
+    ],
+  });
+});
+
+test("a moving press removes its obsolete non-durable callback", () => {
+  const spec = {
+    initial: "menu",
+    context: { default: {} },
+    parameters: {},
+    stalePress: { action: "ignore" },
+    states: {
+      menu: {
+        kind: "state",
+        render: "keep",
+        on: { press: { pick: [{ target: "done" }] } },
+      },
+      done: { kind: "state", render: "keep" },
+    },
+  } as unknown as BotchartSpec;
+  const current = {
+    ...createSession({ spec }),
+    seq: 1,
+    callbacks: {
+      "callback:1": {
+        sessionKey: "chat:42",
+        stateId: "menu" as const,
+        seq: 1,
+        viewSlot: "main",
+        viewRevision: 1,
+        press: "pick",
+        payload: {},
+        durable: false,
+      },
+    },
+    viewSlots: {
+      main: {
+        target: { kind: "chat" as const, chatId: 42 },
+        revision: 1,
+      },
+    },
+  };
+
+  expect(step({
+    spec,
+    session: current,
+    input: {
+      origin: "telegram",
+      source: "press",
+      name: "callback:1",
+      payload: { sessionKey: "chat:42", callbackQueryId: "query:4" },
+    },
+    now: "2026-08-11T09:04:00Z",
+  })).toEqual({
+    kind: "ok",
+    session: {
+      ...current,
+      position: "done",
+      seq: 2,
+      callbacks: {},
+    },
+    intents: [{ kind: "pressAnswer", callbackQueryId: "query:4" }],
+  });
+});
+
+test("a durable callback resolves against the current active state", () => {
+  const spec = {
+    initial: "old",
+    context: { default: {} },
+    parameters: {},
+    stalePress: { action: "ignore" },
+    states: {
+      old: {
+        kind: "state",
+        render: "keep",
+        on: { press: { pick: [{ target: "wrong" }] } },
+      },
+      current: {
+        kind: "state",
+        render: "keep",
+        on: { press: { pick: [{ target: "done" }] } },
+      },
+      wrong: { kind: "state", render: "keep" },
+      done: { kind: "state", render: "keep" },
+    },
+  } as unknown as BotchartSpec;
+  const callback = {
+    sessionKey: "chat:42",
+    stateId: "old" as const,
+    seq: 1,
+    viewSlot: "main",
+    viewRevision: 1,
+    press: "pick",
+    payload: {},
+    durable: true,
+  };
+  const current = {
+    ...createSession({ spec }),
+    position: "current" as const,
+    seq: 2,
+    callbacks: { "callback:1": callback },
+  };
+
+  expect(step({
+    spec,
+    session: current,
+    input: {
+      origin: "telegram",
+      source: "press",
+      name: "callback:1",
+      payload: { sessionKey: "chat:42", callbackQueryId: "query:5" },
+    },
+    now: "2026-08-11T09:05:00Z",
+  })).toEqual({
+    kind: "ok",
+    session: { ...current, position: "done", seq: 3 },
+    intents: [{ kind: "pressAnswer", callbackQueryId: "query:5" }],
+  });
 });
 
 test("the edit policy replaces an incompatible current view", () => {
@@ -749,6 +1185,167 @@ test("an adapter view result commits the handle and interactive revision", () =>
           },
         },
       },
+    },
+    intents: [],
+  });
+});
+
+test("an interactive edit retires only obsolete non-durable callback records", () => {
+  const current = {
+    ...createSession({
+      spec: minimalSpec,
+      target: { kind: "chat", chatId: 42 },
+    }),
+    viewSlots: {
+      main: {
+        target: { kind: "chat" as const, chatId: 42 },
+        revision: 1,
+        current: {
+          handle: { kind: "chat" as const, chatId: 42, messageId: 7 },
+          viewKind: "text" as const,
+        },
+      },
+    },
+    callbacks: {
+      old: {
+        sessionKey: "chat:42",
+        stateId: "main" as const,
+        seq: 0,
+        viewSlot: "main",
+        viewRevision: 1,
+        press: "pick",
+        payload: {},
+        durable: false,
+      },
+      durable: {
+        sessionKey: "chat:42",
+        stateId: "main" as const,
+        seq: 0,
+        viewSlot: "main",
+        viewRevision: 1,
+        press: "cancel",
+        payload: {},
+        durable: true,
+      },
+      next: {
+        sessionKey: "chat:42",
+        stateId: "main" as const,
+        seq: 0,
+        viewSlot: "main",
+        viewRevision: 2,
+        press: "pick",
+        payload: {},
+        durable: false,
+      },
+    },
+  };
+
+  expect(step({
+    spec: minimalSpec,
+    session: current,
+    input: {
+      origin: "adapter",
+      source: "view",
+      name: "edit",
+      payload: { slot: "main", viewKind: "text", interactive: true },
+    },
+    now: "2026-08-11T09:05:00Z",
+  })).toEqual({
+    kind: "ok",
+    session: {
+      ...current,
+      viewSlots: {
+        main: {
+          ...current.viewSlots.main,
+          revision: 2,
+        },
+      },
+      callbacks: {
+        durable: {
+          ...current.callbacks.durable,
+          viewRevision: 2,
+          handle: current.viewSlots.main.current.handle,
+        },
+        next: {
+          ...current.callbacks.next,
+          handle: current.viewSlots.main.current.handle,
+        },
+      },
+    },
+    intents: [],
+  });
+});
+
+test("deleting a static append preserves durable callbacks from the prior message", () => {
+  const durable = {
+    sessionKey: "chat:42",
+    stateId: "main" as const,
+    seq: 0,
+    viewSlot: "main",
+    viewRevision: 1,
+    handle: { kind: "chat" as const, chatId: 42, messageId: 7 },
+    press: "keep",
+    payload: {},
+    durable: true,
+  };
+  const current = {
+    ...createSession({
+      spec: minimalSpec,
+      target: { kind: "chat", chatId: 42 },
+    }),
+    viewSlots: {
+      main: {
+        target: { kind: "chat" as const, chatId: 42 },
+        revision: 1,
+        current: {
+          handle: durable.handle,
+          viewKind: "text" as const,
+        },
+      },
+    },
+    callbacks: { durable },
+  };
+  const appended = step({
+    spec: minimalSpec,
+    session: current,
+    input: {
+      origin: "adapter",
+      source: "view",
+      name: "send",
+      payload: {
+        slot: "main",
+        handle: { kind: "chat", chatId: 42, messageId: 8 },
+        viewKind: "text",
+        interactive: false,
+      },
+    },
+    now: "2026-08-11T09:06:00Z",
+  });
+  if (appended.kind !== "ok" || appended.session === null) {
+    throw new Error("Expected a session.");
+  }
+
+  expect(step({
+    spec: minimalSpec,
+    session: appended.session,
+    input: {
+      origin: "adapter",
+      source: "view",
+      name: "delete",
+      payload: { slot: "main" },
+    },
+    now: "2026-08-11T09:07:00Z",
+  })).toEqual({
+    kind: "ok",
+    session: {
+      ...appended.session,
+      viewSlots: {
+        main: {
+          target: { kind: "chat", chatId: 42 },
+          revision: 1,
+        },
+      },
+      callbacks: { durable },
     },
     intents: [],
   });
@@ -1778,7 +2375,25 @@ test("a press selects the first matching transition", () => {
       done: { kind: "state", render: "keep" },
     },
   } as unknown as BotchartSpec;
-  const current = createSession({ spec });
+  const base = createSession({
+    spec,
+    target: { kind: "chat", chatId: 42 },
+  });
+  const current = {
+    ...base,
+    callbacks: {
+      "callback:1": {
+        sessionKey: "chat:42",
+        stateId: "main" as const,
+        seq: 0,
+        viewSlot: "main",
+        viewRevision: 0,
+        press: "pick",
+        payload: {},
+        durable: false,
+      },
+    },
+  };
 
   expect(step({
     spec,
@@ -1786,14 +2401,14 @@ test("a press selects the first matching transition", () => {
     input: {
       origin: "telegram",
       source: "press",
-      name: "pick",
-      payload: {},
+      name: "callback:1",
+      payload: { sessionKey: "chat:42", callbackQueryId: "query:1" },
     },
     now: "2026-08-10T14:00:00Z",
   })).toEqual({
     kind: "ok",
-    session: { ...current, position: "done", seq: 1 },
-    intents: [],
+    session: { ...current, position: "done", seq: 1, callbacks: {} },
+    intents: [{ kind: "pressAnswer", callbackQueryId: "query:1" }],
   });
 });
 

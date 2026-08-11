@@ -1,10 +1,14 @@
 import { expect, test } from "bun:test";
 import Ajv2020 from "ajv/dist/2020";
+import callbackCleanupSpec from "botchart/conformance/specs/callback-cleanup.json" with { type: "json" };
 import compoundSpec from "botchart/conformance/specs/compound-history-and-units.json" with { type: "json" };
 import effectSpec from "botchart/conformance/specs/effects-and-feedback.json" with { type: "json" };
 import guardSpec from "botchart/conformance/specs/guards-and-assignments.json" with { type: "json" };
 import lifecycleSpec from "botchart/conformance/specs/session-lifecycle.json" with { type: "json" };
 import markdownV2Spec from "botchart/conformance/specs/markdown-v2-escaping.json" with { type: "json" };
+import pressFreshnessSpec from "botchart/conformance/specs/press-freshness.json" with { type: "json" };
+import staleAnswerSpec from "botchart/conformance/specs/stale-press-answer.json" with { type: "json" };
+import staleIgnoreSpec from "botchart/conformance/specs/stale-press-ignore.json" with { type: "json" };
 import viewSpec from "botchart/conformance/specs/view-rendering.json" with { type: "json" };
 import schema from "botchart/schema" with { type: "json" };
 
@@ -81,6 +85,15 @@ test("published schema accepts the effects and feedback conformance spec", () =>
 
 test("published schema accepts the view rendering conformance spec", () => {
   expect(validate(viewSpec), JSON.stringify(validate.errors)).toBe(true);
+});
+
+test.each([
+  ["press freshness", pressFreshnessSpec],
+  ["callback cleanup", callbackCleanupSpec],
+  ["stale press answer", staleAnswerSpec],
+  ["stale press ignore", staleIgnoreSpec],
+])("published schema accepts the %s conformance spec", (_name, spec) => {
+  expect(validate(spec), JSON.stringify(validate.errors)).toBe(true);
 });
 
 test("published schema accepts the MarkdownV2 escaping conformance spec", () => {

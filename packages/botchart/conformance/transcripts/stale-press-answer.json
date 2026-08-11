@@ -1,0 +1,65 @@
+{
+  "$schema": "https://svyatov.github.io/botchart/conformance/0.1.0/transcript.schema.json",
+  "initial": {
+    "now": "2026-08-11T09:00:00Z",
+    "session": {
+      "callStack": [],
+      "callbacks": {},
+      "context": {
+        "name": "Ada"
+      },
+      "history": {},
+      "position": "main",
+      "seq": 0,
+      "viewSlots": {}
+    }
+  },
+  "name": "stale press answer policy",
+  "schemaRevision": "0.1.0",
+  "spec": {
+    "path": "../specs/stale-press-answer.json",
+    "sha256": "e40d0d62e10db83e66e25067cc9ca74d567c22087413b57e1142ef6ef1ff198d"
+  },
+  "steps": [
+    {
+      "covers": [
+        "runtime.callback.stale.answer"
+      ],
+      "input": {
+        "name": "callback:1",
+        "origin": "telegram",
+        "payload": {
+          "callbackQueryId": "query:1",
+          "sessionKey": "chat:42"
+        },
+        "source": "press"
+      },
+      "name": "answer an obsolete press with the configured alert",
+      "result": {
+        "intents": [
+          {
+            "answer": {
+              "kind": "alert",
+              "text": "Expired for Ada"
+            },
+            "callbackQueryId": "query:1",
+            "kind": "pressAnswer"
+          }
+        ],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {
+            "name": "Ada"
+          },
+          "history": {},
+          "position": "main",
+          "seq": 0,
+          "viewSlots": {}
+        }
+      }
+    }
+  ],
+  "transcriptVersion": 1
+}

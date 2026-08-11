@@ -438,6 +438,97 @@ test("replay maps stable effect feedback ids to runtime ids", () => {
   expect(feedbackIds).toEqual(["chat:42:loading:1:0"]);
 });
 
+test("replay maps stable callback ids across views, sessions, and press inputs", () => {
+  const record = {
+    sessionKey: "chat:42",
+    stateId: "main" as const,
+    seq: 0,
+    viewSlot: "main",
+    viewRevision: 1,
+    press: "pick",
+    payload: { id: "first" },
+    durable: false,
+  };
+  const stableSession = { ...session, callbacks: { "callback:1": record } };
+  const runtimeSession = { ...session, callbacks: { "c0.1.0": record } };
+  const stableView = {
+    kind: "text",
+    text: "Menu",
+    parseMode: "plain",
+    keyboard: [{
+      kind: "row",
+      buttons: [{ kind: "button", label: "Pick", callbackId: "callback:1" }],
+    }],
+  } as const;
+  const scenario = {
+    ...transcript,
+    steps: [
+      {
+        name: "render a callback",
+        input: {
+          origin: "telegram",
+          source: "message",
+          name: "photo",
+          payload: { sessionKey: "chat:42" },
+        },
+        covers: ["runtime.callback.identifier"],
+        result: {
+          kind: "ok",
+          session: stableSession,
+          intents: [{
+            kind: "view",
+            operation: "send",
+            slot: "main",
+            target: { kind: "chat", chatId: 42 },
+            view: stableView,
+          }],
+        },
+      },
+      {
+        name: "use the callback",
+        input: {
+          origin: "telegram",
+          source: "press",
+          name: "callback:1",
+          payload: { sessionKey: "chat:42", callbackQueryId: "query:1" },
+        },
+        covers: ["runtime.callback.recovery"],
+        result: { kind: "ok", session: stableSession, intents: [] },
+      },
+    ],
+  } satisfies GoldenTranscript;
+  const pressIds: string[] = [];
+  const runner: CoreRunner = (request) => {
+    if (request.input.source === "press") pressIds.push(request.input.name);
+    return request.input.source === "press"
+      ? { kind: "ok", session: runtimeSession, intents: [] }
+      : {
+          kind: "ok",
+          session: runtimeSession,
+          intents: [{
+            kind: "view",
+            operation: "send",
+            slot: "main",
+            target: { kind: "chat", chatId: 42 },
+            view: {
+              ...stableView,
+              keyboard: [{
+                kind: "row",
+                buttons: [{ kind: "button", label: "Pick", callbackId: "c0.1.0" }],
+              }],
+            },
+          }],
+        };
+  };
+
+  expect(replayTranscript({
+    transcript: scenario,
+    spec: {} as BotchartSpec,
+    runner,
+  }).issues).toEqual([]);
+  expect(pressIds).toEqual(["c0.1.0"]);
+});
+
 test("coverage rejects missing, duplicate, and unknown claims", () => {
   const manifest = {
     schemaRevision: "0.1.0",

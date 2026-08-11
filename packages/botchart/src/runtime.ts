@@ -7,6 +7,7 @@ import type {
   ContextJsonSchema,
   FieldMap,
   KeyboardNode,
+  PressAnswer,
   ProducedAssignment,
   Run,
   ScalarValue,
@@ -26,6 +27,12 @@ export type CoreInput = {
   readonly source: string;
   readonly name: string;
   readonly payload: JsonValue;
+};
+
+const runtimeSessionKey = Symbol("runtimeSessionKey");
+
+type RuntimeCoreInput = CoreInput & {
+  readonly [runtimeSessionKey]?: string;
 };
 
 export type EffectFeedbackPayload = {
@@ -81,6 +88,7 @@ export type CallbackRecord = {
   readonly seq: number;
   readonly viewSlot: string;
   readonly viewRevision: number;
+  readonly handle?: MessageHandle;
   readonly press: string;
   readonly payload: JsonObject;
   readonly durable: boolean;
@@ -245,9 +253,26 @@ function evaluationError(code: string, path: string, message: string): Evaluatio
 }
 
 type SelectedTransition = {
-  readonly transition: Transition;
+  readonly transition: RuntimeTransition;
   readonly path: string;
   readonly input: CoreInput;
+};
+
+type RuntimeTransition = Transition & {
+  readonly answer?: PressAnswer;
+};
+
+type AcceptedPress = {
+  readonly callbackQueryId: string;
+};
+
+type PreparedPress<Context extends JsonObject> = {
+  readonly kind: "accepted";
+  readonly request: CoreRunnerRequest<Context>;
+  readonly press: AcceptedPress;
+} | {
+  readonly kind: "stale";
+  readonly callbackQueryId: string;
 };
 
 export function createSession<Context extends JsonObject = JsonObject>(
@@ -294,11 +319,36 @@ function runStep<Context extends JsonObject>(
   request: CoreRunnerRequest<Context>,
   options: CreateRunnerOptions<Context>,
 ): CoreResult<Context> {
+  return removeObsoleteCallbacks(executeStep(request, options));
+}
+
+function executeStep<Context extends JsonObject>(
+  originalRequest: CoreRunnerRequest<Context>,
+  options: CreateRunnerOptions<Context>,
+): CoreResult<Context> {
+  let request = originalRequest;
   if (request.input.origin === "adapter" && request.input.source === "view") {
     return commitViewResult(request);
   }
   if (request.input.origin === "effect") {
     return runEffectFeedback(request, options);
+  }
+  let acceptedPress: AcceptedPress | undefined;
+  if (request.input.origin === "telegram" && request.input.source === "press") {
+    const prepared = preparePress(request);
+    if (prepared.kind === "error") {
+      return {
+        kind: "error",
+        session: request.session,
+        intents: [],
+        error: prepared.error,
+      };
+    }
+    if (prepared.value.kind === "stale") {
+      return handleStalePress(request, prepared.value.callbackQueryId, options);
+    }
+    request = prepared.value.request;
+    acceptedPress = prepared.value.press;
   }
   const selection = selectEventTransition(request, options);
   if (selection.kind === "error") {
@@ -334,9 +384,28 @@ function runStep<Context extends JsonObject>(
   const nextSession = assignment.value === request.session.context
     ? request.session
     : { ...request.session, context: assignment.value };
+  const answer = acceptedPress === undefined
+    ? { kind: "ok", value: undefined } as const
+    : renderAcceptedPressAnswer(
+        acceptedPress,
+        transition?.answer,
+        transition === undefined ? "$.input" : `${selected!.path}.answer`,
+        { ...selectedRequest, session: nextSession },
+      );
+  if (answer.kind === "error") {
+    return {
+      kind: "error",
+      session: originalRequest.session,
+      intents: [],
+      error: answer.error,
+    };
+  }
 
   if (transition?.target === undefined) {
-    return { kind: "ok", session: nextSession, intents: [] };
+    return withPressAnswer(
+      { kind: "ok", session: nextSession, intents: [] },
+      answer.value,
+    );
   }
 
   const targetState = activeStateAt(request.spec, nextSession, transition.target);
@@ -361,7 +430,9 @@ function runStep<Context extends JsonObject>(
       request,
       options,
     );
-    return result.kind === "error" ? { ...result, session: request.session } : result;
+    return result.kind === "error"
+      ? { ...result, session: originalRequest.session }
+      : withPressAnswer(result, answer.value);
   }
 
   if (targetState.kind === "return") {
@@ -372,8 +443,8 @@ function runStep<Context extends JsonObject>(
       options,
     );
     return returned.kind === "error"
-      ? { kind: "error", session: request.session, intents: [], error: returned.error }
-      : returned.value;
+      ? { kind: "error", session: originalRequest.session, intents: [], error: returned.error }
+      : withPressAnswer(returned.value, answer.value);
   }
 
   const history = recordExitedHistory(
@@ -395,8 +466,172 @@ function runStep<Context extends JsonObject>(
   } as const;
   const settled = settleStateEntry(entered.session, target, 0, request, options);
   return settled.kind === "error"
-    ? { kind: "error", session: request.session, intents: [], error: settled.error }
-    : settled.value;
+    ? { kind: "error", session: originalRequest.session, intents: [], error: settled.error }
+    : withPressAnswer(settled.value, answer.value);
+}
+
+function removeObsoleteCallbacks<Context extends JsonObject>(
+  result: CoreResult<Context>,
+): CoreResult<Context> {
+  if (result.kind === "error" || result.session === null) return result;
+  const callbacks = Object.fromEntries(
+    Object.entries(result.session.callbacks).filter(([, callback]) =>
+      callback.durable
+      || (callback.stateId === result.session!.position && callback.seq === result.session!.seq)
+    ),
+  );
+  return Object.keys(callbacks).length === Object.keys(result.session.callbacks).length
+    ? result
+    : { ...result, session: { ...result.session, callbacks } };
+}
+
+function preparePress<Context extends JsonObject>(
+  request: CoreRunnerRequest<Context>,
+): Evaluation<PreparedPress<Context>> {
+  if (!isJsonObject(request.input.payload)) {
+    return evaluationError(
+      "invalid_press_input",
+      "$.input.payload",
+      "Use a press payload with sessionKey and callbackQueryId.",
+    );
+  }
+  const payload = request.input.payload;
+  const unknown = Object.keys(payload).find((name) =>
+    name !== "sessionKey" && name !== "callbackQueryId"
+  );
+  if (unknown !== undefined) {
+    return evaluationError(
+      "invalid_press_input",
+      `$.input.payload.${unknown}`,
+      `Remove the ${unknown} press input field.`,
+    );
+  }
+  if (typeof payload.sessionKey !== "string" || payload.sessionKey.length === 0) {
+    return evaluationError(
+      "invalid_press_input",
+      "$.input.payload.sessionKey",
+      "Set sessionKey to the current session key.",
+    );
+  }
+  if (typeof payload.callbackQueryId !== "string" || payload.callbackQueryId.length === 0) {
+    return evaluationError(
+      "invalid_press_input",
+      "$.input.payload.callbackQueryId",
+      "Set callbackQueryId to the Telegram callback query id.",
+    );
+  }
+  const record = request.session.callbacks[request.input.name];
+  const slot = record === undefined ? undefined : request.session.viewSlots[record.viewSlot];
+  const fresh = record !== undefined
+    && record.sessionKey === payload.sessionKey
+    && (record.durable || (
+      record.stateId === request.session.position
+      && record.seq === request.session.seq
+      && record.viewRevision === slot?.revision
+    ));
+  if (!fresh || record === undefined) {
+    return {
+      kind: "ok",
+      value: { kind: "stale", callbackQueryId: payload.callbackQueryId },
+    };
+  }
+  return {
+    kind: "ok",
+    value: {
+      kind: "accepted",
+      request: {
+        ...request,
+        input: {
+          ...request.input,
+          name: record.press,
+          payload: cloneData(record.payload),
+          [runtimeSessionKey]: payload.sessionKey,
+        } as RuntimeCoreInput,
+      },
+      press: { callbackQueryId: payload.callbackQueryId },
+    },
+  };
+}
+
+function renderAcceptedPressAnswer<Context extends JsonObject>(
+  press: AcceptedPress,
+  answer: PressAnswer | undefined,
+  path: string,
+  request: CoreRunnerRequest<Context>,
+): Evaluation<PressAnswerIntent> {
+  if (answer === undefined) {
+    return {
+      kind: "ok",
+      value: { kind: "pressAnswer", callbackQueryId: press.callbackQueryId },
+    };
+  }
+  const text = renderViewParts(answer.text, `${path}.text`, {
+    request,
+    parseMode: "plain",
+  });
+  return text.kind === "error"
+    ? text
+    : {
+        kind: "ok",
+        value: {
+          kind: "pressAnswer",
+          callbackQueryId: press.callbackQueryId,
+          answer: { kind: answer.kind, text: text.value },
+        },
+      };
+}
+
+function handleStalePress<Context extends JsonObject>(
+  request: CoreRunnerRequest<Context>,
+  callbackQueryId: string,
+  options: CreateRunnerOptions<Context>,
+): CoreResult<Context> {
+  const policy = request.spec.stalePress;
+  const answer = policy.action === "ignore" ? undefined : policy.answer;
+  const rendered = renderAcceptedPressAnswer(
+    { callbackQueryId },
+    answer,
+    "$.stalePress.answer",
+    request,
+  );
+  if (rendered.kind === "error") {
+    return {
+      kind: "error",
+      session: request.session,
+      intents: [],
+      error: rendered.error,
+    };
+  }
+  if (policy.action !== "rerender") {
+    return {
+      kind: "ok",
+      session: request.session,
+      intents: [rendered.value],
+    };
+  }
+  const state = activeStateAt(request.spec, request.session, request.session.position);
+  const rerendered = renderActiveState(request.session, state, request, options, "edit");
+  return rerendered.kind === "error"
+    ? {
+        kind: "error",
+        session: request.session,
+        intents: [],
+        error: rerendered.error,
+      }
+    : {
+        kind: "ok",
+        session: rerendered.value.session,
+        intents: [rendered.value, ...rerendered.value.intents],
+      };
+}
+
+function withPressAnswer<Context extends JsonObject>(
+  result: CoreResult<Context>,
+  answer: PressAnswerIntent | undefined,
+): CoreResult<Context> {
+  return result.kind === "error" || answer === undefined
+    ? result
+    : { ...result, intents: [answer, ...result.intents] };
 }
 
 function commitViewResult<Context extends JsonObject>(
@@ -468,6 +703,13 @@ function applyViewResult<Context extends JsonObject>(
       value: {
         ...session,
         viewSlots: { ...session.viewSlots, [payload.slot]: cleared },
+        callbacks: retireViewCallbacks(
+          session.callbacks,
+          payload.slot,
+          slot.revision,
+          slot.current?.handle,
+          true,
+        ),
       },
     };
   }
@@ -497,6 +739,7 @@ function applyViewResult<Context extends JsonObject>(
         : "Set handle to the message handle returned by the adapter.",
     );
   }
+  const nextRevision = slot.revision + (payload.interactive ? 1 : 0);
   return {
     kind: "ok",
     value: {
@@ -505,12 +748,104 @@ function applyViewResult<Context extends JsonObject>(
         ...session.viewSlots,
         [payload.slot]: {
           ...slot,
-          revision: slot.revision + (payload.interactive ? 1 : 0),
+          revision: nextRevision,
           current: { handle, viewKind: payload.viewKind as ViewKind },
         },
       },
+      callbacks: operation === "edit"
+        ? commitEditedCallbacks(
+            session.callbacks,
+            payload.slot,
+            slot.revision,
+            nextRevision,
+            handle,
+          )
+        : assignCallbackHandle(
+            retireViewCallbacks(
+              session.callbacks,
+              payload.slot,
+              slot.revision,
+              slot.current?.handle,
+              operation === "replace",
+            ),
+            payload.slot,
+            nextRevision,
+            handle,
+          ),
     },
   };
+}
+
+function commitEditedCallbacks(
+  callbacks: Readonly<Record<string, CallbackRecord>>,
+  viewSlot: string,
+  previousRevision: number,
+  nextRevision: number,
+  handle: MessageHandle,
+): Readonly<Record<string, CallbackRecord>> {
+  return Object.fromEntries(
+    Object.entries(callbacks).flatMap(([id, callback]) => {
+      if (!callbackBelongsToMessage(callback, viewSlot, previousRevision, handle)) {
+        if (
+          callback.handle === undefined
+          && callback.viewSlot === viewSlot
+          && callback.viewRevision === nextRevision
+        ) return [[id, { ...callback, handle }]];
+        return [[id, callback]];
+      }
+      return callback.durable
+        ? [[id, { ...callback, viewRevision: nextRevision, handle }]]
+        : [];
+    }),
+  );
+}
+
+function assignCallbackHandle(
+  callbacks: Readonly<Record<string, CallbackRecord>>,
+  viewSlot: string,
+  viewRevision: number,
+  handle: MessageHandle,
+): Readonly<Record<string, CallbackRecord>> {
+  return Object.fromEntries(
+    Object.entries(callbacks).map(([id, callback]) => [
+      id,
+      callback.handle === undefined
+        && callback.viewSlot === viewSlot
+        && callback.viewRevision === viewRevision
+        ? { ...callback, handle }
+        : callback,
+    ]),
+  );
+}
+
+function retireViewCallbacks(
+  callbacks: Readonly<Record<string, CallbackRecord>>,
+  viewSlot: string,
+  viewRevision: number,
+  handle: MessageHandle | undefined,
+  includeDurable: boolean,
+): Readonly<Record<string, CallbackRecord>> {
+  return Object.fromEntries(
+    Object.entries(callbacks).filter(([, callback]) =>
+      !callbackBelongsToMessage(callback, viewSlot, viewRevision, handle)
+      || (callback.durable && !includeDurable)
+    ),
+  );
+}
+
+function callbackBelongsToMessage(
+  callback: CallbackRecord,
+  viewSlot: string,
+  viewRevision: number,
+  handle: MessageHandle | undefined,
+): boolean {
+  if (callback.viewSlot !== viewSlot) return false;
+  if (callback.handle === undefined || handle === undefined) {
+    return callback.viewRevision === viewRevision;
+  }
+  return callback.handle.kind === handle.kind
+    && callback.handle.chatId === handle.chatId
+    && callback.handle.messageId === handle.messageId;
 }
 
 function chatHandle(value: JsonValue | undefined): ChatHandle | undefined {
@@ -556,7 +891,7 @@ function settleStateEntry<Context extends JsonObject>(
     const rendered = renderActiveState(session, state, request, options);
     return rendered.kind === "error"
       ? rendered
-      : { kind: "ok", value: { kind: "ok", session, intents: rendered.value } };
+      : { kind: "ok", value: { kind: "ok", ...rendered.value } };
   }
   const called = enterCall(session, stateId, entryIndex, request);
   return called.kind === "error"
@@ -609,6 +944,8 @@ function startEffect<Context extends JsonObject>(
 }
 
 function inputSessionKey(input: CoreInput): string | undefined {
+  const runtime = (input as RuntimeCoreInput)[runtimeSessionKey];
+  if (runtime !== undefined) return runtime;
   if (!isJsonObject(input.payload)) return undefined;
   const direct = input.payload.sessionKey;
   if (typeof direct === "string" && direct.length > 0) return direct;
@@ -693,7 +1030,7 @@ function handleEffectFeedback<Context extends JsonObject>(
       ? rendered
       : {
           kind: "ok",
-          value: { kind: "ok", session, intents: rendered.value },
+          value: { kind: "ok", ...rendered.value },
         };
   }
   if (request.input.source !== "outcome") {
@@ -963,22 +1300,31 @@ function renderActiveState<Context extends JsonObject>(
   state: StateNode | undefined,
   request: CoreRunnerRequest<Context>,
   options: CreateRunnerOptions<Context>,
-): Evaluation<readonly Intent[]> {
-  if (state?.kind !== "state" || state.render === "keep") {
-    return { kind: "ok", value: [] };
+  policyOverride?: "edit",
+): Evaluation<{
+  readonly session: Session<Context>;
+  readonly intents: readonly Intent[];
+}> {
+  if (state?.kind !== "state") {
+    return { kind: "ok", value: { session, intents: [] } };
   }
+  const policy = policyOverride ?? state.render;
+  if (policy === "keep") return { kind: "ok", value: { session, intents: [] } };
   const slot = session.viewSlots.main;
-  if (state.render === "delete") {
+  if (policy === "delete") {
     return {
       kind: "ok",
-      value: slot?.current === undefined
-        ? []
-        : [{
-            kind: "view",
-            operation: "delete",
-            slot: "main",
-            handle: slot.current.handle,
-          }],
+      value: {
+        session,
+        intents: slot?.current === undefined
+          ? []
+          : [{
+              kind: "view",
+              operation: "delete",
+              slot: "main",
+              handle: slot.current.handle,
+            }],
+      },
     };
   }
   if (!("view" in state)) {
@@ -989,15 +1335,41 @@ function renderActiveState<Context extends JsonObject>(
     );
   }
   const path = `${activeStatePath(request.spec, session, session.position)}.view`;
-  const view = renderTextView(state.view, path, { ...request, session });
+  const callbacks: Record<string, CallbackRecord> = {};
+  const callbackScope: CallbackRenderScope = {
+    sessionKey: inputSessionKey(request.input),
+    stateId: session.position,
+    seq: session.seq,
+    viewSlot: "main",
+    viewRevision: (slot?.revision ?? 0) + 1,
+    reserved: session.callbacks,
+    callbacks,
+    next: 0,
+  };
+  const view = renderTextView(
+    state.view,
+    path,
+    { ...request, session },
+    callbackScope,
+  );
   if (view.kind === "error") return view;
-  return planRenderedView(
+  const planned = planRenderedView(
     slot,
     view.value,
-    state.render,
+    policy,
     options.viewCompatibility,
     "Add the main view slot before you render this state.",
   );
+  if (planned.kind === "error") return planned;
+  return {
+    kind: "ok",
+    value: {
+      session: Object.keys(callbacks).length === 0
+        ? session
+        : { ...session, callbacks: { ...session.callbacks, ...callbacks } },
+      intents: planned.value,
+    },
+  };
 }
 
 function planRenderedView(
@@ -1084,8 +1456,9 @@ function renderTextView<Context extends JsonObject>(
   view: View,
   path: string,
   request: CoreRunnerRequest<Context>,
+  callbacks?: CallbackRenderScope,
 ): Evaluation<JsonObject> {
-  const scope = { request, parseMode: view.parseMode };
+  const scope = { request, parseMode: view.parseMode, callbacks };
   const text = renderViewParts(view.text, `${path}.text`, scope);
   if (text.kind === "error") return text;
   if (text.value.length === 0) {
@@ -1114,6 +1487,18 @@ type ViewRenderScope<Context extends JsonObject> = {
   readonly request: CoreRunnerRequest<Context>;
   readonly parseMode: View["parseMode"];
   readonly item?: JsonObject;
+  readonly callbacks?: CallbackRenderScope;
+};
+
+type CallbackRenderScope = {
+  readonly sessionKey: string | undefined;
+  readonly stateId: StateId;
+  readonly seq: number;
+  readonly viewSlot: string;
+  readonly viewRevision: number;
+  readonly reserved: Readonly<Record<string, CallbackRecord>>;
+  readonly callbacks: Record<string, CallbackRecord>;
+  next: number;
 };
 
 function renderViewParts<Context extends JsonObject>(
@@ -1272,14 +1657,35 @@ function renderButton<Context extends JsonObject>(
     if (value.kind === "error") return value;
     payload[name] = value.value;
   }
+  const callbacks = scope.callbacks;
+  if (callbacks === undefined || callbacks.sessionKey === undefined) {
+    return evaluationError(
+      "missing_session_key",
+      "$.input.payload.sessionKey",
+      "Add the sessionKey value before this view renders a button.",
+    );
+  }
+  let callbackId: string;
+  do {
+    callbackId = `c${callbacks.seq.toString(36)}.${callbacks.viewRevision.toString(36)}.${callbacks.next.toString(36)}`;
+    callbacks.next += 1;
+  } while (callbackId in callbacks.reserved || callbackId in callbacks.callbacks);
+  callbacks.callbacks[callbackId] = {
+    sessionKey: callbacks.sessionKey,
+    stateId: callbacks.stateId,
+    seq: callbacks.seq,
+    viewSlot: callbacks.viewSlot,
+    viewRevision: callbacks.viewRevision,
+    press: button.press,
+    payload,
+    durable: button.durable,
+  };
   return {
     kind: "ok",
     value: {
       kind: "button",
       label: label.value,
-      press: button.press,
-      ...(button.payload === undefined ? {} : { payload }),
-      durable: button.durable,
+      callbackId,
     },
   };
 }

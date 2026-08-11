@@ -1,0 +1,57 @@
+{
+  "$schema": "https://svyatov.github.io/botchart/conformance/0.1.0/transcript.schema.json",
+  "initial": {
+    "now": "2026-08-11T09:00:00Z",
+    "session": {
+      "callStack": [],
+      "callbacks": {},
+      "context": {},
+      "history": {},
+      "position": "main",
+      "seq": 0,
+      "viewSlots": {}
+    }
+  },
+  "name": "stale press ignore policy",
+  "schemaRevision": "0.1.0",
+  "spec": {
+    "path": "../specs/stale-press-ignore.json",
+    "sha256": "ed310d1138f94836b641160c0e58ecc137e0aaa0880b1762ff9835134725680b"
+  },
+  "steps": [
+    {
+      "covers": [
+        "runtime.callback.stale.ignore"
+      ],
+      "input": {
+        "name": "callback:1",
+        "origin": "telegram",
+        "payload": {
+          "callbackQueryId": "query:1",
+          "sessionKey": "chat:42"
+        },
+        "source": "press"
+      },
+      "name": "ignore an obsolete press and answer its query",
+      "result": {
+        "intents": [
+          {
+            "callbackQueryId": "query:1",
+            "kind": "pressAnswer"
+          }
+        ],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {},
+          "history": {},
+          "position": "main",
+          "seq": 0,
+          "viewSlots": {}
+        }
+      }
+    }
+  ],
+  "transcriptVersion": 1
+}

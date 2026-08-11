@@ -1,0 +1,27 @@
+{
+  "$schema": "https://svyatov.github.io/botchart/schema/0.1.0.json",
+  "version": 1,
+  "schemaRevision": "0.1.0",
+  "packs": [],
+  "scope": "chat+user",
+  "context": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {},
+    "additionalProperties": false,
+    "default": {}
+  },
+  "parameters": {},
+  "guards": {},
+  "effects": {},
+  "presses": {
+    "keep": { "payload": {} }
+  },
+  "units": {},
+  "stalePress": { "action": "ignore" },
+  "initial": "main",
+  "on": {},
+  "states": {
+    "main": { "kind": "state", "render": "keep" }
+  }
+}
