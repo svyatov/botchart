@@ -1,0 +1,13 @@
+{
+  "name": "botchart-playground",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "ruby scripts/build.rb",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "elkjs": "0.12.0"
+  }
+}

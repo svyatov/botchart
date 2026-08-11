@@ -2,9 +2,9 @@
   "name": "botchart-workspace",
   "private": true,
   "type": "module",
-  "workspaces": ["packages/*"],
+  "workspaces": ["apps/*", "packages/*"],
   "scripts": {
-    "build": "tsc -p packages/botchart && tsc -p packages/botchart/tsconfig.type-tests.json && tsc -p packages/botchart-grammy && tsc -p packages/botchart-grammy/tsconfig.type-tests.json",
+    "build": "tsc -p packages/botchart && tsc -p packages/botchart/tsconfig.type-tests.json && tsc -p packages/botchart-grammy && tsc -p packages/botchart-grammy/tsconfig.type-tests.json && bun run --cwd apps/playground build",
     "test": "bun test",
     "golden:update": "ruby scripts/golden.rb update",
     "golden:verify": "ruby scripts/golden.rb verify",
