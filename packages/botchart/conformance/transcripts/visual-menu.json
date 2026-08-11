@@ -1,0 +1,1879 @@
+{
+  "$schema": "https://svyatov.github.io/botchart/conformance/0.1.0/transcript.schema.json",
+  "initial": {
+    "now": "2026-08-11T12:00:00Z",
+    "session": {
+      "callStack": [],
+      "callbacks": {},
+      "context": {
+        "callSign": "Traveler",
+        "lastSignal": "Aurora 7"
+      },
+      "history": {},
+      "position": "home",
+      "seq": 0,
+      "viewSlots": {
+        "main": {
+          "revision": 0,
+          "target": {
+            "chatId": 42,
+            "kind": "chat"
+          }
+        }
+      }
+    }
+  },
+  "name": "visual menu hierarchy",
+  "schemaRevision": "0.1.0",
+  "spec": {
+    "path": "../specs/visual-menu.json",
+    "sha256": "88fcfde38426b8cebd0015bf6c274f10b57d7d7040d4e87724cdd1032804e6fb"
+  },
+  "steps": [
+    {
+      "covers": [
+        "runtime.event.command"
+      ],
+      "input": {
+        "name": "start",
+        "origin": "telegram",
+        "payload": {
+          "sessionKey": "chat:42"
+        },
+        "source": "command"
+      },
+      "name": "open the home menu",
+      "result": {
+        "intents": [
+          {
+            "kind": "view",
+            "operation": "send",
+            "slot": "main",
+            "target": {
+              "chatId": 42,
+              "kind": "chat"
+            },
+            "view": {
+              "keyboard": [
+                {
+                  "buttons": [
+                    {
+                      "callbackId": "callback:1",
+                      "kind": "button",
+                      "label": "Open signal atlas"
+                    }
+                  ],
+                  "kind": "row"
+                },
+                {
+                  "buttons": [
+                    {
+                      "callbackId": "callback:2",
+                      "kind": "button",
+                      "label": "Recent notes"
+                    },
+                    {
+                      "callbackId": "callback:3",
+                      "kind": "button",
+                      "label": "About"
+                    }
+                  ],
+                  "kind": "row"
+                }
+              ],
+              "kind": "text",
+              "parseMode": "plain",
+              "text": "Field Signal Atlas\nNorthern field edition\n\nWelcome, Traveler. Last logged signal: Aurora 7."
+            }
+          }
+        ],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {
+            "callback:1": {
+              "durable": false,
+              "payload": {},
+              "press": "openAtlas",
+              "seq": 1,
+              "sessionKey": "chat:42",
+              "stateId": "home",
+              "viewRevision": 1,
+              "viewSlot": "main"
+            },
+            "callback:2": {
+              "durable": false,
+              "payload": {},
+              "press": "openNotes",
+              "seq": 1,
+              "sessionKey": "chat:42",
+              "stateId": "home",
+              "viewRevision": 1,
+              "viewSlot": "main"
+            },
+            "callback:3": {
+              "durable": false,
+              "payload": {},
+              "press": "openAbout",
+              "seq": 1,
+              "sessionKey": "chat:42",
+              "stateId": "home",
+              "viewRevision": 1,
+              "viewSlot": "main"
+            }
+          },
+          "context": {
+            "callSign": "Traveler",
+            "lastSignal": "Aurora 7"
+          },
+          "history": {},
+          "position": "home",
+          "seq": 1,
+          "viewSlots": {
+            "main": {
+              "revision": 0,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.view.reconcile.send"
+      ],
+      "input": {
+        "name": "send",
+        "origin": "adapter",
+        "payload": {
+          "handle": {
+            "chatId": 42,
+            "kind": "chat",
+            "messageId": 100
+          },
+          "interactive": true,
+          "slot": "main",
+          "viewKind": "text"
+        },
+        "source": "view"
+      },
+      "name": "commit the home menu",
+      "result": {
+        "intents": [],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {
+            "callback:1": {
+              "durable": false,
+              "handle": {
+                "chatId": 42,
+                "kind": "chat",
+                "messageId": 100
+              },
+              "payload": {},
+              "press": "openAtlas",
+              "seq": 1,
+              "sessionKey": "chat:42",
+              "stateId": "home",
+              "viewRevision": 1,
+              "viewSlot": "main"
+            },
+            "callback:2": {
+              "durable": false,
+              "handle": {
+                "chatId": 42,
+                "kind": "chat",
+                "messageId": 100
+              },
+              "payload": {},
+              "press": "openNotes",
+              "seq": 1,
+              "sessionKey": "chat:42",
+              "stateId": "home",
+              "viewRevision": 1,
+              "viewSlot": "main"
+            },
+            "callback:3": {
+              "durable": false,
+              "handle": {
+                "chatId": 42,
+                "kind": "chat",
+                "messageId": 100
+              },
+              "payload": {},
+              "press": "openAbout",
+              "seq": 1,
+              "sessionKey": "chat:42",
+              "stateId": "home",
+              "viewRevision": 1,
+              "viewSlot": "main"
+            }
+          },
+          "context": {
+            "callSign": "Traveler",
+            "lastSignal": "Aurora 7"
+          },
+          "history": {},
+          "position": "home",
+          "seq": 1,
+          "viewSlots": {
+            "main": {
+              "current": {
+                "handle": {
+                  "chatId": 42,
+                  "kind": "chat",
+                  "messageId": 100
+                },
+                "viewKind": "text"
+              },
+              "revision": 1,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.state.compoundInitial"
+      ],
+      "input": {
+        "name": "c1.1.0",
+        "origin": "telegram",
+        "payload": {
+          "callbackQueryId": "query:1",
+          "sessionKey": "chat:42"
+        },
+        "source": "press"
+      },
+      "name": "enter the atlas",
+      "result": {
+        "intents": [
+          {
+            "callbackQueryId": "query:1",
+            "kind": "pressAnswer"
+          },
+          {
+            "handle": {
+              "chatId": 42,
+              "kind": "chat",
+              "messageId": 100
+            },
+            "kind": "view",
+            "operation": "edit",
+            "slot": "main",
+            "view": {
+              "keyboard": [
+                {
+                  "buttons": [
+                    {
+                      "callbackId": "callback:4",
+                      "kind": "button",
+                      "label": "Live signals"
+                    },
+                    {
+                      "callbackId": "callback:5",
+                      "kind": "button",
+                      "label": "Archives"
+                    }
+                  ],
+                  "kind": "row"
+                },
+                {
+                  "buttons": [
+                    {
+                      "callbackId": "callback:6",
+                      "kind": "button",
+                      "label": "Field kit"
+                    },
+                    {
+                      "callbackId": "callback:7",
+                      "kind": "button",
+                      "label": "Back"
+                    }
+                  ],
+                  "kind": "row"
+                }
+              ],
+              "kind": "text",
+              "parseMode": "plain",
+              "text": "Signal atlas\n\nChoose a collection."
+            }
+          }
+        ],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {
+            "callback:4": {
+              "durable": false,
+              "payload": {},
+              "press": "openSignals",
+              "seq": 2,
+              "sessionKey": "chat:42",
+              "stateId": "atlas.directory",
+              "viewRevision": 2,
+              "viewSlot": "main"
+            },
+            "callback:5": {
+              "durable": false,
+              "payload": {},
+              "press": "openArchives",
+              "seq": 2,
+              "sessionKey": "chat:42",
+              "stateId": "atlas.directory",
+              "viewRevision": 2,
+              "viewSlot": "main"
+            },
+            "callback:6": {
+              "durable": false,
+              "payload": {},
+              "press": "openFieldKit",
+              "seq": 2,
+              "sessionKey": "chat:42",
+              "stateId": "atlas.directory",
+              "viewRevision": 2,
+              "viewSlot": "main"
+            },
+            "callback:7": {
+              "durable": false,
+              "payload": {},
+              "press": "back",
+              "seq": 2,
+              "sessionKey": "chat:42",
+              "stateId": "atlas.directory",
+              "viewRevision": 2,
+              "viewSlot": "main"
+            }
+          },
+          "context": {
+            "callSign": "Traveler",
+            "lastSignal": "Aurora 7"
+          },
+          "history": {},
+          "position": "atlas.directory",
+          "seq": 2,
+          "viewSlots": {
+            "main": {
+              "current": {
+                "handle": {
+                  "chatId": 42,
+                  "kind": "chat",
+                  "messageId": 100
+                },
+                "viewKind": "text"
+              },
+              "revision": 1,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.view.slot.edit"
+      ],
+      "input": {
+        "name": "edit",
+        "origin": "adapter",
+        "payload": {
+          "interactive": true,
+          "slot": "main",
+          "viewKind": "text"
+        },
+        "source": "view"
+      },
+      "name": "commit the atlas directory",
+      "result": {
+        "intents": [],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {
+            "callback:4": {
+              "durable": false,
+              "handle": {
+                "chatId": 42,
+                "kind": "chat",
+                "messageId": 100
+              },
+              "payload": {},
+              "press": "openSignals",
+              "seq": 2,
+              "sessionKey": "chat:42",
+              "stateId": "atlas.directory",
+              "viewRevision": 2,
+              "viewSlot": "main"
+            },
+            "callback:5": {
+              "durable": false,
+              "handle": {
+                "chatId": 42,
+                "kind": "chat",
+                "messageId": 100
+              },
+              "payload": {},
+              "press": "openArchives",
+              "seq": 2,
+              "sessionKey": "chat:42",
+              "stateId": "atlas.directory",
+              "viewRevision": 2,
+              "viewSlot": "main"
+            },
+            "callback:6": {
+              "durable": false,
+              "handle": {
+                "chatId": 42,
+                "kind": "chat",
+                "messageId": 100
+              },
+              "payload": {},
+              "press": "openFieldKit",
+              "seq": 2,
+              "sessionKey": "chat:42",
+              "stateId": "atlas.directory",
+              "viewRevision": 2,
+              "viewSlot": "main"
+            },
+            "callback:7": {
+              "durable": false,
+              "handle": {
+                "chatId": 42,
+                "kind": "chat",
+                "messageId": 100
+              },
+              "payload": {},
+              "press": "back",
+              "seq": 2,
+              "sessionKey": "chat:42",
+              "stateId": "atlas.directory",
+              "viewRevision": 2,
+              "viewSlot": "main"
+            }
+          },
+          "context": {
+            "callSign": "Traveler",
+            "lastSignal": "Aurora 7"
+          },
+          "history": {},
+          "position": "atlas.directory",
+          "seq": 2,
+          "viewSlots": {
+            "main": {
+              "current": {
+                "handle": {
+                  "chatId": 42,
+                  "kind": "chat",
+                  "messageId": 100
+                },
+                "viewKind": "text"
+              },
+              "revision": 2,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.state.deepLeaf"
+      ],
+      "input": {
+        "name": "c2.2.0",
+        "origin": "telegram",
+        "payload": {
+          "callbackQueryId": "query:2",
+          "sessionKey": "chat:42"
+        },
+        "source": "press"
+      },
+      "name": "enter the signal collection",
+      "result": {
+        "intents": [
+          {
+            "callbackQueryId": "query:2",
+            "kind": "pressAnswer"
+          },
+          {
+            "handle": {
+              "chatId": 42,
+              "kind": "chat",
+              "messageId": 100
+            },
+            "kind": "view",
+            "operation": "edit",
+            "slot": "main",
+            "view": {
+              "keyboard": [
+                {
+                  "buttons": [
+                    {
+                      "callbackId": "callback:8",
+                      "kind": "button",
+                      "label": "Relay network"
+                    },
+                    {
+                      "callbackId": "callback:9",
+                      "kind": "button",
+                      "label": "Beacon watch"
+                    }
+                  ],
+                  "kind": "row"
+                },
+                {
+                  "buttons": [
+                    {
+                      "callbackId": "callback:10",
+                      "kind": "button",
+                      "label": "Interference map"
+                    },
+                    {
+                      "callbackId": "callback:11",
+                      "kind": "button",
+                      "label": "Back"
+                    }
+                  ],
+                  "kind": "row"
+                }
+              ],
+              "kind": "text",
+              "parseMode": "plain",
+              "text": "Live signals\n\nChoose a signal family."
+            }
+          }
+        ],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {
+            "callback:10": {
+              "durable": false,
+              "payload": {},
+              "press": "openInterference",
+              "seq": 3,
+              "sessionKey": "chat:42",
+              "stateId": "atlas.signals.directory",
+              "viewRevision": 3,
+              "viewSlot": "main"
+            },
+            "callback:11": {
+              "durable": false,
+              "payload": {},
+              "press": "back",
+              "seq": 3,
+              "sessionKey": "chat:42",
+              "stateId": "atlas.signals.directory",
+              "viewRevision": 3,
+              "viewSlot": "main"
+            },
+            "callback:8": {
+              "durable": false,
+              "payload": {},
+              "press": "openRelays",
+              "seq": 3,
+              "sessionKey": "chat:42",
+              "stateId": "atlas.signals.directory",
+              "viewRevision": 3,
+              "viewSlot": "main"
+            },
+            "callback:9": {
+              "durable": false,
+              "payload": {},
+              "press": "openBeacons",
+              "seq": 3,
+              "sessionKey": "chat:42",
+              "stateId": "atlas.signals.directory",
+              "viewRevision": 3,
+              "viewSlot": "main"
+            }
+          },
+          "context": {
+            "callSign": "Traveler",
+            "lastSignal": "Aurora 7"
+          },
+          "history": {},
+          "position": "atlas.signals.directory",
+          "seq": 3,
+          "viewSlots": {
+            "main": {
+              "current": {
+                "handle": {
+                  "chatId": 42,
+                  "kind": "chat",
+                  "messageId": 100
+                },
+                "viewKind": "text"
+              },
+              "revision": 2,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.view.revision.interactive"
+      ],
+      "input": {
+        "name": "edit",
+        "origin": "adapter",
+        "payload": {
+          "interactive": true,
+          "slot": "main",
+          "viewKind": "text"
+        },
+        "source": "view"
+      },
+      "name": "commit the signal directory",
+      "result": {
+        "intents": [],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {
+            "callback:10": {
+              "durable": false,
+              "handle": {
+                "chatId": 42,
+                "kind": "chat",
+                "messageId": 100
+              },
+              "payload": {},
+              "press": "openInterference",
+              "seq": 3,
+              "sessionKey": "chat:42",
+              "stateId": "atlas.signals.directory",
+              "viewRevision": 3,
+              "viewSlot": "main"
+            },
+            "callback:11": {
+              "durable": false,
+              "handle": {
+                "chatId": 42,
+                "kind": "chat",
+                "messageId": 100
+              },
+              "payload": {},
+              "press": "back",
+              "seq": 3,
+              "sessionKey": "chat:42",
+              "stateId": "atlas.signals.directory",
+              "viewRevision": 3,
+              "viewSlot": "main"
+            },
+            "callback:8": {
+              "durable": false,
+              "handle": {
+                "chatId": 42,
+                "kind": "chat",
+                "messageId": 100
+              },
+              "payload": {},
+              "press": "openRelays",
+              "seq": 3,
+              "sessionKey": "chat:42",
+              "stateId": "atlas.signals.directory",
+              "viewRevision": 3,
+              "viewSlot": "main"
+            },
+            "callback:9": {
+              "durable": false,
+              "handle": {
+                "chatId": 42,
+                "kind": "chat",
+                "messageId": 100
+              },
+              "payload": {},
+              "press": "openBeacons",
+              "seq": 3,
+              "sessionKey": "chat:42",
+              "stateId": "atlas.signals.directory",
+              "viewRevision": 3,
+              "viewSlot": "main"
+            }
+          },
+          "context": {
+            "callSign": "Traveler",
+            "lastSignal": "Aurora 7"
+          },
+          "history": {},
+          "position": "atlas.signals.directory",
+          "seq": 3,
+          "viewSlots": {
+            "main": {
+              "current": {
+                "handle": {
+                  "chatId": 42,
+                  "kind": "chat",
+                  "messageId": 100
+                },
+                "viewKind": "text"
+              },
+              "revision": 3,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.state.entry"
+      ],
+      "input": {
+        "name": "c3.3.0",
+        "origin": "telegram",
+        "payload": {
+          "callbackQueryId": "query:3",
+          "sessionKey": "chat:42"
+        },
+        "source": "press"
+      },
+      "name": "enter the relay network",
+      "result": {
+        "intents": [
+          {
+            "callbackQueryId": "query:3",
+            "kind": "pressAnswer"
+          },
+          {
+            "handle": {
+              "chatId": 42,
+              "kind": "chat",
+              "messageId": 100
+            },
+            "kind": "view",
+            "operation": "edit",
+            "slot": "main",
+            "view": {
+              "keyboard": [
+                {
+                  "buttons": [
+                    {
+                      "callbackId": "callback:12",
+                      "kind": "button",
+                      "label": "Polar relays"
+                    },
+                    {
+                      "callbackId": "callback:13",
+                      "kind": "button",
+                      "label": "Orbital relays"
+                    }
+                  ],
+                  "kind": "row"
+                },
+                {
+                  "buttons": [
+                    {
+                      "callbackId": "callback:14",
+                      "kind": "button",
+                      "label": "Coastal relays"
+                    },
+                    {
+                      "callbackId": "callback:15",
+                      "kind": "button",
+                      "label": "Back"
+                    }
+                  ],
+                  "kind": "row"
+                }
+              ],
+              "kind": "text",
+              "parseMode": "plain",
+              "text": "Relay network\n\nChoose a relay zone."
+            }
+          }
+        ],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {
+            "callback:12": {
+              "durable": false,
+              "payload": {},
+              "press": "openPolar",
+              "seq": 4,
+              "sessionKey": "chat:42",
+              "stateId": "atlas.signals.relays.directory",
+              "viewRevision": 4,
+              "viewSlot": "main"
+            },
+            "callback:13": {
+              "durable": false,
+              "payload": {},
+              "press": "openOrbital",
+              "seq": 4,
+              "sessionKey": "chat:42",
+              "stateId": "atlas.signals.relays.directory",
+              "viewRevision": 4,
+              "viewSlot": "main"
+            },
+            "callback:14": {
+              "durable": false,
+              "payload": {},
+              "press": "openCoastal",
+              "seq": 4,
+              "sessionKey": "chat:42",
+              "stateId": "atlas.signals.relays.directory",
+              "viewRevision": 4,
+              "viewSlot": "main"
+            },
+            "callback:15": {
+              "durable": false,
+              "payload": {},
+              "press": "back",
+              "seq": 4,
+              "sessionKey": "chat:42",
+              "stateId": "atlas.signals.relays.directory",
+              "viewRevision": 4,
+              "viewSlot": "main"
+            }
+          },
+          "context": {
+            "callSign": "Traveler",
+            "lastSignal": "Aurora 7"
+          },
+          "history": {},
+          "position": "atlas.signals.relays.directory",
+          "seq": 4,
+          "viewSlots": {
+            "main": {
+              "current": {
+                "handle": {
+                  "chatId": 42,
+                  "kind": "chat",
+                  "messageId": 100
+                },
+                "viewKind": "text"
+              },
+              "revision": 3,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.callback.revision"
+      ],
+      "input": {
+        "name": "edit",
+        "origin": "adapter",
+        "payload": {
+          "interactive": true,
+          "slot": "main",
+          "viewKind": "text"
+        },
+        "source": "view"
+      },
+      "name": "commit the relay directory",
+      "result": {
+        "intents": [],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {
+            "callback:12": {
+              "durable": false,
+              "handle": {
+                "chatId": 42,
+                "kind": "chat",
+                "messageId": 100
+              },
+              "payload": {},
+              "press": "openPolar",
+              "seq": 4,
+              "sessionKey": "chat:42",
+              "stateId": "atlas.signals.relays.directory",
+              "viewRevision": 4,
+              "viewSlot": "main"
+            },
+            "callback:13": {
+              "durable": false,
+              "handle": {
+                "chatId": 42,
+                "kind": "chat",
+                "messageId": 100
+              },
+              "payload": {},
+              "press": "openOrbital",
+              "seq": 4,
+              "sessionKey": "chat:42",
+              "stateId": "atlas.signals.relays.directory",
+              "viewRevision": 4,
+              "viewSlot": "main"
+            },
+            "callback:14": {
+              "durable": false,
+              "handle": {
+                "chatId": 42,
+                "kind": "chat",
+                "messageId": 100
+              },
+              "payload": {},
+              "press": "openCoastal",
+              "seq": 4,
+              "sessionKey": "chat:42",
+              "stateId": "atlas.signals.relays.directory",
+              "viewRevision": 4,
+              "viewSlot": "main"
+            },
+            "callback:15": {
+              "durable": false,
+              "handle": {
+                "chatId": 42,
+                "kind": "chat",
+                "messageId": 100
+              },
+              "payload": {},
+              "press": "back",
+              "seq": 4,
+              "sessionKey": "chat:42",
+              "stateId": "atlas.signals.relays.directory",
+              "viewRevision": 4,
+              "viewSlot": "main"
+            }
+          },
+          "context": {
+            "callSign": "Traveler",
+            "lastSignal": "Aurora 7"
+          },
+          "history": {},
+          "position": "atlas.signals.relays.directory",
+          "seq": 4,
+          "viewSlots": {
+            "main": {
+              "current": {
+                "handle": {
+                  "chatId": 42,
+                  "kind": "chat",
+                  "messageId": 100
+                },
+                "viewKind": "text"
+              },
+              "revision": 4,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.transition.external"
+      ],
+      "input": {
+        "name": "c4.4.0",
+        "origin": "telegram",
+        "payload": {
+          "callbackQueryId": "query:4",
+          "sessionKey": "chat:42"
+        },
+        "source": "press"
+      },
+      "name": "enter the polar relay collection",
+      "result": {
+        "intents": [
+          {
+            "callbackQueryId": "query:4",
+            "kind": "pressAnswer"
+          },
+          {
+            "handle": {
+              "chatId": 42,
+              "kind": "chat",
+              "messageId": 100
+            },
+            "kind": "view",
+            "operation": "edit",
+            "slot": "main",
+            "view": {
+              "keyboard": [
+                {
+                  "buttons": [
+                    {
+                      "callbackId": "callback:16",
+                      "kind": "button",
+                      "label": "Aurora station"
+                    },
+                    {
+                      "callbackId": "callback:17",
+                      "kind": "button",
+                      "label": "Ice station"
+                    }
+                  ],
+                  "kind": "row"
+                },
+                {
+                  "buttons": [
+                    {
+                      "callbackId": "callback:18",
+                      "kind": "button",
+                      "label": "Night station"
+                    },
+                    {
+                      "callbackId": "callback:19",
+                      "kind": "button",
+                      "label": "Back"
+                    }
+                  ],
+                  "kind": "row"
+                }
+              ],
+              "kind": "text",
+              "parseMode": "plain",
+              "text": "Polar relays\n\nChoose a station log."
+            }
+          }
+        ],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {
+            "callback:16": {
+              "durable": false,
+              "payload": {},
+              "press": "openAurora",
+              "seq": 5,
+              "sessionKey": "chat:42",
+              "stateId": "atlas.signals.relays.polar.directory",
+              "viewRevision": 5,
+              "viewSlot": "main"
+            },
+            "callback:17": {
+              "durable": false,
+              "payload": {},
+              "press": "openIce",
+              "seq": 5,
+              "sessionKey": "chat:42",
+              "stateId": "atlas.signals.relays.polar.directory",
+              "viewRevision": 5,
+              "viewSlot": "main"
+            },
+            "callback:18": {
+              "durable": false,
+              "payload": {},
+              "press": "openNight",
+              "seq": 5,
+              "sessionKey": "chat:42",
+              "stateId": "atlas.signals.relays.polar.directory",
+              "viewRevision": 5,
+              "viewSlot": "main"
+            },
+            "callback:19": {
+              "durable": false,
+              "payload": {},
+              "press": "back",
+              "seq": 5,
+              "sessionKey": "chat:42",
+              "stateId": "atlas.signals.relays.polar.directory",
+              "viewRevision": 5,
+              "viewSlot": "main"
+            }
+          },
+          "context": {
+            "callSign": "Traveler",
+            "lastSignal": "Aurora 7"
+          },
+          "history": {},
+          "position": "atlas.signals.relays.polar.directory",
+          "seq": 5,
+          "viewSlots": {
+            "main": {
+              "current": {
+                "handle": {
+                  "chatId": 42,
+                  "kind": "chat",
+                  "messageId": 100
+                },
+                "viewKind": "text"
+              },
+              "revision": 4,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.callback.cleanup.edit"
+      ],
+      "input": {
+        "name": "edit",
+        "origin": "adapter",
+        "payload": {
+          "interactive": true,
+          "slot": "main",
+          "viewKind": "text"
+        },
+        "source": "view"
+      },
+      "name": "commit the polar directory",
+      "result": {
+        "intents": [],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {
+            "callback:16": {
+              "durable": false,
+              "handle": {
+                "chatId": 42,
+                "kind": "chat",
+                "messageId": 100
+              },
+              "payload": {},
+              "press": "openAurora",
+              "seq": 5,
+              "sessionKey": "chat:42",
+              "stateId": "atlas.signals.relays.polar.directory",
+              "viewRevision": 5,
+              "viewSlot": "main"
+            },
+            "callback:17": {
+              "durable": false,
+              "handle": {
+                "chatId": 42,
+                "kind": "chat",
+                "messageId": 100
+              },
+              "payload": {},
+              "press": "openIce",
+              "seq": 5,
+              "sessionKey": "chat:42",
+              "stateId": "atlas.signals.relays.polar.directory",
+              "viewRevision": 5,
+              "viewSlot": "main"
+            },
+            "callback:18": {
+              "durable": false,
+              "handle": {
+                "chatId": 42,
+                "kind": "chat",
+                "messageId": 100
+              },
+              "payload": {},
+              "press": "openNight",
+              "seq": 5,
+              "sessionKey": "chat:42",
+              "stateId": "atlas.signals.relays.polar.directory",
+              "viewRevision": 5,
+              "viewSlot": "main"
+            },
+            "callback:19": {
+              "durable": false,
+              "handle": {
+                "chatId": 42,
+                "kind": "chat",
+                "messageId": 100
+              },
+              "payload": {},
+              "press": "back",
+              "seq": 5,
+              "sessionKey": "chat:42",
+              "stateId": "atlas.signals.relays.polar.directory",
+              "viewRevision": 5,
+              "viewSlot": "main"
+            }
+          },
+          "context": {
+            "callSign": "Traveler",
+            "lastSignal": "Aurora 7"
+          },
+          "history": {},
+          "position": "atlas.signals.relays.polar.directory",
+          "seq": 5,
+          "viewSlots": {
+            "main": {
+              "current": {
+                "handle": {
+                  "chatId": 42,
+                  "kind": "chat",
+                  "messageId": 100
+                },
+                "viewKind": "text"
+              },
+              "revision": 5,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.event.hierarchy"
+      ],
+      "input": {
+        "name": "c5.5.3",
+        "origin": "telegram",
+        "payload": {
+          "callbackQueryId": "query:5",
+          "sessionKey": "chat:42"
+        },
+        "source": "press"
+      },
+      "name": "return to the relay directory",
+      "result": {
+        "intents": [
+          {
+            "callbackQueryId": "query:5",
+            "kind": "pressAnswer"
+          },
+          {
+            "handle": {
+              "chatId": 42,
+              "kind": "chat",
+              "messageId": 100
+            },
+            "kind": "view",
+            "operation": "edit",
+            "slot": "main",
+            "view": {
+              "keyboard": [
+                {
+                  "buttons": [
+                    {
+                      "callbackId": "callback:20",
+                      "kind": "button",
+                      "label": "Polar relays"
+                    },
+                    {
+                      "callbackId": "callback:21",
+                      "kind": "button",
+                      "label": "Orbital relays"
+                    }
+                  ],
+                  "kind": "row"
+                },
+                {
+                  "buttons": [
+                    {
+                      "callbackId": "callback:22",
+                      "kind": "button",
+                      "label": "Coastal relays"
+                    },
+                    {
+                      "callbackId": "callback:23",
+                      "kind": "button",
+                      "label": "Back"
+                    }
+                  ],
+                  "kind": "row"
+                }
+              ],
+              "kind": "text",
+              "parseMode": "plain",
+              "text": "Relay network\n\nChoose a relay zone."
+            }
+          }
+        ],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {
+            "callback:20": {
+              "durable": false,
+              "payload": {},
+              "press": "openPolar",
+              "seq": 6,
+              "sessionKey": "chat:42",
+              "stateId": "atlas.signals.relays.directory",
+              "viewRevision": 6,
+              "viewSlot": "main"
+            },
+            "callback:21": {
+              "durable": false,
+              "payload": {},
+              "press": "openOrbital",
+              "seq": 6,
+              "sessionKey": "chat:42",
+              "stateId": "atlas.signals.relays.directory",
+              "viewRevision": 6,
+              "viewSlot": "main"
+            },
+            "callback:22": {
+              "durable": false,
+              "payload": {},
+              "press": "openCoastal",
+              "seq": 6,
+              "sessionKey": "chat:42",
+              "stateId": "atlas.signals.relays.directory",
+              "viewRevision": 6,
+              "viewSlot": "main"
+            },
+            "callback:23": {
+              "durable": false,
+              "payload": {},
+              "press": "back",
+              "seq": 6,
+              "sessionKey": "chat:42",
+              "stateId": "atlas.signals.relays.directory",
+              "viewRevision": 6,
+              "viewSlot": "main"
+            }
+          },
+          "context": {
+            "callSign": "Traveler",
+            "lastSignal": "Aurora 7"
+          },
+          "history": {},
+          "position": "atlas.signals.relays.directory",
+          "seq": 6,
+          "viewSlots": {
+            "main": {
+              "current": {
+                "handle": {
+                  "chatId": 42,
+                  "kind": "chat",
+                  "messageId": 100
+                },
+                "viewKind": "text"
+              },
+              "revision": 5,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.callback.identifier"
+      ],
+      "input": {
+        "name": "edit",
+        "origin": "adapter",
+        "payload": {
+          "interactive": true,
+          "slot": "main",
+          "viewKind": "text"
+        },
+        "source": "view"
+      },
+      "name": "commit the returned relay directory",
+      "result": {
+        "intents": [],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {
+            "callback:20": {
+              "durable": false,
+              "handle": {
+                "chatId": 42,
+                "kind": "chat",
+                "messageId": 100
+              },
+              "payload": {},
+              "press": "openPolar",
+              "seq": 6,
+              "sessionKey": "chat:42",
+              "stateId": "atlas.signals.relays.directory",
+              "viewRevision": 6,
+              "viewSlot": "main"
+            },
+            "callback:21": {
+              "durable": false,
+              "handle": {
+                "chatId": 42,
+                "kind": "chat",
+                "messageId": 100
+              },
+              "payload": {},
+              "press": "openOrbital",
+              "seq": 6,
+              "sessionKey": "chat:42",
+              "stateId": "atlas.signals.relays.directory",
+              "viewRevision": 6,
+              "viewSlot": "main"
+            },
+            "callback:22": {
+              "durable": false,
+              "handle": {
+                "chatId": 42,
+                "kind": "chat",
+                "messageId": 100
+              },
+              "payload": {},
+              "press": "openCoastal",
+              "seq": 6,
+              "sessionKey": "chat:42",
+              "stateId": "atlas.signals.relays.directory",
+              "viewRevision": 6,
+              "viewSlot": "main"
+            },
+            "callback:23": {
+              "durable": false,
+              "handle": {
+                "chatId": 42,
+                "kind": "chat",
+                "messageId": 100
+              },
+              "payload": {},
+              "press": "back",
+              "seq": 6,
+              "sessionKey": "chat:42",
+              "stateId": "atlas.signals.relays.directory",
+              "viewRevision": 6,
+              "viewSlot": "main"
+            }
+          },
+          "context": {
+            "callSign": "Traveler",
+            "lastSignal": "Aurora 7"
+          },
+          "history": {},
+          "position": "atlas.signals.relays.directory",
+          "seq": 6,
+          "viewSlots": {
+            "main": {
+              "current": {
+                "handle": {
+                  "chatId": 42,
+                  "kind": "chat",
+                  "messageId": 100
+                },
+                "viewKind": "text"
+              },
+              "revision": 6,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.callback.accepted"
+      ],
+      "input": {
+        "name": "c6.6.3",
+        "origin": "telegram",
+        "payload": {
+          "callbackQueryId": "query:6",
+          "sessionKey": "chat:42"
+        },
+        "source": "press"
+      },
+      "name": "return to the signal directory",
+      "result": {
+        "intents": [
+          {
+            "callbackQueryId": "query:6",
+            "kind": "pressAnswer"
+          },
+          {
+            "handle": {
+              "chatId": 42,
+              "kind": "chat",
+              "messageId": 100
+            },
+            "kind": "view",
+            "operation": "edit",
+            "slot": "main",
+            "view": {
+              "keyboard": [
+                {
+                  "buttons": [
+                    {
+                      "callbackId": "callback:24",
+                      "kind": "button",
+                      "label": "Relay network"
+                    },
+                    {
+                      "callbackId": "callback:25",
+                      "kind": "button",
+                      "label": "Beacon watch"
+                    }
+                  ],
+                  "kind": "row"
+                },
+                {
+                  "buttons": [
+                    {
+                      "callbackId": "callback:26",
+                      "kind": "button",
+                      "label": "Interference map"
+                    },
+                    {
+                      "callbackId": "callback:27",
+                      "kind": "button",
+                      "label": "Back"
+                    }
+                  ],
+                  "kind": "row"
+                }
+              ],
+              "kind": "text",
+              "parseMode": "plain",
+              "text": "Live signals\n\nChoose a signal family."
+            }
+          }
+        ],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {
+            "callback:24": {
+              "durable": false,
+              "payload": {},
+              "press": "openRelays",
+              "seq": 7,
+              "sessionKey": "chat:42",
+              "stateId": "atlas.signals.directory",
+              "viewRevision": 7,
+              "viewSlot": "main"
+            },
+            "callback:25": {
+              "durable": false,
+              "payload": {},
+              "press": "openBeacons",
+              "seq": 7,
+              "sessionKey": "chat:42",
+              "stateId": "atlas.signals.directory",
+              "viewRevision": 7,
+              "viewSlot": "main"
+            },
+            "callback:26": {
+              "durable": false,
+              "payload": {},
+              "press": "openInterference",
+              "seq": 7,
+              "sessionKey": "chat:42",
+              "stateId": "atlas.signals.directory",
+              "viewRevision": 7,
+              "viewSlot": "main"
+            },
+            "callback:27": {
+              "durable": false,
+              "payload": {},
+              "press": "back",
+              "seq": 7,
+              "sessionKey": "chat:42",
+              "stateId": "atlas.signals.directory",
+              "viewRevision": 7,
+              "viewSlot": "main"
+            }
+          },
+          "context": {
+            "callSign": "Traveler",
+            "lastSignal": "Aurora 7"
+          },
+          "history": {},
+          "position": "atlas.signals.directory",
+          "seq": 7,
+          "viewSlots": {
+            "main": {
+              "current": {
+                "handle": {
+                  "chatId": 42,
+                  "kind": "chat",
+                  "messageId": 100
+                },
+                "viewKind": "text"
+              },
+              "revision": 6,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.callback.payload"
+      ],
+      "input": {
+        "name": "edit",
+        "origin": "adapter",
+        "payload": {
+          "interactive": true,
+          "slot": "main",
+          "viewKind": "text"
+        },
+        "source": "view"
+      },
+      "name": "commit the returned signal directory",
+      "result": {
+        "intents": [],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {
+            "callback:24": {
+              "durable": false,
+              "handle": {
+                "chatId": 42,
+                "kind": "chat",
+                "messageId": 100
+              },
+              "payload": {},
+              "press": "openRelays",
+              "seq": 7,
+              "sessionKey": "chat:42",
+              "stateId": "atlas.signals.directory",
+              "viewRevision": 7,
+              "viewSlot": "main"
+            },
+            "callback:25": {
+              "durable": false,
+              "handle": {
+                "chatId": 42,
+                "kind": "chat",
+                "messageId": 100
+              },
+              "payload": {},
+              "press": "openBeacons",
+              "seq": 7,
+              "sessionKey": "chat:42",
+              "stateId": "atlas.signals.directory",
+              "viewRevision": 7,
+              "viewSlot": "main"
+            },
+            "callback:26": {
+              "durable": false,
+              "handle": {
+                "chatId": 42,
+                "kind": "chat",
+                "messageId": 100
+              },
+              "payload": {},
+              "press": "openInterference",
+              "seq": 7,
+              "sessionKey": "chat:42",
+              "stateId": "atlas.signals.directory",
+              "viewRevision": 7,
+              "viewSlot": "main"
+            },
+            "callback:27": {
+              "durable": false,
+              "handle": {
+                "chatId": 42,
+                "kind": "chat",
+                "messageId": 100
+              },
+              "payload": {},
+              "press": "back",
+              "seq": 7,
+              "sessionKey": "chat:42",
+              "stateId": "atlas.signals.directory",
+              "viewRevision": 7,
+              "viewSlot": "main"
+            }
+          },
+          "context": {
+            "callSign": "Traveler",
+            "lastSignal": "Aurora 7"
+          },
+          "history": {},
+          "position": "atlas.signals.directory",
+          "seq": 7,
+          "viewSlots": {
+            "main": {
+              "current": {
+                "handle": {
+                  "chatId": 42,
+                  "kind": "chat",
+                  "messageId": 100
+                },
+                "viewKind": "text"
+              },
+              "revision": 7,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.callback.answer.required"
+      ],
+      "input": {
+        "name": "c7.7.3",
+        "origin": "telegram",
+        "payload": {
+          "callbackQueryId": "query:7",
+          "sessionKey": "chat:42"
+        },
+        "source": "press"
+      },
+      "name": "return to the atlas directory",
+      "result": {
+        "intents": [
+          {
+            "callbackQueryId": "query:7",
+            "kind": "pressAnswer"
+          },
+          {
+            "handle": {
+              "chatId": 42,
+              "kind": "chat",
+              "messageId": 100
+            },
+            "kind": "view",
+            "operation": "edit",
+            "slot": "main",
+            "view": {
+              "keyboard": [
+                {
+                  "buttons": [
+                    {
+                      "callbackId": "callback:28",
+                      "kind": "button",
+                      "label": "Live signals"
+                    },
+                    {
+                      "callbackId": "callback:29",
+                      "kind": "button",
+                      "label": "Archives"
+                    }
+                  ],
+                  "kind": "row"
+                },
+                {
+                  "buttons": [
+                    {
+                      "callbackId": "callback:30",
+                      "kind": "button",
+                      "label": "Field kit"
+                    },
+                    {
+                      "callbackId": "callback:31",
+                      "kind": "button",
+                      "label": "Back"
+                    }
+                  ],
+                  "kind": "row"
+                }
+              ],
+              "kind": "text",
+              "parseMode": "plain",
+              "text": "Signal atlas\n\nChoose a collection."
+            }
+          }
+        ],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {
+            "callback:28": {
+              "durable": false,
+              "payload": {},
+              "press": "openSignals",
+              "seq": 8,
+              "sessionKey": "chat:42",
+              "stateId": "atlas.directory",
+              "viewRevision": 8,
+              "viewSlot": "main"
+            },
+            "callback:29": {
+              "durable": false,
+              "payload": {},
+              "press": "openArchives",
+              "seq": 8,
+              "sessionKey": "chat:42",
+              "stateId": "atlas.directory",
+              "viewRevision": 8,
+              "viewSlot": "main"
+            },
+            "callback:30": {
+              "durable": false,
+              "payload": {},
+              "press": "openFieldKit",
+              "seq": 8,
+              "sessionKey": "chat:42",
+              "stateId": "atlas.directory",
+              "viewRevision": 8,
+              "viewSlot": "main"
+            },
+            "callback:31": {
+              "durable": false,
+              "payload": {},
+              "press": "back",
+              "seq": 8,
+              "sessionKey": "chat:42",
+              "stateId": "atlas.directory",
+              "viewRevision": 8,
+              "viewSlot": "main"
+            }
+          },
+          "context": {
+            "callSign": "Traveler",
+            "lastSignal": "Aurora 7"
+          },
+          "history": {},
+          "position": "atlas.directory",
+          "seq": 8,
+          "viewSlots": {
+            "main": {
+              "current": {
+                "handle": {
+                  "chatId": 42,
+                  "kind": "chat",
+                  "messageId": 100
+                },
+                "viewKind": "text"
+              },
+              "revision": 7,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "transcriptVersion": 1
+}

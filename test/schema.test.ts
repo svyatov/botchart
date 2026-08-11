@@ -12,6 +12,7 @@ import pressFreshnessSpec from "botchart/conformance/specs/press-freshness.json"
 import staleAnswerSpec from "botchart/conformance/specs/stale-press-answer.json" with { type: "json" };
 import staleIgnoreSpec from "botchart/conformance/specs/stale-press-ignore.json" with { type: "json" };
 import timerIntentsSpec from "botchart/conformance/specs/timer-intents.json" with { type: "json" };
+import visualMenuSpec from "botchart/conformance/specs/visual-menu.json" with { type: "json" };
 import viewSpec from "botchart/conformance/specs/view-rendering.json" with { type: "json" };
 import schema from "botchart/schema" with { type: "json" };
 
@@ -107,6 +108,10 @@ test.each([
 
 test("published schema accepts the MarkdownV2 escaping conformance spec", () => {
   expect(validate(markdownV2Spec), JSON.stringify(validate.errors)).toBe(true);
+});
+
+test("published schema accepts the visual menu derived asset", () => {
+  expect(validate(visualMenuSpec), JSON.stringify(validate.errors)).toBe(true);
 });
 
 const completeSpec = {

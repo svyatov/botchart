@@ -44,7 +44,6 @@
   "steps": [
     {
       "covers": [
-        "runtime.event.hierarchy",
         "runtime.event.press"
       ],
       "input": {
@@ -151,7 +150,6 @@
     },
     {
       "covers": [
-        "runtime.event.command",
         "runtime.event.commandNormalization",
         "runtime.event.commandPattern",
         "runtime.event.namedCaptures"
@@ -255,8 +253,7 @@
     },
     {
       "covers": [
-        "runtime.event.guardedAlternatives",
-        "runtime.event.message"
+        "runtime.event.guardedAlternatives"
       ],
       "input": {
         "name": "photo",
