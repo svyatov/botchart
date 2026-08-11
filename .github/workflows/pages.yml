@@ -24,7 +24,7 @@ jobs:
         with:
           bun-version: latest
       - run: bun install --frozen-lockfile --ignore-scripts
-      - run: bun run --cwd apps/playground build
+      - run: bun run build
       - run: bun run --cwd apps/playground smoke
       - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9  # v5.0.0
         with:
@@ -58,7 +58,7 @@ jobs:
         with:
           bun-version: latest
       - run: bun install --frozen-lockfile --ignore-scripts
-      - run: bun run --cwd apps/playground build
+      - run: bun run build
       - name: Check the deployed assets
         env:
           PLAYGROUND_URL: ${{ needs.deploy.outputs.page_url }}
