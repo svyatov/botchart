@@ -1,0 +1,2204 @@
+{
+  "$schema": "https://svyatov.github.io/botchart/conformance/0.1.0/transcript.schema.json",
+  "initial": {
+    "now": "2026-08-11T14:00:00Z",
+    "session": {
+      "callStack": [],
+      "callbacks": {
+        "callback:1": {
+          "durable": true,
+          "handle": {
+            "chatId": 42,
+            "kind": "chat",
+            "messageId": 100
+          },
+          "payload": {
+            "entryId": "note-tide"
+          },
+          "press": "entryRow",
+          "seq": 2,
+          "sessionKey": "chat:42",
+          "stateId": "entriesList",
+          "viewRevision": 1,
+          "viewSlot": "main"
+        },
+        "callback:2": {
+          "durable": true,
+          "handle": {
+            "chatId": 42,
+            "kind": "chat",
+            "messageId": 100
+          },
+          "payload": {
+            "entryId": "note-wind"
+          },
+          "press": "entryRow",
+          "seq": 2,
+          "sessionKey": "chat:42",
+          "stateId": "entriesList",
+          "viewRevision": 1,
+          "viewSlot": "main"
+        },
+        "callback:3": {
+          "durable": false,
+          "handle": {
+            "chatId": 42,
+            "kind": "chat",
+            "messageId": 100
+          },
+          "payload": {},
+          "press": "entryNext",
+          "seq": 2,
+          "sessionKey": "chat:42",
+          "stateId": "entriesList",
+          "viewRevision": 1,
+          "viewSlot": "main"
+        },
+        "callback:4": {
+          "durable": true,
+          "handle": {
+            "chatId": 42,
+            "kind": "chat",
+            "messageId": 100
+          },
+          "payload": {},
+          "press": "entryCancel",
+          "seq": 2,
+          "sessionKey": "chat:42",
+          "stateId": "entriesList",
+          "viewRevision": 1,
+          "viewSlot": "main"
+        }
+      },
+      "context": {
+        "entries": [
+          {
+            "id": "note-tide",
+            "label": "Tide at marker seven",
+            "text": "The tide reached marker seven at 06:40."
+          },
+          {
+            "id": "note-wind",
+            "label": "North wind",
+            "text": "The north wind held at 18 knots for two hours."
+          },
+          {
+            "id": "note-shelf",
+            "label": "Shelf cloud",
+            "text": "A shelf cloud crossed the western inlet before rain."
+          },
+          {
+            "id": "note-gulls",
+            "label": "Gull movement",
+            "text": "Gulls moved inland twenty minutes before the squall."
+          }
+        ],
+        "entryHasNext": true,
+        "entryHasPrev": false,
+        "entryHeading": "Field notes\nPage 1 of 2",
+        "entryId": "",
+        "entryPage": 1,
+        "entryRows": [
+          {
+            "id": "note-tide",
+            "label": "Tide at marker seven"
+          },
+          {
+            "id": "note-wind",
+            "label": "North wind"
+          }
+        ],
+        "entryText": "",
+        "foregroundBusy": false,
+        "journalHasNext": false,
+        "journalHasPrev": true,
+        "journalHeading": "Field journals\nPage 2 of 2",
+        "journalId": "coast-2025",
+        "journalPage": 2,
+        "journalRows": [
+          {
+            "id": "coast-2025",
+            "label": "Coastal weather log, winter 2025"
+          }
+        ],
+        "journalTitle": "Coastal weather log",
+        "missingReason": "Pending row check"
+      },
+      "history": {},
+      "position": "entriesList",
+      "seq": 2,
+      "viewSlots": {
+        "main": {
+          "current": {
+            "handle": {
+              "chatId": 42,
+              "kind": "chat",
+              "messageId": 100
+            },
+            "viewKind": "text"
+          },
+          "revision": 1,
+          "target": {
+            "chatId": 42,
+            "kind": "chat"
+          }
+        }
+      }
+    }
+  },
+  "name": "field journal browser",
+  "schemaRevision": "0.1.0",
+  "spec": {
+    "path": "../specs/dynamic-list.json",
+    "sha256": "a7d33ebc0cc3d9b2f8f40050d2491d75823242820d0b6252a96f854a697d23a8"
+  },
+  "steps": [
+    {
+      "covers": [
+        "runtime.assignment.arithmetic"
+      ],
+      "input": {
+        "name": "callback:3",
+        "origin": "telegram",
+        "payload": {
+          "callbackQueryId": "query:1",
+          "sessionKey": "chat:42"
+        },
+        "source": "press"
+      },
+      "name": "load the next note page",
+      "result": {
+        "intents": [
+          {
+            "answer": {
+              "kind": "toast",
+              "text": "Loading the next page."
+            },
+            "callbackQueryId": "query:1",
+            "kind": "pressAnswer"
+          },
+          {
+            "effect": "pageEntries",
+            "id": "effect:1",
+            "input": {
+              "entries": [
+                {
+                  "id": "note-tide",
+                  "label": "Tide at marker seven",
+                  "text": "The tide reached marker seven at 06:40."
+                },
+                {
+                  "id": "note-wind",
+                  "label": "North wind",
+                  "text": "The north wind held at 18 knots for two hours."
+                },
+                {
+                  "id": "note-shelf",
+                  "label": "Shelf cloud",
+                  "text": "A shelf cloud crossed the western inlet before rain."
+                },
+                {
+                  "id": "note-gulls",
+                  "label": "Gull movement",
+                  "text": "Gulls moved inland twenty minutes before the squall."
+                }
+              ],
+              "page": 2
+            },
+            "kind": "effect",
+            "token": {
+              "seq": 3,
+              "sessionKey": "chat:42",
+              "stateId": "entriesPaging"
+            }
+          }
+        ],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {
+            "callback:1": {
+              "durable": true,
+              "handle": {
+                "chatId": 42,
+                "kind": "chat",
+                "messageId": 100
+              },
+              "payload": {
+                "entryId": "note-tide"
+              },
+              "press": "entryRow",
+              "seq": 2,
+              "sessionKey": "chat:42",
+              "stateId": "entriesList",
+              "viewRevision": 1,
+              "viewSlot": "main"
+            },
+            "callback:2": {
+              "durable": true,
+              "handle": {
+                "chatId": 42,
+                "kind": "chat",
+                "messageId": 100
+              },
+              "payload": {
+                "entryId": "note-wind"
+              },
+              "press": "entryRow",
+              "seq": 2,
+              "sessionKey": "chat:42",
+              "stateId": "entriesList",
+              "viewRevision": 1,
+              "viewSlot": "main"
+            },
+            "callback:4": {
+              "durable": true,
+              "handle": {
+                "chatId": 42,
+                "kind": "chat",
+                "messageId": 100
+              },
+              "payload": {},
+              "press": "entryCancel",
+              "seq": 2,
+              "sessionKey": "chat:42",
+              "stateId": "entriesList",
+              "viewRevision": 1,
+              "viewSlot": "main"
+            }
+          },
+          "context": {
+            "entries": [
+              {
+                "id": "note-tide",
+                "label": "Tide at marker seven",
+                "text": "The tide reached marker seven at 06:40."
+              },
+              {
+                "id": "note-wind",
+                "label": "North wind",
+                "text": "The north wind held at 18 knots for two hours."
+              },
+              {
+                "id": "note-shelf",
+                "label": "Shelf cloud",
+                "text": "A shelf cloud crossed the western inlet before rain."
+              },
+              {
+                "id": "note-gulls",
+                "label": "Gull movement",
+                "text": "Gulls moved inland twenty minutes before the squall."
+              }
+            ],
+            "entryHasNext": true,
+            "entryHasPrev": false,
+            "entryHeading": "Field notes\nPage 1 of 2",
+            "entryId": "",
+            "entryPage": 2,
+            "entryRows": [
+              {
+                "id": "note-tide",
+                "label": "Tide at marker seven"
+              },
+              {
+                "id": "note-wind",
+                "label": "North wind"
+              }
+            ],
+            "entryText": "",
+            "foregroundBusy": false,
+            "journalHasNext": false,
+            "journalHasPrev": true,
+            "journalHeading": "Field journals\nPage 2 of 2",
+            "journalId": "coast-2025",
+            "journalPage": 2,
+            "journalRows": [
+              {
+                "id": "coast-2025",
+                "label": "Coastal weather log, winter 2025"
+              }
+            ],
+            "journalTitle": "Coastal weather log",
+            "missingReason": "Pending row check"
+          },
+          "history": {},
+          "position": "entriesPaging",
+          "seq": 3,
+          "viewSlots": {
+            "main": {
+              "current": {
+                "handle": {
+                  "chatId": 42,
+                  "kind": "chat",
+                  "messageId": 100
+                },
+                "viewKind": "text"
+              },
+              "revision": 1,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.view.projection"
+      ],
+      "input": {
+        "name": "loaded",
+        "origin": "effect",
+        "payload": {
+          "id": "effect:1",
+          "output": {
+            "hasNext": false,
+            "hasPrev": true,
+            "heading": "Field notes\nPage 2 of 2",
+            "rows": [
+              {
+                "id": "note-shelf",
+                "label": "Shelf cloud"
+              },
+              {
+                "id": "note-gulls",
+                "label": "Gull movement"
+              }
+            ]
+          },
+          "token": {
+            "seq": 3,
+            "sessionKey": "chat:42",
+            "stateId": "entriesPaging"
+          }
+        },
+        "source": "outcome"
+      },
+      "name": "show the second field-note page",
+      "result": {
+        "intents": [
+          {
+            "handle": {
+              "chatId": 42,
+              "kind": "chat",
+              "messageId": 100
+            },
+            "kind": "view",
+            "operation": "edit",
+            "slot": "main",
+            "view": {
+              "keyboard": [
+                {
+                  "buttons": [
+                    {
+                      "callbackId": "callback:5",
+                      "kind": "button",
+                      "label": "Shelf cloud"
+                    }
+                  ],
+                  "kind": "row"
+                },
+                {
+                  "buttons": [
+                    {
+                      "callbackId": "callback:6",
+                      "kind": "button",
+                      "label": "Gull movement"
+                    }
+                  ],
+                  "kind": "row"
+                },
+                {
+                  "buttons": [
+                    {
+                      "callbackId": "callback:7",
+                      "kind": "button",
+                      "label": "Prior page"
+                    }
+                  ],
+                  "kind": "row"
+                },
+                {
+                  "buttons": [
+                    {
+                      "callbackId": "callback:8",
+                      "kind": "button",
+                      "label": "Close"
+                    }
+                  ],
+                  "kind": "row"
+                }
+              ],
+              "kind": "text",
+              "parseMode": "plain",
+              "text": "Coastal weather log\nField notes\nPage 2 of 2"
+            }
+          }
+        ],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {
+            "callback:1": {
+              "durable": true,
+              "handle": {
+                "chatId": 42,
+                "kind": "chat",
+                "messageId": 100
+              },
+              "payload": {
+                "entryId": "note-tide"
+              },
+              "press": "entryRow",
+              "seq": 2,
+              "sessionKey": "chat:42",
+              "stateId": "entriesList",
+              "viewRevision": 1,
+              "viewSlot": "main"
+            },
+            "callback:2": {
+              "durable": true,
+              "handle": {
+                "chatId": 42,
+                "kind": "chat",
+                "messageId": 100
+              },
+              "payload": {
+                "entryId": "note-wind"
+              },
+              "press": "entryRow",
+              "seq": 2,
+              "sessionKey": "chat:42",
+              "stateId": "entriesList",
+              "viewRevision": 1,
+              "viewSlot": "main"
+            },
+            "callback:4": {
+              "durable": true,
+              "handle": {
+                "chatId": 42,
+                "kind": "chat",
+                "messageId": 100
+              },
+              "payload": {},
+              "press": "entryCancel",
+              "seq": 2,
+              "sessionKey": "chat:42",
+              "stateId": "entriesList",
+              "viewRevision": 1,
+              "viewSlot": "main"
+            },
+            "callback:5": {
+              "durable": true,
+              "payload": {
+                "entryId": "note-shelf"
+              },
+              "press": "entryRow",
+              "seq": 4,
+              "sessionKey": "chat:42",
+              "stateId": "entriesList",
+              "viewRevision": 2,
+              "viewSlot": "main"
+            },
+            "callback:6": {
+              "durable": true,
+              "payload": {
+                "entryId": "note-gulls"
+              },
+              "press": "entryRow",
+              "seq": 4,
+              "sessionKey": "chat:42",
+              "stateId": "entriesList",
+              "viewRevision": 2,
+              "viewSlot": "main"
+            },
+            "callback:7": {
+              "durable": false,
+              "payload": {},
+              "press": "entryPrev",
+              "seq": 4,
+              "sessionKey": "chat:42",
+              "stateId": "entriesList",
+              "viewRevision": 2,
+              "viewSlot": "main"
+            },
+            "callback:8": {
+              "durable": true,
+              "payload": {},
+              "press": "entryCancel",
+              "seq": 4,
+              "sessionKey": "chat:42",
+              "stateId": "entriesList",
+              "viewRevision": 2,
+              "viewSlot": "main"
+            }
+          },
+          "context": {
+            "entries": [
+              {
+                "id": "note-tide",
+                "label": "Tide at marker seven",
+                "text": "The tide reached marker seven at 06:40."
+              },
+              {
+                "id": "note-wind",
+                "label": "North wind",
+                "text": "The north wind held at 18 knots for two hours."
+              },
+              {
+                "id": "note-shelf",
+                "label": "Shelf cloud",
+                "text": "A shelf cloud crossed the western inlet before rain."
+              },
+              {
+                "id": "note-gulls",
+                "label": "Gull movement",
+                "text": "Gulls moved inland twenty minutes before the squall."
+              }
+            ],
+            "entryHasNext": false,
+            "entryHasPrev": true,
+            "entryHeading": "Field notes\nPage 2 of 2",
+            "entryId": "",
+            "entryPage": 2,
+            "entryRows": [
+              {
+                "id": "note-shelf",
+                "label": "Shelf cloud"
+              },
+              {
+                "id": "note-gulls",
+                "label": "Gull movement"
+              }
+            ],
+            "entryText": "",
+            "foregroundBusy": false,
+            "journalHasNext": false,
+            "journalHasPrev": true,
+            "journalHeading": "Field journals\nPage 2 of 2",
+            "journalId": "coast-2025",
+            "journalPage": 2,
+            "journalRows": [
+              {
+                "id": "coast-2025",
+                "label": "Coastal weather log, winter 2025"
+              }
+            ],
+            "journalTitle": "Coastal weather log",
+            "missingReason": "Pending row check"
+          },
+          "history": {},
+          "position": "entriesList",
+          "seq": 4,
+          "viewSlots": {
+            "main": {
+              "current": {
+                "handle": {
+                  "chatId": 42,
+                  "kind": "chat",
+                  "messageId": 100
+                },
+                "viewKind": "text"
+              },
+              "revision": 1,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.callback.durable"
+      ],
+      "input": {
+        "name": "callback:5",
+        "origin": "telegram",
+        "payload": {
+          "callbackQueryId": "query:2",
+          "sessionKey": "chat:42"
+        },
+        "source": "press"
+      },
+      "name": "select a field note that became stale",
+      "result": {
+        "intents": [
+          {
+            "callbackQueryId": "query:2",
+            "kind": "pressAnswer"
+          },
+          {
+            "effect": "selectEntry",
+            "id": "effect:2",
+            "input": {
+              "entries": [
+                {
+                  "id": "note-tide",
+                  "label": "Tide at marker seven",
+                  "text": "The tide reached marker seven at 06:40."
+                },
+                {
+                  "id": "note-wind",
+                  "label": "North wind",
+                  "text": "The north wind held at 18 knots for two hours."
+                },
+                {
+                  "id": "note-shelf",
+                  "label": "Shelf cloud",
+                  "text": "A shelf cloud crossed the western inlet before rain."
+                },
+                {
+                  "id": "note-gulls",
+                  "label": "Gull movement",
+                  "text": "Gulls moved inland twenty minutes before the squall."
+                }
+              ],
+              "id": "note-shelf"
+            },
+            "kind": "effect",
+            "token": {
+              "seq": 5,
+              "sessionKey": "chat:42",
+              "stateId": "entrySelecting"
+            }
+          }
+        ],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {
+            "callback:1": {
+              "durable": true,
+              "handle": {
+                "chatId": 42,
+                "kind": "chat",
+                "messageId": 100
+              },
+              "payload": {
+                "entryId": "note-tide"
+              },
+              "press": "entryRow",
+              "seq": 2,
+              "sessionKey": "chat:42",
+              "stateId": "entriesList",
+              "viewRevision": 1,
+              "viewSlot": "main"
+            },
+            "callback:2": {
+              "durable": true,
+              "handle": {
+                "chatId": 42,
+                "kind": "chat",
+                "messageId": 100
+              },
+              "payload": {
+                "entryId": "note-wind"
+              },
+              "press": "entryRow",
+              "seq": 2,
+              "sessionKey": "chat:42",
+              "stateId": "entriesList",
+              "viewRevision": 1,
+              "viewSlot": "main"
+            },
+            "callback:4": {
+              "durable": true,
+              "handle": {
+                "chatId": 42,
+                "kind": "chat",
+                "messageId": 100
+              },
+              "payload": {},
+              "press": "entryCancel",
+              "seq": 2,
+              "sessionKey": "chat:42",
+              "stateId": "entriesList",
+              "viewRevision": 1,
+              "viewSlot": "main"
+            },
+            "callback:5": {
+              "durable": true,
+              "payload": {
+                "entryId": "note-shelf"
+              },
+              "press": "entryRow",
+              "seq": 4,
+              "sessionKey": "chat:42",
+              "stateId": "entriesList",
+              "viewRevision": 2,
+              "viewSlot": "main"
+            },
+            "callback:6": {
+              "durable": true,
+              "payload": {
+                "entryId": "note-gulls"
+              },
+              "press": "entryRow",
+              "seq": 4,
+              "sessionKey": "chat:42",
+              "stateId": "entriesList",
+              "viewRevision": 2,
+              "viewSlot": "main"
+            },
+            "callback:8": {
+              "durable": true,
+              "payload": {},
+              "press": "entryCancel",
+              "seq": 4,
+              "sessionKey": "chat:42",
+              "stateId": "entriesList",
+              "viewRevision": 2,
+              "viewSlot": "main"
+            }
+          },
+          "context": {
+            "entries": [
+              {
+                "id": "note-tide",
+                "label": "Tide at marker seven",
+                "text": "The tide reached marker seven at 06:40."
+              },
+              {
+                "id": "note-wind",
+                "label": "North wind",
+                "text": "The north wind held at 18 knots for two hours."
+              },
+              {
+                "id": "note-shelf",
+                "label": "Shelf cloud",
+                "text": "A shelf cloud crossed the western inlet before rain."
+              },
+              {
+                "id": "note-gulls",
+                "label": "Gull movement",
+                "text": "Gulls moved inland twenty minutes before the squall."
+              }
+            ],
+            "entryHasNext": false,
+            "entryHasPrev": true,
+            "entryHeading": "Field notes\nPage 2 of 2",
+            "entryId": "note-shelf",
+            "entryPage": 2,
+            "entryRows": [
+              {
+                "id": "note-shelf",
+                "label": "Shelf cloud"
+              },
+              {
+                "id": "note-gulls",
+                "label": "Gull movement"
+              }
+            ],
+            "entryText": "",
+            "foregroundBusy": false,
+            "journalHasNext": false,
+            "journalHasPrev": true,
+            "journalHeading": "Field journals\nPage 2 of 2",
+            "journalId": "coast-2025",
+            "journalPage": 2,
+            "journalRows": [
+              {
+                "id": "coast-2025",
+                "label": "Coastal weather log, winter 2025"
+              }
+            ],
+            "journalTitle": "Coastal weather log"
+          },
+          "history": {},
+          "position": "entrySelecting",
+          "seq": 5,
+          "viewSlots": {
+            "main": {
+              "current": {
+                "handle": {
+                  "chatId": 42,
+                  "kind": "chat",
+                  "messageId": 100
+                },
+                "viewKind": "text"
+              },
+              "revision": 1,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.effect.optionalOutput"
+      ],
+      "input": {
+        "name": "missing",
+        "origin": "effect",
+        "payload": {
+          "id": "effect:2",
+          "output": {},
+          "token": {
+            "seq": 5,
+            "sessionKey": "chat:42",
+            "stateId": "entrySelecting"
+          }
+        },
+        "source": "outcome"
+      },
+      "name": "report a removed field note",
+      "result": {
+        "intents": [
+          {
+            "handle": {
+              "chatId": 42,
+              "kind": "chat",
+              "messageId": 100
+            },
+            "kind": "view",
+            "operation": "edit",
+            "slot": "main",
+            "view": {
+              "keyboard": [
+                {
+                  "buttons": [
+                    {
+                      "callbackId": "callback:9",
+                      "kind": "button",
+                      "label": "Back to notes"
+                    },
+                    {
+                      "callbackId": "callback:10",
+                      "kind": "button",
+                      "label": "Close"
+                    }
+                  ],
+                  "kind": "row"
+                }
+              ],
+              "kind": "text",
+              "parseMode": "plain",
+              "text": "That field note was removed. Return to the current page."
+            }
+          }
+        ],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {
+            "callback:1": {
+              "durable": true,
+              "handle": {
+                "chatId": 42,
+                "kind": "chat",
+                "messageId": 100
+              },
+              "payload": {
+                "entryId": "note-tide"
+              },
+              "press": "entryRow",
+              "seq": 2,
+              "sessionKey": "chat:42",
+              "stateId": "entriesList",
+              "viewRevision": 1,
+              "viewSlot": "main"
+            },
+            "callback:10": {
+              "durable": true,
+              "payload": {},
+              "press": "entryCancel",
+              "seq": 6,
+              "sessionKey": "chat:42",
+              "stateId": "entryMissing",
+              "viewRevision": 2,
+              "viewSlot": "main"
+            },
+            "callback:2": {
+              "durable": true,
+              "handle": {
+                "chatId": 42,
+                "kind": "chat",
+                "messageId": 100
+              },
+              "payload": {
+                "entryId": "note-wind"
+              },
+              "press": "entryRow",
+              "seq": 2,
+              "sessionKey": "chat:42",
+              "stateId": "entriesList",
+              "viewRevision": 1,
+              "viewSlot": "main"
+            },
+            "callback:4": {
+              "durable": true,
+              "handle": {
+                "chatId": 42,
+                "kind": "chat",
+                "messageId": 100
+              },
+              "payload": {},
+              "press": "entryCancel",
+              "seq": 2,
+              "sessionKey": "chat:42",
+              "stateId": "entriesList",
+              "viewRevision": 1,
+              "viewSlot": "main"
+            },
+            "callback:5": {
+              "durable": true,
+              "payload": {
+                "entryId": "note-shelf"
+              },
+              "press": "entryRow",
+              "seq": 4,
+              "sessionKey": "chat:42",
+              "stateId": "entriesList",
+              "viewRevision": 2,
+              "viewSlot": "main"
+            },
+            "callback:6": {
+              "durable": true,
+              "payload": {
+                "entryId": "note-gulls"
+              },
+              "press": "entryRow",
+              "seq": 4,
+              "sessionKey": "chat:42",
+              "stateId": "entriesList",
+              "viewRevision": 2,
+              "viewSlot": "main"
+            },
+            "callback:8": {
+              "durable": true,
+              "payload": {},
+              "press": "entryCancel",
+              "seq": 4,
+              "sessionKey": "chat:42",
+              "stateId": "entriesList",
+              "viewRevision": 2,
+              "viewSlot": "main"
+            },
+            "callback:9": {
+              "durable": true,
+              "payload": {},
+              "press": "entryBack",
+              "seq": 6,
+              "sessionKey": "chat:42",
+              "stateId": "entryMissing",
+              "viewRevision": 2,
+              "viewSlot": "main"
+            }
+          },
+          "context": {
+            "entries": [
+              {
+                "id": "note-tide",
+                "label": "Tide at marker seven",
+                "text": "The tide reached marker seven at 06:40."
+              },
+              {
+                "id": "note-wind",
+                "label": "North wind",
+                "text": "The north wind held at 18 knots for two hours."
+              },
+              {
+                "id": "note-shelf",
+                "label": "Shelf cloud",
+                "text": "A shelf cloud crossed the western inlet before rain."
+              },
+              {
+                "id": "note-gulls",
+                "label": "Gull movement",
+                "text": "Gulls moved inland twenty minutes before the squall."
+              }
+            ],
+            "entryHasNext": false,
+            "entryHasPrev": true,
+            "entryHeading": "Field notes\nPage 2 of 2",
+            "entryId": "note-shelf",
+            "entryPage": 2,
+            "entryRows": [
+              {
+                "id": "note-shelf",
+                "label": "Shelf cloud"
+              },
+              {
+                "id": "note-gulls",
+                "label": "Gull movement"
+              }
+            ],
+            "entryText": "",
+            "foregroundBusy": false,
+            "journalHasNext": false,
+            "journalHasPrev": true,
+            "journalHeading": "Field journals\nPage 2 of 2",
+            "journalId": "coast-2025",
+            "journalPage": 2,
+            "journalRows": [
+              {
+                "id": "coast-2025",
+                "label": "Coastal weather log, winter 2025"
+              }
+            ],
+            "journalTitle": "Coastal weather log"
+          },
+          "history": {},
+          "position": "entryMissing",
+          "seq": 6,
+          "viewSlots": {
+            "main": {
+              "current": {
+                "handle": {
+                  "chatId": 42,
+                  "kind": "chat",
+                  "messageId": 100
+                },
+                "viewKind": "text"
+              },
+              "revision": 1,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.guard.comparison"
+      ],
+      "input": {
+        "name": "callback:9",
+        "origin": "telegram",
+        "payload": {
+          "callbackQueryId": "query:3",
+          "sessionKey": "chat:42"
+        },
+        "source": "press"
+      },
+      "name": "return from the removed field note",
+      "result": {
+        "intents": [
+          {
+            "callbackQueryId": "query:3",
+            "kind": "pressAnswer"
+          },
+          {
+            "effect": "pageEntries",
+            "id": "effect:3",
+            "input": {
+              "entries": [
+                {
+                  "id": "note-tide",
+                  "label": "Tide at marker seven",
+                  "text": "The tide reached marker seven at 06:40."
+                },
+                {
+                  "id": "note-wind",
+                  "label": "North wind",
+                  "text": "The north wind held at 18 knots for two hours."
+                },
+                {
+                  "id": "note-shelf",
+                  "label": "Shelf cloud",
+                  "text": "A shelf cloud crossed the western inlet before rain."
+                },
+                {
+                  "id": "note-gulls",
+                  "label": "Gull movement",
+                  "text": "Gulls moved inland twenty minutes before the squall."
+                }
+              ],
+              "page": 2
+            },
+            "kind": "effect",
+            "token": {
+              "seq": 7,
+              "sessionKey": "chat:42",
+              "stateId": "entriesPaging"
+            }
+          }
+        ],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {
+            "callback:1": {
+              "durable": true,
+              "handle": {
+                "chatId": 42,
+                "kind": "chat",
+                "messageId": 100
+              },
+              "payload": {
+                "entryId": "note-tide"
+              },
+              "press": "entryRow",
+              "seq": 2,
+              "sessionKey": "chat:42",
+              "stateId": "entriesList",
+              "viewRevision": 1,
+              "viewSlot": "main"
+            },
+            "callback:10": {
+              "durable": true,
+              "payload": {},
+              "press": "entryCancel",
+              "seq": 6,
+              "sessionKey": "chat:42",
+              "stateId": "entryMissing",
+              "viewRevision": 2,
+              "viewSlot": "main"
+            },
+            "callback:2": {
+              "durable": true,
+              "handle": {
+                "chatId": 42,
+                "kind": "chat",
+                "messageId": 100
+              },
+              "payload": {
+                "entryId": "note-wind"
+              },
+              "press": "entryRow",
+              "seq": 2,
+              "sessionKey": "chat:42",
+              "stateId": "entriesList",
+              "viewRevision": 1,
+              "viewSlot": "main"
+            },
+            "callback:4": {
+              "durable": true,
+              "handle": {
+                "chatId": 42,
+                "kind": "chat",
+                "messageId": 100
+              },
+              "payload": {},
+              "press": "entryCancel",
+              "seq": 2,
+              "sessionKey": "chat:42",
+              "stateId": "entriesList",
+              "viewRevision": 1,
+              "viewSlot": "main"
+            },
+            "callback:5": {
+              "durable": true,
+              "payload": {
+                "entryId": "note-shelf"
+              },
+              "press": "entryRow",
+              "seq": 4,
+              "sessionKey": "chat:42",
+              "stateId": "entriesList",
+              "viewRevision": 2,
+              "viewSlot": "main"
+            },
+            "callback:6": {
+              "durable": true,
+              "payload": {
+                "entryId": "note-gulls"
+              },
+              "press": "entryRow",
+              "seq": 4,
+              "sessionKey": "chat:42",
+              "stateId": "entriesList",
+              "viewRevision": 2,
+              "viewSlot": "main"
+            },
+            "callback:8": {
+              "durable": true,
+              "payload": {},
+              "press": "entryCancel",
+              "seq": 4,
+              "sessionKey": "chat:42",
+              "stateId": "entriesList",
+              "viewRevision": 2,
+              "viewSlot": "main"
+            },
+            "callback:9": {
+              "durable": true,
+              "payload": {},
+              "press": "entryBack",
+              "seq": 6,
+              "sessionKey": "chat:42",
+              "stateId": "entryMissing",
+              "viewRevision": 2,
+              "viewSlot": "main"
+            }
+          },
+          "context": {
+            "entries": [
+              {
+                "id": "note-tide",
+                "label": "Tide at marker seven",
+                "text": "The tide reached marker seven at 06:40."
+              },
+              {
+                "id": "note-wind",
+                "label": "North wind",
+                "text": "The north wind held at 18 knots for two hours."
+              },
+              {
+                "id": "note-shelf",
+                "label": "Shelf cloud",
+                "text": "A shelf cloud crossed the western inlet before rain."
+              },
+              {
+                "id": "note-gulls",
+                "label": "Gull movement",
+                "text": "Gulls moved inland twenty minutes before the squall."
+              }
+            ],
+            "entryHasNext": false,
+            "entryHasPrev": true,
+            "entryHeading": "Field notes\nPage 2 of 2",
+            "entryId": "note-shelf",
+            "entryPage": 2,
+            "entryRows": [
+              {
+                "id": "note-shelf",
+                "label": "Shelf cloud"
+              },
+              {
+                "id": "note-gulls",
+                "label": "Gull movement"
+              }
+            ],
+            "entryText": "",
+            "foregroundBusy": false,
+            "journalHasNext": false,
+            "journalHasPrev": true,
+            "journalHeading": "Field journals\nPage 2 of 2",
+            "journalId": "coast-2025",
+            "journalPage": 2,
+            "journalRows": [
+              {
+                "id": "coast-2025",
+                "label": "Coastal weather log, winter 2025"
+              }
+            ],
+            "journalTitle": "Coastal weather log"
+          },
+          "history": {},
+          "position": "entriesPaging",
+          "seq": 7,
+          "viewSlots": {
+            "main": {
+              "current": {
+                "handle": {
+                  "chatId": 42,
+                  "kind": "chat",
+                  "messageId": 100
+                },
+                "viewKind": "text"
+              },
+              "revision": 1,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.assignment.recordFields"
+      ],
+      "input": {
+        "name": "loaded",
+        "origin": "effect",
+        "payload": {
+          "id": "effect:3",
+          "output": {
+            "hasNext": false,
+            "hasPrev": true,
+            "heading": "Field notes\nPage 2 of 2",
+            "rows": [
+              {
+                "id": "note-shelf",
+                "label": "Shelf cloud"
+              },
+              {
+                "id": "note-gulls",
+                "label": "Gull movement"
+              }
+            ]
+          },
+          "token": {
+            "seq": 7,
+            "sessionKey": "chat:42",
+            "stateId": "entriesPaging"
+          }
+        },
+        "source": "outcome"
+      },
+      "name": "restore the current field-note page",
+      "result": {
+        "intents": [
+          {
+            "handle": {
+              "chatId": 42,
+              "kind": "chat",
+              "messageId": 100
+            },
+            "kind": "view",
+            "operation": "edit",
+            "slot": "main",
+            "view": {
+              "keyboard": [
+                {
+                  "buttons": [
+                    {
+                      "callbackId": "callback:11",
+                      "kind": "button",
+                      "label": "Shelf cloud"
+                    }
+                  ],
+                  "kind": "row"
+                },
+                {
+                  "buttons": [
+                    {
+                      "callbackId": "callback:12",
+                      "kind": "button",
+                      "label": "Gull movement"
+                    }
+                  ],
+                  "kind": "row"
+                },
+                {
+                  "buttons": [
+                    {
+                      "callbackId": "callback:13",
+                      "kind": "button",
+                      "label": "Prior page"
+                    }
+                  ],
+                  "kind": "row"
+                },
+                {
+                  "buttons": [
+                    {
+                      "callbackId": "callback:14",
+                      "kind": "button",
+                      "label": "Close"
+                    }
+                  ],
+                  "kind": "row"
+                }
+              ],
+              "kind": "text",
+              "parseMode": "plain",
+              "text": "Coastal weather log\nField notes\nPage 2 of 2"
+            }
+          }
+        ],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {
+            "callback:1": {
+              "durable": true,
+              "handle": {
+                "chatId": 42,
+                "kind": "chat",
+                "messageId": 100
+              },
+              "payload": {
+                "entryId": "note-tide"
+              },
+              "press": "entryRow",
+              "seq": 2,
+              "sessionKey": "chat:42",
+              "stateId": "entriesList",
+              "viewRevision": 1,
+              "viewSlot": "main"
+            },
+            "callback:10": {
+              "durable": true,
+              "payload": {},
+              "press": "entryCancel",
+              "seq": 6,
+              "sessionKey": "chat:42",
+              "stateId": "entryMissing",
+              "viewRevision": 2,
+              "viewSlot": "main"
+            },
+            "callback:11": {
+              "durable": true,
+              "payload": {
+                "entryId": "note-shelf"
+              },
+              "press": "entryRow",
+              "seq": 8,
+              "sessionKey": "chat:42",
+              "stateId": "entriesList",
+              "viewRevision": 2,
+              "viewSlot": "main"
+            },
+            "callback:12": {
+              "durable": true,
+              "payload": {
+                "entryId": "note-gulls"
+              },
+              "press": "entryRow",
+              "seq": 8,
+              "sessionKey": "chat:42",
+              "stateId": "entriesList",
+              "viewRevision": 2,
+              "viewSlot": "main"
+            },
+            "callback:13": {
+              "durable": false,
+              "payload": {},
+              "press": "entryPrev",
+              "seq": 8,
+              "sessionKey": "chat:42",
+              "stateId": "entriesList",
+              "viewRevision": 2,
+              "viewSlot": "main"
+            },
+            "callback:14": {
+              "durable": true,
+              "payload": {},
+              "press": "entryCancel",
+              "seq": 8,
+              "sessionKey": "chat:42",
+              "stateId": "entriesList",
+              "viewRevision": 2,
+              "viewSlot": "main"
+            },
+            "callback:2": {
+              "durable": true,
+              "handle": {
+                "chatId": 42,
+                "kind": "chat",
+                "messageId": 100
+              },
+              "payload": {
+                "entryId": "note-wind"
+              },
+              "press": "entryRow",
+              "seq": 2,
+              "sessionKey": "chat:42",
+              "stateId": "entriesList",
+              "viewRevision": 1,
+              "viewSlot": "main"
+            },
+            "callback:4": {
+              "durable": true,
+              "handle": {
+                "chatId": 42,
+                "kind": "chat",
+                "messageId": 100
+              },
+              "payload": {},
+              "press": "entryCancel",
+              "seq": 2,
+              "sessionKey": "chat:42",
+              "stateId": "entriesList",
+              "viewRevision": 1,
+              "viewSlot": "main"
+            },
+            "callback:5": {
+              "durable": true,
+              "payload": {
+                "entryId": "note-shelf"
+              },
+              "press": "entryRow",
+              "seq": 4,
+              "sessionKey": "chat:42",
+              "stateId": "entriesList",
+              "viewRevision": 2,
+              "viewSlot": "main"
+            },
+            "callback:6": {
+              "durable": true,
+              "payload": {
+                "entryId": "note-gulls"
+              },
+              "press": "entryRow",
+              "seq": 4,
+              "sessionKey": "chat:42",
+              "stateId": "entriesList",
+              "viewRevision": 2,
+              "viewSlot": "main"
+            },
+            "callback:8": {
+              "durable": true,
+              "payload": {},
+              "press": "entryCancel",
+              "seq": 4,
+              "sessionKey": "chat:42",
+              "stateId": "entriesList",
+              "viewRevision": 2,
+              "viewSlot": "main"
+            },
+            "callback:9": {
+              "durable": true,
+              "payload": {},
+              "press": "entryBack",
+              "seq": 6,
+              "sessionKey": "chat:42",
+              "stateId": "entryMissing",
+              "viewRevision": 2,
+              "viewSlot": "main"
+            }
+          },
+          "context": {
+            "entries": [
+              {
+                "id": "note-tide",
+                "label": "Tide at marker seven",
+                "text": "The tide reached marker seven at 06:40."
+              },
+              {
+                "id": "note-wind",
+                "label": "North wind",
+                "text": "The north wind held at 18 knots for two hours."
+              },
+              {
+                "id": "note-shelf",
+                "label": "Shelf cloud",
+                "text": "A shelf cloud crossed the western inlet before rain."
+              },
+              {
+                "id": "note-gulls",
+                "label": "Gull movement",
+                "text": "Gulls moved inland twenty minutes before the squall."
+              }
+            ],
+            "entryHasNext": false,
+            "entryHasPrev": true,
+            "entryHeading": "Field notes\nPage 2 of 2",
+            "entryId": "note-shelf",
+            "entryPage": 2,
+            "entryRows": [
+              {
+                "id": "note-shelf",
+                "label": "Shelf cloud"
+              },
+              {
+                "id": "note-gulls",
+                "label": "Gull movement"
+              }
+            ],
+            "entryText": "",
+            "foregroundBusy": false,
+            "journalHasNext": false,
+            "journalHasPrev": true,
+            "journalHeading": "Field journals\nPage 2 of 2",
+            "journalId": "coast-2025",
+            "journalPage": 2,
+            "journalRows": [
+              {
+                "id": "coast-2025",
+                "label": "Coastal weather log, winter 2025"
+              }
+            ],
+            "journalTitle": "Coastal weather log"
+          },
+          "history": {},
+          "position": "entriesList",
+          "seq": 8,
+          "viewSlots": {
+            "main": {
+              "current": {
+                "handle": {
+                  "chatId": 42,
+                  "kind": "chat",
+                  "messageId": 100
+                },
+                "viewKind": "text"
+              },
+              "revision": 1,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.assignment.unset"
+      ],
+      "input": {
+        "name": "callback:12",
+        "origin": "telegram",
+        "payload": {
+          "callbackQueryId": "query:4",
+          "sessionKey": "chat:42"
+        },
+        "source": "press"
+      },
+      "name": "select a current field note",
+      "result": {
+        "intents": [
+          {
+            "callbackQueryId": "query:4",
+            "kind": "pressAnswer"
+          },
+          {
+            "effect": "selectEntry",
+            "id": "effect:4",
+            "input": {
+              "entries": [
+                {
+                  "id": "note-tide",
+                  "label": "Tide at marker seven",
+                  "text": "The tide reached marker seven at 06:40."
+                },
+                {
+                  "id": "note-wind",
+                  "label": "North wind",
+                  "text": "The north wind held at 18 knots for two hours."
+                },
+                {
+                  "id": "note-shelf",
+                  "label": "Shelf cloud",
+                  "text": "A shelf cloud crossed the western inlet before rain."
+                },
+                {
+                  "id": "note-gulls",
+                  "label": "Gull movement",
+                  "text": "Gulls moved inland twenty minutes before the squall."
+                }
+              ],
+              "id": "note-gulls"
+            },
+            "kind": "effect",
+            "token": {
+              "seq": 9,
+              "sessionKey": "chat:42",
+              "stateId": "entrySelecting"
+            }
+          }
+        ],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {
+            "callback:1": {
+              "durable": true,
+              "handle": {
+                "chatId": 42,
+                "kind": "chat",
+                "messageId": 100
+              },
+              "payload": {
+                "entryId": "note-tide"
+              },
+              "press": "entryRow",
+              "seq": 2,
+              "sessionKey": "chat:42",
+              "stateId": "entriesList",
+              "viewRevision": 1,
+              "viewSlot": "main"
+            },
+            "callback:10": {
+              "durable": true,
+              "payload": {},
+              "press": "entryCancel",
+              "seq": 6,
+              "sessionKey": "chat:42",
+              "stateId": "entryMissing",
+              "viewRevision": 2,
+              "viewSlot": "main"
+            },
+            "callback:11": {
+              "durable": true,
+              "payload": {
+                "entryId": "note-shelf"
+              },
+              "press": "entryRow",
+              "seq": 8,
+              "sessionKey": "chat:42",
+              "stateId": "entriesList",
+              "viewRevision": 2,
+              "viewSlot": "main"
+            },
+            "callback:12": {
+              "durable": true,
+              "payload": {
+                "entryId": "note-gulls"
+              },
+              "press": "entryRow",
+              "seq": 8,
+              "sessionKey": "chat:42",
+              "stateId": "entriesList",
+              "viewRevision": 2,
+              "viewSlot": "main"
+            },
+            "callback:14": {
+              "durable": true,
+              "payload": {},
+              "press": "entryCancel",
+              "seq": 8,
+              "sessionKey": "chat:42",
+              "stateId": "entriesList",
+              "viewRevision": 2,
+              "viewSlot": "main"
+            },
+            "callback:2": {
+              "durable": true,
+              "handle": {
+                "chatId": 42,
+                "kind": "chat",
+                "messageId": 100
+              },
+              "payload": {
+                "entryId": "note-wind"
+              },
+              "press": "entryRow",
+              "seq": 2,
+              "sessionKey": "chat:42",
+              "stateId": "entriesList",
+              "viewRevision": 1,
+              "viewSlot": "main"
+            },
+            "callback:4": {
+              "durable": true,
+              "handle": {
+                "chatId": 42,
+                "kind": "chat",
+                "messageId": 100
+              },
+              "payload": {},
+              "press": "entryCancel",
+              "seq": 2,
+              "sessionKey": "chat:42",
+              "stateId": "entriesList",
+              "viewRevision": 1,
+              "viewSlot": "main"
+            },
+            "callback:5": {
+              "durable": true,
+              "payload": {
+                "entryId": "note-shelf"
+              },
+              "press": "entryRow",
+              "seq": 4,
+              "sessionKey": "chat:42",
+              "stateId": "entriesList",
+              "viewRevision": 2,
+              "viewSlot": "main"
+            },
+            "callback:6": {
+              "durable": true,
+              "payload": {
+                "entryId": "note-gulls"
+              },
+              "press": "entryRow",
+              "seq": 4,
+              "sessionKey": "chat:42",
+              "stateId": "entriesList",
+              "viewRevision": 2,
+              "viewSlot": "main"
+            },
+            "callback:8": {
+              "durable": true,
+              "payload": {},
+              "press": "entryCancel",
+              "seq": 4,
+              "sessionKey": "chat:42",
+              "stateId": "entriesList",
+              "viewRevision": 2,
+              "viewSlot": "main"
+            },
+            "callback:9": {
+              "durable": true,
+              "payload": {},
+              "press": "entryBack",
+              "seq": 6,
+              "sessionKey": "chat:42",
+              "stateId": "entryMissing",
+              "viewRevision": 2,
+              "viewSlot": "main"
+            }
+          },
+          "context": {
+            "entries": [
+              {
+                "id": "note-tide",
+                "label": "Tide at marker seven",
+                "text": "The tide reached marker seven at 06:40."
+              },
+              {
+                "id": "note-wind",
+                "label": "North wind",
+                "text": "The north wind held at 18 knots for two hours."
+              },
+              {
+                "id": "note-shelf",
+                "label": "Shelf cloud",
+                "text": "A shelf cloud crossed the western inlet before rain."
+              },
+              {
+                "id": "note-gulls",
+                "label": "Gull movement",
+                "text": "Gulls moved inland twenty minutes before the squall."
+              }
+            ],
+            "entryHasNext": false,
+            "entryHasPrev": true,
+            "entryHeading": "Field notes\nPage 2 of 2",
+            "entryId": "note-gulls",
+            "entryPage": 2,
+            "entryRows": [
+              {
+                "id": "note-shelf",
+                "label": "Shelf cloud"
+              },
+              {
+                "id": "note-gulls",
+                "label": "Gull movement"
+              }
+            ],
+            "entryText": "",
+            "foregroundBusy": false,
+            "journalHasNext": false,
+            "journalHasPrev": true,
+            "journalHeading": "Field journals\nPage 2 of 2",
+            "journalId": "coast-2025",
+            "journalPage": 2,
+            "journalRows": [
+              {
+                "id": "coast-2025",
+                "label": "Coastal weather log, winter 2025"
+              }
+            ],
+            "journalTitle": "Coastal weather log"
+          },
+          "history": {},
+          "position": "entrySelecting",
+          "seq": 9,
+          "viewSlots": {
+            "main": {
+              "current": {
+                "handle": {
+                  "chatId": 42,
+                  "kind": "chat",
+                  "messageId": 100
+                },
+                "viewKind": "text"
+              },
+              "revision": 1,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.assignment.destinationType"
+      ],
+      "input": {
+        "name": "selected",
+        "origin": "effect",
+        "payload": {
+          "id": "effect:4",
+          "output": {
+            "text": "Gulls moved inland twenty minutes before the squall."
+          },
+          "token": {
+            "seq": 9,
+            "sessionKey": "chat:42",
+            "stateId": "entrySelecting"
+          }
+        },
+        "source": "outcome"
+      },
+      "name": "open a field note",
+      "result": {
+        "intents": [
+          {
+            "handle": {
+              "chatId": 42,
+              "kind": "chat",
+              "messageId": 100
+            },
+            "kind": "view",
+            "operation": "edit",
+            "slot": "main",
+            "view": {
+              "keyboard": [
+                {
+                  "buttons": [
+                    {
+                      "callbackId": "callback:15",
+                      "kind": "button",
+                      "label": "Back to notes"
+                    },
+                    {
+                      "callbackId": "callback:16",
+                      "kind": "button",
+                      "label": "Close"
+                    }
+                  ],
+                  "kind": "row"
+                }
+              ],
+              "kind": "text",
+              "parseMode": "plain",
+              "text": "Gulls moved inland twenty minutes before the squall."
+            }
+          }
+        ],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {
+            "callback:1": {
+              "durable": true,
+              "handle": {
+                "chatId": 42,
+                "kind": "chat",
+                "messageId": 100
+              },
+              "payload": {
+                "entryId": "note-tide"
+              },
+              "press": "entryRow",
+              "seq": 2,
+              "sessionKey": "chat:42",
+              "stateId": "entriesList",
+              "viewRevision": 1,
+              "viewSlot": "main"
+            },
+            "callback:10": {
+              "durable": true,
+              "payload": {},
+              "press": "entryCancel",
+              "seq": 6,
+              "sessionKey": "chat:42",
+              "stateId": "entryMissing",
+              "viewRevision": 2,
+              "viewSlot": "main"
+            },
+            "callback:11": {
+              "durable": true,
+              "payload": {
+                "entryId": "note-shelf"
+              },
+              "press": "entryRow",
+              "seq": 8,
+              "sessionKey": "chat:42",
+              "stateId": "entriesList",
+              "viewRevision": 2,
+              "viewSlot": "main"
+            },
+            "callback:12": {
+              "durable": true,
+              "payload": {
+                "entryId": "note-gulls"
+              },
+              "press": "entryRow",
+              "seq": 8,
+              "sessionKey": "chat:42",
+              "stateId": "entriesList",
+              "viewRevision": 2,
+              "viewSlot": "main"
+            },
+            "callback:14": {
+              "durable": true,
+              "payload": {},
+              "press": "entryCancel",
+              "seq": 8,
+              "sessionKey": "chat:42",
+              "stateId": "entriesList",
+              "viewRevision": 2,
+              "viewSlot": "main"
+            },
+            "callback:15": {
+              "durable": true,
+              "payload": {},
+              "press": "entryBack",
+              "seq": 10,
+              "sessionKey": "chat:42",
+              "stateId": "entryDetail",
+              "viewRevision": 2,
+              "viewSlot": "main"
+            },
+            "callback:16": {
+              "durable": true,
+              "payload": {},
+              "press": "entryCancel",
+              "seq": 10,
+              "sessionKey": "chat:42",
+              "stateId": "entryDetail",
+              "viewRevision": 2,
+              "viewSlot": "main"
+            },
+            "callback:2": {
+              "durable": true,
+              "handle": {
+                "chatId": 42,
+                "kind": "chat",
+                "messageId": 100
+              },
+              "payload": {
+                "entryId": "note-wind"
+              },
+              "press": "entryRow",
+              "seq": 2,
+              "sessionKey": "chat:42",
+              "stateId": "entriesList",
+              "viewRevision": 1,
+              "viewSlot": "main"
+            },
+            "callback:4": {
+              "durable": true,
+              "handle": {
+                "chatId": 42,
+                "kind": "chat",
+                "messageId": 100
+              },
+              "payload": {},
+              "press": "entryCancel",
+              "seq": 2,
+              "sessionKey": "chat:42",
+              "stateId": "entriesList",
+              "viewRevision": 1,
+              "viewSlot": "main"
+            },
+            "callback:5": {
+              "durable": true,
+              "payload": {
+                "entryId": "note-shelf"
+              },
+              "press": "entryRow",
+              "seq": 4,
+              "sessionKey": "chat:42",
+              "stateId": "entriesList",
+              "viewRevision": 2,
+              "viewSlot": "main"
+            },
+            "callback:6": {
+              "durable": true,
+              "payload": {
+                "entryId": "note-gulls"
+              },
+              "press": "entryRow",
+              "seq": 4,
+              "sessionKey": "chat:42",
+              "stateId": "entriesList",
+              "viewRevision": 2,
+              "viewSlot": "main"
+            },
+            "callback:8": {
+              "durable": true,
+              "payload": {},
+              "press": "entryCancel",
+              "seq": 4,
+              "sessionKey": "chat:42",
+              "stateId": "entriesList",
+              "viewRevision": 2,
+              "viewSlot": "main"
+            },
+            "callback:9": {
+              "durable": true,
+              "payload": {},
+              "press": "entryBack",
+              "seq": 6,
+              "sessionKey": "chat:42",
+              "stateId": "entryMissing",
+              "viewRevision": 2,
+              "viewSlot": "main"
+            }
+          },
+          "context": {
+            "entries": [
+              {
+                "id": "note-tide",
+                "label": "Tide at marker seven",
+                "text": "The tide reached marker seven at 06:40."
+              },
+              {
+                "id": "note-wind",
+                "label": "North wind",
+                "text": "The north wind held at 18 knots for two hours."
+              },
+              {
+                "id": "note-shelf",
+                "label": "Shelf cloud",
+                "text": "A shelf cloud crossed the western inlet before rain."
+              },
+              {
+                "id": "note-gulls",
+                "label": "Gull movement",
+                "text": "Gulls moved inland twenty minutes before the squall."
+              }
+            ],
+            "entryHasNext": false,
+            "entryHasPrev": true,
+            "entryHeading": "Field notes\nPage 2 of 2",
+            "entryId": "note-gulls",
+            "entryPage": 2,
+            "entryRows": [
+              {
+                "id": "note-shelf",
+                "label": "Shelf cloud"
+              },
+              {
+                "id": "note-gulls",
+                "label": "Gull movement"
+              }
+            ],
+            "entryText": "Gulls moved inland twenty minutes before the squall.",
+            "foregroundBusy": false,
+            "journalHasNext": false,
+            "journalHasPrev": true,
+            "journalHeading": "Field journals\nPage 2 of 2",
+            "journalId": "coast-2025",
+            "journalPage": 2,
+            "journalRows": [
+              {
+                "id": "coast-2025",
+                "label": "Coastal weather log, winter 2025"
+              }
+            ],
+            "journalTitle": "Coastal weather log"
+          },
+          "history": {},
+          "position": "entryDetail",
+          "seq": 10,
+          "viewSlots": {
+            "main": {
+              "current": {
+                "handle": {
+                  "chatId": 42,
+                  "kind": "chat",
+                  "messageId": 100
+                },
+                "viewKind": "text"
+              },
+              "revision": 1,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "transcriptVersion": 1
+}

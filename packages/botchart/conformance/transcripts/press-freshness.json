@@ -678,8 +678,7 @@
     },
     {
       "covers": [
-        "runtime.callback.cleanup.session",
-        "runtime.callback.durable"
+        "runtime.callback.cleanup.session"
       ],
       "input": {
         "name": "callback:2",

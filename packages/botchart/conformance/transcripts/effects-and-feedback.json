@@ -151,8 +151,7 @@
     },
     {
       "covers": [
-        "runtime.effect.nonMoving",
-        "runtime.effect.optionalOutput"
+        "runtime.effect.nonMoving"
       ],
       "input": {
         "name": "done",

@@ -1,0 +1,847 @@
+{
+  "$schema": "https://svyatov.github.io/botchart/schema/0.1.0.json",
+  "version": 1,
+  "schemaRevision": "0.1.0",
+  "packs": [],
+  "scope": "chat+user",
+  "context": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+      "foregroundBusy": { "type": "boolean" },
+      "journalPage": { "type": "number", "minimum": 1 },
+      "journalRows": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": { "type": "string" },
+            "label": { "type": "string" }
+          },
+          "required": ["id", "label"],
+          "additionalProperties": false
+        }
+      },
+      "journalHeading": { "type": "string" },
+      "journalHasPrev": { "type": "boolean" },
+      "journalHasNext": { "type": "boolean" },
+      "journalId": { "type": "string" },
+      "journalTitle": { "type": "string" },
+      "entryPage": { "type": "number", "minimum": 1 },
+      "entries": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": { "type": "string" },
+            "label": { "type": "string" },
+            "text": { "type": "string" }
+          },
+          "required": ["id", "label", "text"],
+          "additionalProperties": false
+        }
+      },
+      "entryRows": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": { "type": "string" },
+            "label": { "type": "string" }
+          },
+          "required": ["id", "label"],
+          "additionalProperties": false
+        }
+      },
+      "entryHeading": { "type": "string" },
+      "entryHasPrev": { "type": "boolean" },
+      "entryHasNext": { "type": "boolean" },
+      "entryId": { "type": "string" },
+      "entryText": { "type": "string" },
+      "missingReason": { "type": "string" }
+    },
+    "required": [
+      "foregroundBusy",
+      "journalPage",
+      "journalRows",
+      "journalHeading",
+      "journalHasPrev",
+      "journalHasNext",
+      "journalId",
+      "journalTitle",
+      "entryPage",
+      "entries",
+      "entryRows",
+      "entryHeading",
+      "entryHasPrev",
+      "entryHasNext",
+      "entryId",
+      "entryText"
+    ],
+    "additionalProperties": false,
+    "default": {
+      "foregroundBusy": false,
+      "journalPage": 1,
+      "journalRows": [],
+      "journalHeading": "",
+      "journalHasPrev": false,
+      "journalHasNext": false,
+      "journalId": "",
+      "journalTitle": "",
+      "entryPage": 1,
+      "entries": [],
+      "entryRows": [],
+      "entryHeading": "",
+      "entryHasPrev": false,
+      "entryHasNext": false,
+      "entryId": "",
+      "entryText": ""
+    }
+  },
+  "parameters": {},
+  "guards": {},
+  "effects": {
+    "loadJournalsPage": {
+      "input": { "page": { "type": "number" } },
+      "outcomes": {
+        "loaded": {
+          "rows": {
+            "type": "array",
+            "items": {
+              "type": "record",
+              "fields": {
+                "id": { "type": "string" },
+                "label": { "type": "string" }
+              }
+            }
+          },
+          "heading": { "type": "string" },
+          "hasPrev": { "type": "boolean" },
+          "hasNext": { "type": "boolean" }
+        },
+        "empty": {},
+        "pageEmpty": {},
+        "failed": {}
+      }
+    },
+    "selectJournal": {
+      "input": { "id": { "type": "string" } },
+      "outcomes": {
+        "selected": { "title": { "type": "string" } },
+        "missing": {},
+        "failed": {}
+      }
+    },
+    "loadEntries": {
+      "input": { "journalId": { "type": "string" } },
+      "outcomes": {
+        "loaded": {
+          "entries": {
+            "type": "array",
+            "items": {
+              "type": "record",
+              "fields": {
+                "id": { "type": "string" },
+                "label": { "type": "string" },
+                "text": { "type": "string" }
+              }
+            }
+          },
+          "rows": {
+            "type": "array",
+            "items": {
+              "type": "record",
+              "fields": {
+                "id": { "type": "string" },
+                "label": { "type": "string" }
+              }
+            }
+          },
+          "heading": { "type": "string" },
+          "hasPrev": { "type": "boolean" },
+          "hasNext": { "type": "boolean" }
+        },
+        "empty": {},
+        "journalMissing": {},
+        "failed": {}
+      }
+    },
+    "pageEntries": {
+      "input": {
+        "entries": {
+          "type": "array",
+          "items": {
+            "type": "record",
+            "fields": {
+              "id": { "type": "string" },
+              "label": { "type": "string" },
+              "text": { "type": "string" }
+            }
+          }
+        },
+        "page": { "type": "number" }
+      },
+      "outcomes": {
+        "loaded": {
+          "rows": {
+            "type": "array",
+            "items": {
+              "type": "record",
+              "fields": {
+                "id": { "type": "string" },
+                "label": { "type": "string" }
+              }
+            }
+          },
+          "heading": { "type": "string" },
+          "hasPrev": { "type": "boolean" },
+          "hasNext": { "type": "boolean" }
+        },
+        "pageEmpty": {}
+      }
+    },
+    "selectEntry": {
+      "input": {
+        "entries": {
+          "type": "array",
+          "items": {
+            "type": "record",
+            "fields": {
+              "id": { "type": "string" },
+              "label": { "type": "string" },
+              "text": { "type": "string" }
+            }
+          }
+        },
+        "id": { "type": "string" }
+      },
+      "outcomes": {
+        "selected": { "text": { "type": "string" } },
+        "missing": { "reason": { "type": "string", "optional": true } }
+      }
+    }
+  },
+  "presses": {
+    "journalRow": { "payload": { "journalId": { "type": "string" } } },
+    "journalPrev": { "payload": {} },
+    "journalNext": { "payload": {} },
+    "journalCancel": { "payload": {} },
+    "openEntries": { "payload": {} },
+    "entryRow": { "payload": { "entryId": { "type": "string" } } },
+    "entryPrev": { "payload": {} },
+    "entryNext": { "payload": {} },
+    "entryCancel": { "payload": {} },
+    "entryBack": { "payload": {} }
+  },
+  "units": {},
+  "stalePress": {
+    "action": "answer",
+    "answer": {
+      "kind": "toast",
+      "text": ["This list changed. Open the current page."]
+    }
+  },
+  "initial": "idle",
+  "on": {
+    "command": {
+      "journals": {
+        "do": [
+          {
+            "when": {
+              "compare": {
+                "left": { "context": "foregroundBusy" },
+                "op": "eq",
+                "right": true
+              }
+            },
+            "target": "busy"
+          },
+          { "target": "journalsLoading", "assign": { "journalPage": 1 } }
+        ]
+      },
+      "entries": {
+        "do": [
+          {
+            "when": {
+              "compare": {
+                "left": { "context": "foregroundBusy" },
+                "op": "eq",
+                "right": true
+              }
+            },
+            "target": "busy"
+          },
+          { "target": "entriesLoading", "assign": { "entryPage": 1 } }
+        ]
+      }
+    },
+    "press": {
+      "journalRow": [
+        {
+          "when": {
+            "compare": {
+              "left": { "context": "foregroundBusy" },
+              "op": "eq",
+              "right": true
+            }
+          },
+          "target": "busy"
+        },
+        {
+          "target": "journalSelecting",
+          "assign": { "journalId": { "from": "journalId" } }
+        }
+      ],
+      "journalPrev": [
+        {
+          "when": {
+            "compare": {
+              "left": { "context": "foregroundBusy" },
+              "op": "eq",
+              "right": true
+            }
+          },
+          "target": "busy"
+        },
+        {
+          "target": "journalsLoading",
+          "assign": { "journalPage": { "decrement": 1 } },
+          "answer": { "kind": "toast", "text": ["Loading the prior page."] }
+        }
+      ],
+      "journalNext": [
+        {
+          "when": {
+            "compare": {
+              "left": { "context": "foregroundBusy" },
+              "op": "eq",
+              "right": true
+            }
+          },
+          "target": "busy"
+        },
+        {
+          "target": "journalsLoading",
+          "assign": { "journalPage": { "increment": 1 } },
+          "answer": { "kind": "toast", "text": ["Loading the next page."] }
+        }
+      ],
+      "journalCancel": [{ "target": "cancelled" }],
+      "openEntries": [
+        {
+          "when": {
+            "compare": {
+              "left": { "context": "foregroundBusy" },
+              "op": "eq",
+              "right": true
+            }
+          },
+          "target": "busy"
+        },
+        { "target": "entriesLoading", "assign": { "entryPage": 1 } }
+      ],
+      "entryRow": [
+        {
+          "when": {
+            "compare": {
+              "left": { "context": "foregroundBusy" },
+              "op": "eq",
+              "right": true
+            }
+          },
+          "target": "busy"
+        },
+        {
+          "target": "entrySelecting",
+          "assign": {
+            "entryId": { "from": "entryId" },
+            "missingReason": { "unset": true }
+          }
+        }
+      ],
+      "entryPrev": [
+        {
+          "when": {
+            "compare": {
+              "left": { "context": "foregroundBusy" },
+              "op": "eq",
+              "right": true
+            }
+          },
+          "target": "busy"
+        },
+        {
+          "target": "entriesPaging",
+          "assign": { "entryPage": { "decrement": 1 } },
+          "answer": { "kind": "toast", "text": ["Loading the prior page."] }
+        }
+      ],
+      "entryNext": [
+        {
+          "when": {
+            "compare": {
+              "left": { "context": "foregroundBusy" },
+              "op": "eq",
+              "right": true
+            }
+          },
+          "target": "busy"
+        },
+        {
+          "target": "entriesPaging",
+          "assign": { "entryPage": { "increment": 1 } },
+          "answer": { "kind": "toast", "text": ["Loading the next page."] }
+        }
+      ],
+      "entryCancel": [{ "target": "cancelled" }]
+    }
+  },
+  "states": {
+    "idle": { "kind": "state", "render": "keep" },
+    "busy": {
+      "kind": "state",
+      "view": {
+        "kind": "text",
+        "text": ["A field operation is active. Finish it before you open another list."],
+        "parseMode": "plain"
+      },
+      "render": "append"
+    },
+    "journalsLoading": {
+      "kind": "state",
+      "render": "keep",
+      "entry": [
+        {
+          "kind": "run",
+          "effect": "loadJournalsPage",
+          "input": { "page": { "context": "journalPage" } },
+          "outcomes": {
+            "loaded": {
+              "assign": {
+                "journalRows": { "from": "rows" },
+                "journalHeading": { "from": "heading" },
+                "journalHasPrev": { "from": "hasPrev" },
+                "journalHasNext": { "from": "hasNext" }
+              },
+              "do": [{ "target": "journalsList" }]
+            },
+            "empty": { "assign": {}, "do": [{ "target": "journalsEmpty" }] },
+            "pageEmpty": { "assign": {}, "do": [{ "target": "journalsPageEmpty" }] },
+            "failed": { "assign": {}, "do": [{ "target": "journalsFailed" }] }
+          }
+        }
+      ]
+    },
+    "journalsList": {
+      "kind": "state",
+      "view": {
+        "kind": "text",
+        "text": [{ "context": "journalHeading", "escape": "text" }],
+        "parseMode": "plain",
+        "keyboard": [
+          {
+            "kind": "project",
+            "source": { "context": "journalRows" },
+            "maxItems": 10,
+            "rows": [
+              {
+                "kind": "row",
+                "buttons": [
+                  {
+                    "kind": "button",
+                    "label": [{ "item": "label", "escape": "text" }],
+                    "press": "journalRow",
+                    "payload": { "journalId": { "item": "id" } },
+                    "durable": false
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": ["Prior page"],
+                "press": "journalPrev",
+                "durable": false,
+                "when": {
+                  "compare": {
+                    "left": { "context": "journalHasPrev" },
+                    "op": "eq",
+                    "right": true
+                  }
+                }
+              },
+              {
+                "kind": "button",
+                "label": ["Next page"],
+                "press": "journalNext",
+                "durable": false,
+                "when": {
+                  "compare": {
+                    "left": { "context": "journalHasNext" },
+                    "op": "eq",
+                    "right": true
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": ["Close"],
+                "press": "journalCancel",
+                "durable": false
+              }
+            ]
+          }
+        ]
+      },
+      "render": "edit"
+    },
+    "journalsEmpty": {
+      "kind": "state",
+      "view": { "kind": "text", "text": ["No field journals are available."], "parseMode": "plain" },
+      "render": "edit"
+    },
+    "journalsPageEmpty": {
+      "kind": "state",
+      "view": { "kind": "text", "text": ["This journal page has no rows."], "parseMode": "plain" },
+      "render": "edit"
+    },
+    "journalsFailed": {
+      "kind": "state",
+      "view": { "kind": "text", "text": ["The journal index is unavailable."], "parseMode": "plain" },
+      "render": "edit"
+    },
+    "journalSelecting": {
+      "kind": "state",
+      "render": "keep",
+      "entry": [
+        {
+          "kind": "run",
+          "effect": "selectJournal",
+          "input": { "id": { "context": "journalId" } },
+          "outcomes": {
+            "selected": {
+              "assign": { "journalTitle": { "from": "title" } },
+              "do": [{ "target": "journalSelected" }]
+            },
+            "missing": { "assign": {}, "do": [{ "target": "journalMissing" }] },
+            "failed": { "assign": {}, "do": [{ "target": "journalsFailed" }] }
+          }
+        }
+      ]
+    },
+    "journalSelected": {
+      "kind": "state",
+      "view": {
+        "kind": "text",
+        "text": ["Open journal: ", { "context": "journalTitle", "escape": "text" }],
+        "parseMode": "plain",
+        "keyboard": [
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": ["Browse field notes"],
+                "press": "openEntries",
+                "durable": false
+              },
+              {
+                "kind": "button",
+                "label": ["Close"],
+                "press": "entryCancel",
+                "durable": false
+              }
+            ]
+          }
+        ]
+      },
+      "render": "edit"
+    },
+    "journalMissing": {
+      "kind": "state",
+      "view": { "kind": "text", "text": ["That journal is no longer available."], "parseMode": "plain" },
+      "render": "edit"
+    },
+    "entriesLoading": {
+      "kind": "state",
+      "render": "keep",
+      "entry": [
+        {
+          "kind": "run",
+          "effect": "loadEntries",
+          "input": { "journalId": { "context": "journalId" } },
+          "outcomes": {
+            "loaded": {
+              "assign": {
+                "entries": { "from": "entries" },
+                "entryRows": { "from": "rows" },
+                "entryHeading": { "from": "heading" },
+                "entryHasPrev": { "from": "hasPrev" },
+                "entryHasNext": { "from": "hasNext" }
+              },
+              "do": [{ "target": "entriesList" }]
+            },
+            "empty": { "assign": {}, "do": [{ "target": "entriesEmpty" }] },
+            "journalMissing": { "assign": {}, "do": [{ "target": "journalMissing" }] },
+            "failed": { "assign": {}, "do": [{ "target": "entriesFailed" }] }
+          }
+        }
+      ]
+    },
+    "entriesPaging": {
+      "kind": "state",
+      "render": "keep",
+      "entry": [
+        {
+          "kind": "run",
+          "effect": "pageEntries",
+          "input": {
+            "entries": { "context": "entries" },
+            "page": { "context": "entryPage" }
+          },
+          "outcomes": {
+            "loaded": {
+              "assign": {
+                "entryRows": { "from": "rows" },
+                "entryHeading": { "from": "heading" },
+                "entryHasPrev": { "from": "hasPrev" },
+                "entryHasNext": { "from": "hasNext" }
+              },
+              "do": [{ "target": "entriesList" }]
+            },
+            "pageEmpty": { "assign": {}, "do": [{ "target": "entriesPageEmpty" }] }
+          }
+        }
+      ]
+    },
+    "entriesList": {
+      "kind": "state",
+      "view": {
+        "kind": "text",
+        "text": [
+          { "context": "journalTitle", "escape": "text" },
+          "\n",
+          { "context": "entryHeading", "escape": "text" }
+        ],
+        "parseMode": "plain",
+        "keyboard": [
+          {
+            "kind": "project",
+            "source": { "context": "entryRows" },
+            "maxItems": 10,
+            "rows": [
+              {
+                "kind": "row",
+                "buttons": [
+                  {
+                    "kind": "button",
+                    "label": [{ "item": "label", "escape": "text" }],
+                    "press": "entryRow",
+                    "payload": { "entryId": { "item": "id" } },
+                    "durable": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": ["Prior page"],
+                "press": "entryPrev",
+                "durable": false,
+                "when": {
+                  "compare": {
+                    "left": { "context": "entryHasPrev" },
+                    "op": "eq",
+                    "right": true
+                  }
+                }
+              },
+              {
+                "kind": "button",
+                "label": ["Next page"],
+                "press": "entryNext",
+                "durable": false,
+                "when": {
+                  "compare": {
+                    "left": { "context": "entryHasNext" },
+                    "op": "eq",
+                    "right": true
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": ["Close"],
+                "press": "entryCancel",
+                "durable": true
+              }
+            ]
+          }
+        ]
+      },
+      "render": "edit"
+    },
+    "entriesEmpty": {
+      "kind": "state",
+      "view": { "kind": "text", "text": ["This journal has no field notes."], "parseMode": "plain" },
+      "render": "edit"
+    },
+    "entriesPageEmpty": {
+      "kind": "state",
+      "view": { "kind": "text", "text": ["This field-note page has no rows."], "parseMode": "plain" },
+      "render": "edit",
+      "on": {
+        "press": {
+          "entryBack": [
+            {
+              "when": {
+                "compare": {
+                  "left": { "context": "foregroundBusy" },
+                  "op": "eq",
+                  "right": true
+                }
+              },
+              "target": "busy"
+            },
+            { "target": "entriesPaging" }
+          ]
+        }
+      }
+    },
+    "entriesFailed": {
+      "kind": "state",
+      "view": { "kind": "text", "text": ["The field notes are unavailable."], "parseMode": "plain" },
+      "render": "edit"
+    },
+    "entrySelecting": {
+      "kind": "state",
+      "render": "keep",
+      "entry": [
+        {
+          "kind": "run",
+          "effect": "selectEntry",
+          "input": {
+            "entries": { "context": "entries" },
+            "id": { "context": "entryId" }
+          },
+          "outcomes": {
+            "selected": {
+              "assign": { "entryText": { "from": "text" } },
+              "do": [{ "target": "entryDetail" }]
+            },
+            "missing": { "assign": {}, "do": [{ "target": "entryMissing" }] }
+          }
+        }
+      ]
+    },
+    "entryDetail": {
+      "kind": "state",
+      "view": {
+        "kind": "text",
+        "text": [{ "context": "entryText", "escape": "text" }],
+        "parseMode": "plain",
+        "keyboard": [
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": ["Back to notes"],
+                "press": "entryBack",
+                "durable": true
+              },
+              {
+                "kind": "button",
+                "label": ["Close"],
+                "press": "entryCancel",
+                "durable": true
+              }
+            ]
+          }
+        ]
+      },
+      "render": "edit",
+      "on": {
+        "press": {
+          "entryBack": [
+            {
+              "when": {
+                "compare": {
+                  "left": { "context": "foregroundBusy" },
+                  "op": "eq",
+                  "right": true
+                }
+              },
+              "target": "busy"
+            },
+            { "target": "entriesPaging" }
+          ]
+        }
+      }
+    },
+    "entryMissing": {
+      "kind": "state",
+      "view": {
+        "kind": "text",
+        "text": ["That field note was removed. Return to the current page."],
+        "parseMode": "plain",
+        "keyboard": [
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": ["Back to notes"],
+                "press": "entryBack",
+                "durable": true
+              },
+              {
+                "kind": "button",
+                "label": ["Close"],
+                "press": "entryCancel",
+                "durable": true
+              }
+            ]
+          }
+        ]
+      },
+      "render": "edit",
+      "on": {
+        "press": {
+          "entryBack": [
+            {
+              "when": {
+                "compare": {
+                  "left": { "context": "foregroundBusy" },
+                  "op": "eq",
+                  "right": true
+                }
+              },
+              "target": "busy"
+            },
+            { "target": "entriesPaging" }
+          ]
+        }
+      }
+    },
+    "cancelled": { "kind": "state", "render": "delete" }
+  }
+}
