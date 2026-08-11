@@ -3,6 +3,7 @@ import Ajv2020 from "ajv/dist/2020";
 import adminSurfaceSpec from "botchart/conformance/specs/admin-surface.json" with { type: "json" };
 import callbackCleanupSpec from "botchart/conformance/specs/callback-cleanup.json" with { type: "json" };
 import compoundSpec from "botchart/conformance/specs/compound-history-and-units.json" with { type: "json" };
+import dynamicListSpec from "botchart/conformance/specs/dynamic-list.json" with { type: "json" };
 import effectSpec from "botchart/conformance/specs/effects-and-feedback.json" with { type: "json" };
 import guardSpec from "botchart/conformance/specs/guards-and-assignments.json" with { type: "json" };
 import lifecycleErrorSpec from "botchart/conformance/specs/lifecycle-and-errors.json" with { type: "json" };
@@ -115,6 +116,10 @@ test("published schema accepts the MarkdownV2 escaping conformance spec", () => 
 
 test("published schema accepts the visual menu derived asset", () => {
   expect(validate(visualMenuSpec), JSON.stringify(validate.errors)).toBe(true);
+});
+
+test("published schema accepts the dynamic list derived asset", () => {
+  expect(validate(dynamicListSpec), JSON.stringify(validate.errors)).toBe(true);
 });
 
 test("published schema accepts the streaming effect derived asset", () => {

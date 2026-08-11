@@ -1,0 +1,40 @@
+{
+  "name": "Field Journal Browser",
+  "source": {
+    "repository": "https://github.com/grinev/opencode-telegram-bot",
+    "commit": "12b6d582ed0dcf84415b3e0813fe337fa6fac917"
+  },
+  "spec": "../packages/botchart/conformance/specs/dynamic-list.json",
+  "transcript": "../packages/botchart/conformance/transcripts/dynamic-list.json",
+  "context": {
+    "foregroundBusy": false,
+    "journalPage": 1,
+    "journalRows": [
+      { "id": "ridge-2026", "label": "Ridge survey, August 2026" },
+      { "id": "marsh-2026", "label": "Marsh survey, July 2026" }
+    ],
+    "journalHeading": "Field journals\nPage 1 of 2",
+    "journalHasPrev": false,
+    "journalHasNext": true,
+    "journalId": "coast-2025",
+    "journalTitle": "Coastal weather log",
+    "entryPage": 2,
+    "entries": [
+      { "id": "note-tide", "label": "Tide at marker seven", "text": "The tide reached marker seven at 06:40." },
+      { "id": "note-wind", "label": "North wind", "text": "The north wind held at 18 knots for two hours." },
+      { "id": "note-shelf", "label": "Shelf cloud", "text": "A shelf cloud crossed the western inlet before rain." },
+      { "id": "note-gulls", "label": "Gull movement", "text": "Gulls moved inland twenty minutes before the squall." }
+    ],
+    "entryRows": [
+      { "id": "note-shelf", "label": "Shelf cloud" },
+      { "id": "note-gulls", "label": "Gull movement" }
+    ],
+    "entryHeading": "Field notes\nPage 2 of 2",
+    "entryHasPrev": true,
+    "entryHasNext": false,
+    "entryId": "note-gulls",
+    "entryText": "Gulls moved inland twenty minutes before the squall.",
+    "missingReason": "Pending row check"
+  },
+  "parameters": {}
+}

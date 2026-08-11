@@ -30,10 +30,7 @@
   "steps": [
     {
       "covers": [
-        "runtime.guard.comparison",
-        "runtime.assignment.parameter",
-        "runtime.assignment.arithmetic",
-        "runtime.assignment.unset"
+        "runtime.assignment.parameter"
       ],
       "input": {
         "name": "photo",
@@ -85,8 +82,7 @@
     },
     {
       "covers": [
-        "runtime.assignment.arrayShape",
-        "runtime.assignment.recordFields"
+        "runtime.assignment.arrayShape"
       ],
       "input": {
         "name": "video",
@@ -139,8 +135,7 @@
     },
     {
       "covers": [
-        "runtime.assignment.sourceType",
-        "runtime.assignment.destinationType"
+        "runtime.assignment.sourceType"
       ],
       "input": {
         "name": "voice",
