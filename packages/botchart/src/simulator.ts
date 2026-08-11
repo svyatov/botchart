@@ -4,7 +4,7 @@ import type {
   SemanticSessionSnapshot,
   CoreRunner,
 } from "./runtime.js";
-import type { BotchartSpec } from "./spec.generated.js";
+import type { BotchartSpec, StateNode } from "./spec.generated.js";
 import type { JsonValue } from "./spec.js";
 
 export const transcriptSchemaId =
@@ -64,6 +64,7 @@ export type ReplayTranscriptOptions = {
   readonly transcript: GoldenTranscript;
   readonly spec: BotchartSpec;
   readonly runner: CoreRunner;
+  readonly startAt?: string;
 };
 
 export type TranscriptReplay = {
@@ -85,6 +86,21 @@ export type TranscriptVerification = {
   readonly ok: boolean;
   readonly issues: readonly TranscriptIssue[];
 };
+
+export type SimulationStep = Omit<TranscriptStep, "result">;
+
+export type SimulateConversationOptions = {
+  readonly name: string;
+  readonly spec: BotchartSpec;
+  readonly specPath: string;
+  readonly runner: CoreRunner;
+  readonly initial: TranscriptInitial;
+  readonly steps: readonly SimulationStep[];
+};
+
+export type ConversationSimulation =
+  | { readonly ok: true; readonly transcript: GoldenTranscript }
+  | { readonly ok: false; readonly issues: readonly TranscriptIssue[] };
 
 export type VerifyTranscriptOptions = {
   readonly transcript: unknown;
@@ -714,23 +730,103 @@ export function replayTranscript(options: ReplayTranscriptOptions): TranscriptRe
   return runTranscript(options, true);
 }
 
+export async function simulateConversation(
+  options: SimulateConversationOptions,
+): Promise<ConversationSimulation> {
+  const pendingResult: CoreResult = {
+    kind: "error",
+    session: options.initial.session,
+    intents: [],
+    error: {
+      code: "pending_simulation",
+      path: "$.steps",
+      message: "Run this conversation before you use its transcript.",
+    },
+  };
+  const transcript: GoldenTranscript = {
+    $schema: transcriptSchemaId,
+    transcriptVersion,
+    schemaRevision: transcriptSchemaRevision,
+    name: options.name,
+    spec: {
+      path: options.specPath,
+      sha256: await digestSpec(options.spec),
+    },
+    initial: options.initial,
+    steps: options.steps.map((step) => ({ ...step, result: pendingResult })),
+  };
+  const planValidation = validateTranscript(transcript);
+  if (!planValidation.ok) {
+    return { ok: false, issues: planValidation.issues };
+  }
+  const simulation = runTranscript({
+    transcript,
+    spec: options.spec,
+    runner: options.runner,
+  }, false);
+  const validation = validateTranscript(simulation.transcript);
+  const issues = [
+    ...simulation.issues,
+    ...(validation.ok ? [] : validation.issues),
+  ];
+
+  return issues.length === 0
+    ? { ok: true, transcript: simulation.transcript }
+    : { ok: false, issues };
+}
+
 function runTranscript(
   options: ReplayTranscriptOptions,
   compareResults: boolean,
 ): TranscriptReplay {
-  const { runner, spec, transcript } = options;
+  const { runner, spec, startAt, transcript } = options;
   const issues: TranscriptIssue[] = [];
+  const startIndex = startAt === undefined
+    ? 0
+    : transcript.steps.findIndex((step) => step.name === startAt);
+  if (startIndex < 0) {
+    return {
+      transcript,
+      issues: [{
+        code: "unknown_step",
+        path: "$.steps",
+        message: `Use the name of a transcript step. ${startAt} does not exist.`,
+      }],
+    };
+  }
+
   const counters = createReplayTranscriptIdCounters();
   for (const callbackId of Object.keys(transcript.initial.session.callbacks)) {
     counters.stable("callback", callbackId);
   }
-  const steps: TranscriptStep[] = [];
+  const steps: TranscriptStep[] = transcript.steps.slice(0, startIndex);
+  seedReplayIds(counters, steps, spec);
   let now = Date.parse(transcript.initial.now);
-  let session = transcript.initial.session;
-  let runtimeSession = transcript.initial.session;
+  for (const step of steps) {
+    if (step.advance !== undefined) now += delayMilliseconds(step.advance);
+  }
+  const priorSession = startIndex === 0
+    ? transcript.initial.session
+    : transcript.steps[startIndex - 1]?.result.session;
+  if (priorSession === null || priorSession === undefined) {
+    return {
+      transcript,
+      issues: [{
+        code: "step_after_final",
+        path: `$.steps[${startIndex}]`,
+        message: "Remove this step because the prior step ended the session.",
+      }],
+    };
+  }
+  for (const callbackId of Object.keys(priorSession.callbacks)) {
+    counters.stable("callback", callbackId);
+  }
+  let session = priorSession;
+  let runtimeSession = priorSession;
   let final = false;
 
   for (const [index, step] of transcript.steps.entries()) {
+    if (index < startIndex) continue;
     const stepPath = `$.steps[${index}]`;
     if (final) {
       issues.push({
@@ -794,6 +890,75 @@ function runTranscript(
     transcript: { ...transcript, steps },
     issues,
   };
+}
+
+function seedReplayIds(
+  counters: ReplayTranscriptIdCounters,
+  steps: readonly TranscriptStep[],
+  spec: BotchartSpec,
+): void {
+  const effectOccurrences = new Map<string, number>();
+  for (const step of steps) {
+    if (step.result.session !== null) {
+      for (const callbackId of Object.keys(step.result.session.callbacks)) {
+        counters.stable("callback", callbackId);
+      }
+    }
+    for (const intent of step.result.intents) {
+      if (intent.kind === "timer" && intent.operation === "schedule") {
+        counters.stable(
+          "timer",
+          `${intent.token.sessionKey}:${intent.token.stateId}:${intent.token.seq}:${intent.timer}`,
+        );
+      }
+      if (intent.kind === "effect") {
+        const session = step.result.session;
+        const state = session === null
+          ? undefined
+          : replayStateAt(spec, session, intent.token.stateId);
+        const entry = state !== undefined && state.kind !== "final" && state.kind !== "return"
+          ? state.entry
+          : undefined;
+        const matches = entry?.flatMap((node, index) =>
+          node.kind === "run" && node.effect === intent.effect ? [index] : []
+        ) ?? [];
+        const key = `${intent.token.sessionKey}:${intent.token.stateId}:${intent.token.seq}:${intent.effect}`;
+        const occurrence = effectOccurrences.get(key) ?? 0;
+        const entryIndex = matches[occurrence];
+        if (entryIndex !== undefined) {
+          counters.stable(
+            "effect",
+            `${intent.token.sessionKey}:${intent.token.stateId}:${intent.token.seq}:${entryIndex}`,
+          );
+          effectOccurrences.set(key, occurrence + 1);
+        }
+      }
+    }
+  }
+}
+
+function replayStateAt(
+  spec: BotchartSpec,
+  session: SemanticSessionSnapshot,
+  stateId: string,
+): StateNode | undefined {
+  const unit = session.callStack.at(-1)?.unit;
+  let states = unit === undefined
+    ? spec.states
+    : spec.units[unit]?.states ?? {};
+  let state: StateNode | undefined;
+  const segments = stateId.split(".");
+
+  for (const [index, segment] of segments.entries()) {
+    state = states[segment];
+    if (state === undefined) return undefined;
+    if (index < segments.length - 1) {
+      if (state.kind !== "compound") return undefined;
+      states = state.states;
+    }
+  }
+
+  return state;
 }
 
 function restoreInputIds(
