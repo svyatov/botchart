@@ -583,6 +583,47 @@ test("the grammY middleware answers a press before it stores the session", async
   expect(await storage.read("chat:7:user:7")).toBeDefined();
 });
 
+test("the grammY middleware ignores a failed press answer", async () => {
+  const requests: CoreRunnerRequest[] = [];
+  const bot = new Bot("test", { botInfo });
+  bot.api.config.use(async () => ({
+    ok: false,
+    error_code: 400,
+    description: "Bad Request: query is too old",
+  }) as never);
+  bot.use(createBotchartMiddleware({
+    spec,
+    storage: memoryStorage(),
+    runner: (request) => {
+      requests.push(request);
+      return {
+        kind: "ok",
+        session: request.session,
+        intents: request.input.origin === "telegram"
+          ? [{ kind: "pressAnswer", callbackQueryId: "query:3" }]
+          : [],
+      };
+    },
+  }));
+
+  await bot.handleUpdate({
+    update_id: 26,
+    callback_query: {
+      id: "query:3",
+      chat_instance: "chat:3",
+      from: { id: 7, is_bot: false, first_name: "Ada" },
+      data: "callback:3",
+      message: {
+        message_id: 26,
+        date: 1,
+        chat: { id: 7, type: "private", first_name: "Ada" },
+      },
+    },
+  } as Update);
+
+  expect(requests).toHaveLength(1);
+});
+
 test("the grammY middleware sends a text view and commits its message handle", async () => {
   const storage = memoryStorage();
   const requests: CoreRunnerRequest[] = [];
@@ -661,6 +702,278 @@ test("the grammY middleware sends a text view and commits its message handle", a
         viewKind: "text",
       },
     });
+});
+
+test("the grammY middleware retries a Bot API response with retry_after", async () => {
+  const storage = memoryStorage();
+  const bot = new Bot("test", { botInfo });
+  let attempts = 0;
+  bot.api.config.use(async (_previous, method, payload) => {
+    if (method !== "sendMessage") {
+      return { ok: true, result: true } as never;
+    }
+    attempts += 1;
+    if (attempts === 1) {
+      return {
+        ok: false,
+        error_code: 429,
+        description: "Too Many Requests: retry later",
+        parameters: { retry_after: 0 },
+      } as never;
+    }
+    return {
+      ok: true,
+      result: {
+        message_id: 22,
+        date: 1,
+        chat: { id: payload.chat_id, type: "private", first_name: "Ada" },
+        text: payload.text,
+      },
+    } as never;
+  });
+  bot.use(createBotchartMiddleware({
+    spec,
+    storage,
+    runner: (request) => request.input.origin === "adapter"
+      ? step(request)
+      : {
+          kind: "ok",
+          session: request.session,
+          intents: [{
+            kind: "view",
+            operation: "send",
+            slot: "main",
+            target: { kind: "chat", chatId: 7 },
+            view: { kind: "text", text: "Retry", parseMode: "plain" },
+          }],
+        },
+  }));
+
+  await bot.handleUpdate({
+    update_id: 22,
+    message: {
+      message_id: 22,
+      date: 1,
+      chat: { id: 7, type: "private", first_name: "Ada" },
+      from: { id: 7, is_bot: false, first_name: "Ada" },
+      text: "retry",
+    },
+  } as Update);
+
+  expect(attempts).toBe(2);
+  expect(JSON.parse((await storage.read("chat:7:user:7"))!).session.viewSlots.main)
+    .toHaveProperty("current.handle.messageId", 22);
+});
+
+test("the grammY middleware routes a blocked recipient failure back to core", async () => {
+  const storage = memoryStorage();
+  const requests: CoreRunnerRequest[] = [];
+  const failedIntent = {
+    kind: "view" as const,
+    operation: "send" as const,
+    slot: "main",
+    target: { kind: "chat" as const, chatId: 7 },
+    view: { kind: "text", text: "Hello", parseMode: "plain" },
+  };
+  const bot = new Bot("test", { botInfo });
+  bot.api.config.use(async () => ({
+    ok: false,
+    error_code: 403,
+    description: "Forbidden: bot was blocked by the user",
+  }) as never);
+  bot.use(createBotchartMiddleware({
+    spec,
+    storage,
+    runner: (request) => {
+      requests.push(request);
+      if (request.input.origin === "telegram") {
+        return {
+          kind: "ok",
+          session: { ...request.session, seq: 1 },
+          intents: [failedIntent],
+        };
+      }
+      return {
+        kind: "ok",
+        session: { ...request.session, seq: 2 },
+        intents: [],
+      };
+    },
+  }));
+
+  await bot.handleUpdate({
+    update_id: 23,
+    message: {
+      message_id: 23,
+      date: 1,
+      chat: { id: 7, type: "private", first_name: "Ada" },
+      from: { id: 7, is_bot: false, first_name: "Ada" },
+      text: "hello",
+    },
+  } as Update);
+
+  expect(requests[1]!.input).toEqual({
+    origin: "adapter",
+    source: "lifecycle",
+    name: "blocked",
+    payload: {
+      chainId: "failure:1",
+      failures: [{
+        intent: failedIntent,
+        code: "recipient_blocked",
+        message: "Forbidden: bot was blocked by the user",
+      }],
+    },
+  });
+  expect(JSON.parse((await storage.read("chat:7:user:7"))!).session.seq).toBe(2);
+});
+
+test("the grammY middleware keeps other Bot API failures on lifecycle error", async () => {
+  const requests: CoreRunnerRequest[] = [];
+  const failedIntent = {
+    kind: "view" as const,
+    operation: "delete" as const,
+    slot: "main",
+    handle: { kind: "chat" as const, chatId: 7, messageId: 7 },
+  };
+  const bot = new Bot("test", { botInfo });
+  bot.api.config.use(async () => ({
+    ok: false,
+    error_code: 403,
+    description: "Forbidden: bot is not a member of the chat",
+  }) as never);
+  bot.use(createBotchartMiddleware({
+    spec,
+    storage: memoryStorage(),
+    runner: (request) => {
+      requests.push(request);
+      return request.input.origin === "telegram"
+        ? { kind: "ok", session: request.session, intents: [failedIntent] }
+        : { kind: "ok", session: request.session, intents: [] };
+    },
+  }));
+
+  await bot.handleUpdate({
+    update_id: 24,
+    message: {
+      message_id: 24,
+      date: 1,
+      chat: { id: 7, type: "private", first_name: "Ada" },
+      from: { id: 7, is_bot: false, first_name: "Ada" },
+      text: "delete",
+    },
+  } as Update);
+
+  expect(requests[1]!.input).toEqual({
+    origin: "adapter",
+    source: "lifecycle",
+    name: "error",
+    payload: {
+      chainId: "failure:1",
+      failures: [{
+        intent: failedIntent,
+        code: "telegram_api_error",
+        message: "Forbidden: bot is not a member of the chat",
+      }],
+    },
+  });
+});
+
+test("the grammY middleware appends a failed recovery effect to the same chain", async () => {
+  const inputs: CoreRunnerRequest["input"][] = [];
+  const firstIntent = {
+    kind: "view" as const,
+    operation: "send" as const,
+    slot: "main",
+    target: { kind: "chat" as const, chatId: 7 },
+    view: { kind: "text", text: "First", parseMode: "plain" },
+  };
+  const secondIntent = {
+    kind: "effect" as const,
+    id: "chat:7:user:7:main:1:0",
+    effect: "recover",
+    input: {},
+    token: {
+      sessionKey: "chat:7:user:7",
+      stateId: "main" as const,
+      seq: 1,
+    },
+  };
+  const effectSpec = {
+    ...spec,
+    effects: { recover: { input: {}, outcomes: { done: {} } } },
+  } as BotchartSpec;
+  const bot = new Bot("test", { botInfo });
+  bot.api.config.use(async () => ({
+    ok: false,
+    error_code: 400,
+    description: "Bad Request: intent failed",
+  }) as never);
+  const middleware = createBotchartMiddleware({
+    spec: effectSpec,
+    storage: memoryStorage(),
+    runner: (request) => {
+      inputs.push(request.input);
+      if (request.input.origin === "telegram") {
+        return { kind: "ok", session: request.session, intents: [firstIntent] };
+      }
+      const failures = (request.input.payload as { failures: unknown[] }).failures;
+      if (failures.length === 1) {
+        return { kind: "ok", session: request.session, intents: [secondIntent] };
+      }
+      return {
+        kind: "error",
+        session: request.session,
+        intents: [],
+        error: {
+          code: "terminal_intent_failure",
+          path: "$.input.payload.failures[1]",
+          message: "A second failed intent is terminal.",
+        },
+      };
+    },
+    effects: {
+      recover: async () => {
+        throw new Error("Recovery effect failed.");
+      },
+    },
+  });
+  const update = {
+    update_id: 28,
+    message: {
+      message_id: 28,
+      date: 1,
+      chat: { id: 7, type: "private", first_name: "Ada" },
+      from: { id: 7, is_bot: false, first_name: "Ada" },
+      text: "fail",
+    },
+  } as Update;
+  const context = new Context(update, bot.api, botInfo);
+  let thrown: unknown;
+
+  try {
+    await middleware(context, async () => {});
+  } catch (error) {
+    thrown = error;
+  }
+
+  expect(thrown).toBeInstanceOf(CoreRunnerError);
+  expect(thrown).toHaveProperty("coreError.code", "terminal_intent_failure");
+  expect(inputs[2]!.payload).toEqual({
+    chainId: "failure:1",
+    failures: [
+      {
+        intent: firstIntent,
+        code: "telegram_api_error",
+        message: "Bad Request: intent failed",
+      },
+      {
+        intent: secondIntent,
+        code: "effect_execution_error",
+        message: "Recovery effect failed.",
+      },
+    ],
+  });
 });
 
 test("the grammY middleware edits, replaces, and deletes one text view", async () => {
@@ -833,6 +1146,71 @@ test("the grammY middleware queues effect progress and its outcome", async () =>
   expect(JSON.parse((await storage.read("chat:7:user:7"))!).session.seq).toBe(3);
 });
 
+test("the grammY middleware routes an effect binding failure back to core", async () => {
+  const storage = memoryStorage();
+  const requests: CoreRunnerRequest[] = [];
+  const failedIntent = {
+    kind: "effect" as const,
+    id: "chat:7:user:7:main:1:0",
+    effect: "load",
+    input: { query: "Ada" },
+    token: {
+      sessionKey: "chat:7:user:7",
+      stateId: "main" as const,
+      seq: 1,
+    },
+  };
+  const effectSpec = {
+    ...spec,
+    effects: { load: { input: {}, outcomes: { done: {} } } },
+  } as BotchartSpec;
+  const { bot } = createTestBot();
+  bot.use(createBotchartMiddleware({
+    spec: effectSpec,
+    storage,
+    runner: (request) => {
+      requests.push(request);
+      return request.input.origin === "telegram"
+        ? {
+            kind: "ok",
+            session: { ...request.session, seq: 1 },
+            intents: [failedIntent],
+          }
+        : { kind: "ok", session: request.session, intents: [] };
+    },
+    effects: {
+      load: async () => {
+        throw new Error("Effect service is unavailable.");
+      },
+    },
+  }));
+
+  await bot.handleUpdate({
+    update_id: 25,
+    message: {
+      message_id: 25,
+      date: 1,
+      chat: { id: 7, type: "private", first_name: "Ada" },
+      from: { id: 7, is_bot: false, first_name: "Ada" },
+      text: "load",
+    },
+  } as Update);
+
+  expect(requests[1]!.input).toEqual({
+    origin: "adapter",
+    source: "lifecycle",
+    name: "error",
+    payload: {
+      chainId: "failure:1",
+      failures: [{
+        intent: failedIntent,
+        code: "effect_execution_error",
+        message: "Effect service is unavailable.",
+      }],
+    },
+  });
+});
+
 test("the grammY middleware queues a scheduler firing and cancels its timer", async () => {
   const storage = memoryStorage();
   const scheduled: Array<{
@@ -921,6 +1299,159 @@ test("the grammY middleware queues a scheduler firing and cancels its timer", as
   ]);
   expect(cancelled).toEqual(["chat:7:user:7:main:1:remind"]);
   expect(JSON.parse((await storage.read("chat:7:user:7"))!).session.seq).toBe(2);
+});
+
+test("a scheduler firing shares the update queue for its session key", async () => {
+  const records = memoryStorage();
+  let releaseWrite: () => void = () => {};
+  const writeReleased = new Promise<void>((resolve) => {
+    releaseWrite = resolve;
+  });
+  let markWriteStarted: () => void = () => {};
+  const writeStarted = new Promise<void>((resolve) => {
+    markWriteStarted = resolve;
+  });
+  let writes = 0;
+  const storage = {
+    read: records.read,
+    delete: records.delete,
+    write: async (key: string, value: string) => {
+      writes += 1;
+      if (writes === 1) {
+        markWriteStarted();
+        await writeReleased;
+      }
+      await records.write(key, value);
+    },
+  };
+  let fire: (payload: TimerPayload) => Promise<void> = async () => {};
+  const scheduler: Scheduler = {
+    schedule: async () => {},
+    cancel: async () => {},
+    onFire: (handler) => {
+      fire = handler;
+    },
+  };
+  const timerSpec = {
+    ...spec,
+    states: {
+      main: {
+        kind: "state",
+        render: "keep",
+        on: { after: { remind: { delay: "1s", do: [{}] } } },
+      },
+    },
+  } as unknown as BotchartSpec;
+  const seenSequences: number[] = [];
+  const { bot } = createTestBot();
+  bot.use(createBotchartMiddleware({
+    api: bot.api,
+    spec: timerSpec,
+    storage,
+    scheduler,
+    runner: (request) => {
+      seenSequences.push(request.session.seq);
+      return {
+        kind: "ok",
+        session: { ...request.session, seq: request.session.seq + 1 },
+        intents: [],
+      };
+    },
+  }));
+  const update = bot.handleUpdate({
+    update_id: 29,
+    message: {
+      message_id: 29,
+      date: 1,
+      chat: { id: 7, type: "private", first_name: "Ada" },
+      from: { id: 7, is_bot: false, first_name: "Ada" },
+      text: "wait",
+    },
+  } as Update);
+  await writeStarted;
+  const firing = fire({
+    sessionKey: "chat:7:user:7",
+    stateId: "main",
+    seq: 1,
+    timer: "remind",
+  });
+
+  releaseWrite();
+  await Promise.all([update, firing]);
+
+  expect(seenSequences).toEqual([0, 1]);
+  expect(JSON.parse((await records.read("chat:7:user:7"))!).session.seq).toBe(2);
+});
+
+test("the grammY middleware routes a scheduler failure back to core", async () => {
+  const requests: CoreRunnerRequest[] = [];
+  const failedIntent = {
+    kind: "timer" as const,
+    operation: "schedule" as const,
+    id: "chat:7:user:7:main:1:remind",
+    timer: "remind",
+    fireAt: "2026-08-11T12:01:00.000Z",
+    token: {
+      sessionKey: "chat:7:user:7",
+      stateId: "main" as const,
+      seq: 1,
+    },
+  };
+  const timerSpec = {
+    ...spec,
+    states: {
+      main: {
+        kind: "state",
+        render: "keep",
+        on: { after: { remind: { delay: "1s", do: [{}] } } },
+      },
+    },
+  } as unknown as BotchartSpec;
+  const scheduler: Scheduler = {
+    schedule: async () => {
+      throw new Error("Scheduler is unavailable.");
+    },
+    cancel: async () => {},
+    onFire: () => {},
+  };
+  const { bot } = createTestBot();
+  bot.use(createBotchartMiddleware({
+    api: bot.api,
+    spec: timerSpec,
+    storage: memoryStorage(),
+    scheduler,
+    runner: (request) => {
+      requests.push(request);
+      return request.input.origin === "telegram"
+        ? { kind: "ok", session: request.session, intents: [failedIntent] }
+        : { kind: "ok", session: request.session, intents: [] };
+    },
+  }));
+
+  await bot.handleUpdate({
+    update_id: 27,
+    message: {
+      message_id: 27,
+      date: 1,
+      chat: { id: 7, type: "private", first_name: "Ada" },
+      from: { id: 7, is_bot: false, first_name: "Ada" },
+      text: "wait",
+    },
+  } as Update);
+
+  expect(requests[1]!.input).toEqual({
+    origin: "adapter",
+    source: "lifecycle",
+    name: "error",
+    payload: {
+      chainId: "failure:1",
+      failures: [{
+        intent: failedIntent,
+        code: "scheduler_execution_error",
+        message: "Scheduler is unavailable.",
+      }],
+    },
+  });
 });
 
 test("memoryScheduler replaces one pending timer with the same id", async () => {
