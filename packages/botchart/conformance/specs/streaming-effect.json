@@ -1,0 +1,300 @@
+{
+  "$schema": "https://svyatov.github.io/botchart/schema/0.1.0.json",
+  "version": 1,
+  "schemaRevision": "0.1.0",
+  "packs": [],
+  "scope": "chat+user",
+  "context": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+      "answer": { "type": "string" },
+      "draft": { "type": "string" },
+      "droppedMessages": { "type": "number" },
+      "error": { "type": "string" },
+      "prompt": { "type": "string" },
+      "source": { "type": "string" },
+      "tokenCount": { "type": "number" }
+    },
+    "required": [
+      "answer",
+      "draft",
+      "droppedMessages",
+      "error",
+      "prompt",
+      "source",
+      "tokenCount"
+    ],
+    "additionalProperties": false,
+    "default": {
+      "answer": "",
+      "draft": "Preparing a field note...",
+      "droppedMessages": 0,
+      "error": "",
+      "prompt": "",
+      "source": "text",
+      "tokenCount": 0
+    }
+  },
+  "parameters": {
+    "guideName": { "type": "string", "default": "Trail Guide" }
+  },
+  "guards": {},
+  "effects": {
+    "streamReply": {
+      "input": {
+        "prompt": { "type": "string" },
+        "source": { "type": "string" }
+      },
+      "progress": {
+        "draft": { "type": "string" },
+        "tokenCount": { "type": "number" }
+      },
+      "outcomes": {
+        "completed": {
+          "answer": { "type": "string" },
+          "tokenCount": { "type": "number" }
+        },
+        "tooLong": {
+          "droppedMessages": { "type": "number" }
+        },
+        "safetyRejected": {
+          "reason": { "type": "string" }
+        },
+        "failed": {
+          "reason": { "type": "string" }
+        },
+        "timeout": {}
+      },
+      "timeout": "1m"
+    },
+    "transcribeVoice": {
+      "input": {},
+      "outcomes": {
+        "transcribed": {
+          "text": { "type": "string" }
+        },
+        "failed": {
+          "reason": { "type": "string" }
+        }
+      }
+    }
+  },
+  "presses": {},
+  "units": {},
+  "stalePress": { "action": "ignore" },
+  "initial": "ready",
+  "on": {
+    "text": [
+      {
+        "pattern": "^(?<prompt>.+)$",
+        "do": [
+          {
+            "assign": {
+              "draft": "Preparing a field note...",
+              "error": "",
+              "prompt": { "from": "prompt" },
+              "source": "text",
+              "tokenCount": 0
+            },
+            "target": "streaming"
+          }
+        ]
+      }
+    ],
+    "message": {
+      "document": [
+        {
+          "assign": { "source": "document" },
+          "target": "unsupported"
+        }
+      ],
+      "photo": [
+        {
+          "assign": {
+            "draft": "Reading the trail image...",
+            "error": "",
+            "prompt": "Describe the attached trail image.",
+            "source": "photo",
+            "tokenCount": 0
+          },
+          "target": "streaming"
+        }
+      ],
+      "video": [
+        {
+          "assign": { "source": "video" },
+          "target": "unsupported"
+        }
+      ],
+      "voice": [
+        {
+          "assign": {
+            "draft": "Reading the voice note...",
+            "error": "",
+            "prompt": "",
+            "source": "voice",
+            "tokenCount": 0
+          },
+          "target": "transcribing"
+        }
+      ]
+    }
+  },
+  "states": {
+    "ready": {
+      "kind": "state",
+      "view": {
+        "kind": "text",
+        "text": ["Send a field question, photo, or voice note."],
+        "parseMode": "plain"
+      },
+      "render": "edit"
+    },
+    "transcribing": {
+      "kind": "state",
+      "view": {
+        "kind": "text",
+        "text": ["Reading the voice note..."],
+        "parseMode": "plain"
+      },
+      "render": "edit",
+      "entry": [
+        {
+          "kind": "run",
+          "effect": "transcribeVoice",
+          "input": {},
+          "outcomes": {
+            "transcribed": {
+              "assign": { "prompt": { "from": "text" } },
+              "do": [{ "target": "streaming" }]
+            },
+            "failed": {
+              "assign": { "error": { "from": "reason" } },
+              "do": [{ "target": "failed" }]
+            }
+          }
+        }
+      ]
+    },
+    "streaming": {
+      "kind": "state",
+      "view": {
+        "kind": "text",
+        "text": [
+          "Draft: ",
+          { "context": "draft", "escape": "text" },
+          "\nTokens: ",
+          { "context": "tokenCount", "escape": "text" }
+        ],
+        "parseMode": "plain"
+      },
+      "render": "edit",
+      "entry": [
+        {
+          "kind": "run",
+          "effect": "streamReply",
+          "input": {
+            "prompt": { "context": "prompt" },
+            "source": { "context": "source" }
+          },
+          "onProgress": {
+            "assign": {
+              "draft": { "from": "draft" },
+              "tokenCount": { "from": "tokenCount" }
+            }
+          },
+          "outcomes": {
+            "completed": {
+              "assign": {
+                "answer": { "from": "answer" },
+                "tokenCount": { "from": "tokenCount" }
+              },
+              "do": [{ "target": "complete" }]
+            },
+            "tooLong": {
+              "assign": {
+                "droppedMessages": { "from": "droppedMessages" }
+              },
+              "do": [{ "target": "streaming" }]
+            },
+            "safetyRejected": {
+              "assign": { "error": { "from": "reason" } },
+              "do": [{ "target": "refused" }]
+            },
+            "failed": {
+              "assign": { "error": { "from": "reason" } },
+              "do": [{ "target": "failed" }]
+            },
+            "timeout": {
+              "assign": {},
+              "do": [{ "target": "timedOut" }]
+            }
+          }
+        }
+      ]
+    },
+    "complete": {
+      "kind": "state",
+      "view": {
+        "kind": "text",
+        "text": [
+          "Field note: ",
+          { "context": "answer", "escape": "text" }
+        ],
+        "parseMode": "plain"
+      },
+      "render": "edit"
+    },
+    "refused": {
+      "kind": "state",
+      "view": {
+        "kind": "text",
+        "text": [
+          "Request declined: ",
+          { "context": "error", "escape": "text" }
+        ],
+        "parseMode": "plain"
+      },
+      "render": "edit"
+    },
+    "failed": {
+      "kind": "state",
+      "view": {
+        "kind": "text",
+        "text": [
+          "<b>The field note failed:</b> ",
+          { "context": "error", "escape": "text" },
+          "\nSend another prompt to retry."
+        ],
+        "parseMode": "HTML"
+      },
+      "render": "edit"
+    },
+    "timedOut": {
+      "kind": "state",
+      "view": {
+        "kind": "text",
+        "text": [
+          { "parameter": "guideName", "escape": "text" },
+          " timed out. Send another prompt to retry."
+        ],
+        "parseMode": "plain"
+      },
+      "render": "edit"
+    },
+    "unsupported": {
+      "kind": "state",
+      "view": {
+        "kind": "text",
+        "text": [
+          "This assistant cannot read ",
+          { "context": "source", "escape": "text" },
+          ". Send text, a photo, or a voice note."
+        ],
+        "parseMode": "plain"
+      },
+      "render": "edit"
+    }
+  }
+}

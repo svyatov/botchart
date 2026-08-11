@@ -62,10 +62,7 @@
   "steps": [
     {
       "covers": [
-        "runtime.view.binding.context",
-        "runtime.view.binding.parameter",
         "runtime.view.binding.item",
-        "runtime.view.html",
         "runtime.view.keyboard",
         "runtime.view.projection",
         "runtime.view.projectionCondition",

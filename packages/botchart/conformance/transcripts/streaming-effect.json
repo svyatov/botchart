@@ -1,0 +1,733 @@
+{
+  "$schema": "https://svyatov.github.io/botchart/conformance/0.1.0/transcript.schema.json",
+  "initial": {
+    "now": "2026-08-11T12:00:00Z",
+    "session": {
+      "callStack": [],
+      "callbacks": {},
+      "context": {
+        "answer": "",
+        "draft": "Preparing a field note...",
+        "droppedMessages": 0,
+        "error": "",
+        "prompt": "",
+        "source": "text",
+        "tokenCount": 0
+      },
+      "history": {},
+      "position": "ready",
+      "seq": 0,
+      "viewSlots": {
+        "main": {
+          "revision": 0,
+          "target": {
+            "chatId": 42,
+            "kind": "chat"
+          }
+        }
+      }
+    }
+  },
+  "name": "streaming field notes",
+  "schemaRevision": "0.1.0",
+  "spec": {
+    "path": "../specs/streaming-effect.json",
+    "sha256": "724b4d1f1d1b4f1a5b62f9af3feda18162d3c081ce069f450738b2ee9d618cab"
+  },
+  "steps": [
+    {
+      "covers": [
+        "runtime.event.text"
+      ],
+      "input": {
+        "name": "message",
+        "origin": "telegram",
+        "payload": {
+          "sessionKey": "chat:42",
+          "text": "How should I read clouds before a ridge walk?"
+        },
+        "source": "text"
+      },
+      "name": "start a streamed field note",
+      "result": {
+        "intents": [
+          {
+            "effect": "streamReply",
+            "id": "effect:1",
+            "input": {
+              "prompt": "How should I read clouds before a ridge walk?",
+              "source": "text"
+            },
+            "kind": "effect",
+            "token": {
+              "seq": 1,
+              "sessionKey": "chat:42",
+              "stateId": "streaming"
+            }
+          }
+        ],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {
+            "answer": "",
+            "draft": "Preparing a field note...",
+            "droppedMessages": 0,
+            "error": "",
+            "prompt": "How should I read clouds before a ridge walk?",
+            "source": "text",
+            "tokenCount": 0
+          },
+          "history": {},
+          "position": "streaming",
+          "seq": 1,
+          "viewSlots": {
+            "main": {
+              "revision": 0,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.effect.progress"
+      ],
+      "input": {
+        "name": "streamReply",
+        "origin": "effect",
+        "payload": {
+          "id": "effect:1",
+          "output": {
+            "draft": "High clouds often arrive before a front.",
+            "tokenCount": 9
+          },
+          "token": {
+            "seq": 1,
+            "sessionKey": "chat:42",
+            "stateId": "streaming"
+          }
+        },
+        "source": "progress"
+      },
+      "name": "show streamed progress",
+      "result": {
+        "intents": [
+          {
+            "kind": "view",
+            "operation": "send",
+            "slot": "main",
+            "target": {
+              "chatId": 42,
+              "kind": "chat"
+            },
+            "view": {
+              "kind": "text",
+              "parseMode": "plain",
+              "text": "Draft: High clouds often arrive before a front.\nTokens: 9"
+            }
+          }
+        ],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {
+            "answer": "",
+            "draft": "High clouds often arrive before a front.",
+            "droppedMessages": 0,
+            "error": "",
+            "prompt": "How should I read clouds before a ridge walk?",
+            "source": "text",
+            "tokenCount": 9
+          },
+          "history": {},
+          "position": "streaming",
+          "seq": 1,
+          "viewSlots": {
+            "main": {
+              "revision": 0,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.assignment.batch"
+      ],
+      "input": {
+        "name": "completed",
+        "origin": "effect",
+        "payload": {
+          "id": "effect:1",
+          "output": {
+            "answer": "High clouds can mark an approaching front. Check wind and pressure before you leave.",
+            "tokenCount": 18
+          },
+          "token": {
+            "seq": 1,
+            "sessionKey": "chat:42",
+            "stateId": "streaming"
+          }
+        },
+        "source": "outcome"
+      },
+      "name": "complete the field note",
+      "result": {
+        "intents": [
+          {
+            "kind": "view",
+            "operation": "send",
+            "slot": "main",
+            "target": {
+              "chatId": 42,
+              "kind": "chat"
+            },
+            "view": {
+              "kind": "text",
+              "parseMode": "plain",
+              "text": "Field note: High clouds can mark an approaching front. Check wind and pressure before you leave."
+            }
+          }
+        ],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {
+            "answer": "High clouds can mark an approaching front. Check wind and pressure before you leave.",
+            "draft": "High clouds often arrive before a front.",
+            "droppedMessages": 0,
+            "error": "",
+            "prompt": "How should I read clouds before a ridge walk?",
+            "source": "text",
+            "tokenCount": 18
+          },
+          "history": {},
+          "position": "complete",
+          "seq": 2,
+          "viewSlots": {
+            "main": {
+              "revision": 0,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.assignment.direct"
+      ],
+      "input": {
+        "name": "photo",
+        "origin": "telegram",
+        "payload": {
+          "sessionKey": "chat:42"
+        },
+        "source": "message"
+      },
+      "name": "start from a photo",
+      "result": {
+        "intents": [
+          {
+            "effect": "streamReply",
+            "id": "effect:2",
+            "input": {
+              "prompt": "Describe the attached trail image.",
+              "source": "photo"
+            },
+            "kind": "effect",
+            "token": {
+              "seq": 3,
+              "sessionKey": "chat:42",
+              "stateId": "streaming"
+            }
+          }
+        ],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {
+            "answer": "High clouds can mark an approaching front. Check wind and pressure before you leave.",
+            "draft": "Reading the trail image...",
+            "droppedMessages": 0,
+            "error": "",
+            "prompt": "Describe the attached trail image.",
+            "source": "photo",
+            "tokenCount": 0
+          },
+          "history": {},
+          "position": "streaming",
+          "seq": 3,
+          "viewSlots": {
+            "main": {
+              "revision": 0,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.effect.intent"
+      ],
+      "input": {
+        "name": "tooLong",
+        "origin": "effect",
+        "payload": {
+          "id": "effect:2",
+          "output": {
+            "droppedMessages": 2
+          },
+          "token": {
+            "seq": 3,
+            "sessionKey": "chat:42",
+            "stateId": "streaming"
+          }
+        },
+        "source": "outcome"
+      },
+      "name": "retry after reducing the context",
+      "result": {
+        "intents": [
+          {
+            "effect": "streamReply",
+            "id": "effect:3",
+            "input": {
+              "prompt": "Describe the attached trail image.",
+              "source": "photo"
+            },
+            "kind": "effect",
+            "token": {
+              "seq": 4,
+              "sessionKey": "chat:42",
+              "stateId": "streaming"
+            }
+          }
+        ],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {
+            "answer": "High clouds can mark an approaching front. Check wind and pressure before you leave.",
+            "draft": "Reading the trail image...",
+            "droppedMessages": 2,
+            "error": "",
+            "prompt": "Describe the attached trail image.",
+            "source": "photo",
+            "tokenCount": 0
+          },
+          "history": {},
+          "position": "streaming",
+          "seq": 4,
+          "viewSlots": {
+            "main": {
+              "revision": 0,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.view.binding.parameter"
+      ],
+      "input": {
+        "name": "timeout",
+        "origin": "effect",
+        "payload": {
+          "id": "effect:3",
+          "output": {},
+          "token": {
+            "seq": 4,
+            "sessionKey": "chat:42",
+            "stateId": "streaming"
+          }
+        },
+        "source": "outcome"
+      },
+      "name": "handle the declared timeout",
+      "result": {
+        "intents": [
+          {
+            "kind": "view",
+            "operation": "send",
+            "slot": "main",
+            "target": {
+              "chatId": 42,
+              "kind": "chat"
+            },
+            "view": {
+              "kind": "text",
+              "parseMode": "plain",
+              "text": "Trail Guide timed out. Send another prompt to retry."
+            }
+          }
+        ],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {
+            "answer": "High clouds can mark an approaching front. Check wind and pressure before you leave.",
+            "draft": "Reading the trail image...",
+            "droppedMessages": 2,
+            "error": "",
+            "prompt": "Describe the attached trail image.",
+            "source": "photo",
+            "tokenCount": 0
+          },
+          "history": {},
+          "position": "timedOut",
+          "seq": 5,
+          "viewSlots": {
+            "main": {
+              "revision": 0,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.context.complete"
+      ],
+      "input": {
+        "name": "voice",
+        "origin": "telegram",
+        "payload": {
+          "sessionKey": "chat:42"
+        },
+        "source": "message"
+      },
+      "name": "start from a voice note",
+      "result": {
+        "intents": [
+          {
+            "effect": "transcribeVoice",
+            "id": "effect:4",
+            "input": {},
+            "kind": "effect",
+            "token": {
+              "seq": 6,
+              "sessionKey": "chat:42",
+              "stateId": "transcribing"
+            }
+          }
+        ],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {
+            "answer": "High clouds can mark an approaching front. Check wind and pressure before you leave.",
+            "draft": "Reading the voice note...",
+            "droppedMessages": 2,
+            "error": "",
+            "prompt": "",
+            "source": "voice",
+            "tokenCount": 0
+          },
+          "history": {},
+          "position": "transcribing",
+          "seq": 6,
+          "viewSlots": {
+            "main": {
+              "revision": 0,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.effect.inputSnapshot"
+      ],
+      "input": {
+        "name": "transcribed",
+        "origin": "effect",
+        "payload": {
+          "id": "effect:4",
+          "output": {
+            "text": "List three signs of a safe river crossing."
+          },
+          "token": {
+            "seq": 6,
+            "sessionKey": "chat:42",
+            "stateId": "transcribing"
+          }
+        },
+        "source": "outcome"
+      },
+      "name": "stream the transcribed prompt",
+      "result": {
+        "intents": [
+          {
+            "effect": "streamReply",
+            "id": "effect:5",
+            "input": {
+              "prompt": "List three signs of a safe river crossing.",
+              "source": "voice"
+            },
+            "kind": "effect",
+            "token": {
+              "seq": 7,
+              "sessionKey": "chat:42",
+              "stateId": "streaming"
+            }
+          }
+        ],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {
+            "answer": "High clouds can mark an approaching front. Check wind and pressure before you leave.",
+            "draft": "Reading the voice note...",
+            "droppedMessages": 2,
+            "error": "",
+            "prompt": "List three signs of a safe river crossing.",
+            "source": "voice",
+            "tokenCount": 0
+          },
+          "history": {},
+          "position": "streaming",
+          "seq": 7,
+          "viewSlots": {
+            "main": {
+              "revision": 0,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.view.binding.context"
+      ],
+      "input": {
+        "name": "safetyRejected",
+        "origin": "effect",
+        "payload": {
+          "id": "effect:5",
+          "output": {
+            "reason": "The request is outside the field guide."
+          },
+          "token": {
+            "seq": 7,
+            "sessionKey": "chat:42",
+            "stateId": "streaming"
+          }
+        },
+        "source": "outcome"
+      },
+      "name": "show a policy rejection",
+      "result": {
+        "intents": [
+          {
+            "kind": "view",
+            "operation": "send",
+            "slot": "main",
+            "target": {
+              "chatId": 42,
+              "kind": "chat"
+            },
+            "view": {
+              "kind": "text",
+              "parseMode": "plain",
+              "text": "Request declined: The request is outside the field guide."
+            }
+          }
+        ],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {
+            "answer": "High clouds can mark an approaching front. Check wind and pressure before you leave.",
+            "draft": "Reading the voice note...",
+            "droppedMessages": 2,
+            "error": "The request is outside the field guide.",
+            "prompt": "List three signs of a safe river crossing.",
+            "source": "voice",
+            "tokenCount": 0
+          },
+          "history": {},
+          "position": "refused",
+          "seq": 8,
+          "viewSlots": {
+            "main": {
+              "revision": 0,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.event.namedCaptures"
+      ],
+      "input": {
+        "name": "message",
+        "origin": "telegram",
+        "payload": {
+          "sessionKey": "chat:42",
+          "text": "How can I mark a safe campsite?"
+        },
+        "source": "text"
+      },
+      "name": "retry with a new prompt",
+      "result": {
+        "intents": [
+          {
+            "effect": "streamReply",
+            "id": "effect:6",
+            "input": {
+              "prompt": "How can I mark a safe campsite?",
+              "source": "text"
+            },
+            "kind": "effect",
+            "token": {
+              "seq": 9,
+              "sessionKey": "chat:42",
+              "stateId": "streaming"
+            }
+          }
+        ],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {
+            "answer": "High clouds can mark an approaching front. Check wind and pressure before you leave.",
+            "draft": "Preparing a field note...",
+            "droppedMessages": 2,
+            "error": "",
+            "prompt": "How can I mark a safe campsite?",
+            "source": "text",
+            "tokenCount": 0
+          },
+          "history": {},
+          "position": "streaming",
+          "seq": 9,
+          "viewSlots": {
+            "main": {
+              "revision": 0,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.view.html"
+      ],
+      "input": {
+        "name": "failed",
+        "origin": "effect",
+        "payload": {
+          "id": "effect:6",
+          "output": {
+            "reason": "The guide service is unavailable."
+          },
+          "token": {
+            "seq": 9,
+            "sessionKey": "chat:42",
+            "stateId": "streaming"
+          }
+        },
+        "source": "outcome"
+      },
+      "name": "show a terminal failure",
+      "result": {
+        "intents": [
+          {
+            "kind": "view",
+            "operation": "send",
+            "slot": "main",
+            "target": {
+              "chatId": 42,
+              "kind": "chat"
+            },
+            "view": {
+              "kind": "text",
+              "parseMode": "HTML",
+              "text": "<b>The field note failed:</b> The guide service is unavailable.\nSend another prompt to retry."
+            }
+          }
+        ],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {
+            "answer": "High clouds can mark an approaching front. Check wind and pressure before you leave.",
+            "draft": "Preparing a field note...",
+            "droppedMessages": 2,
+            "error": "The guide service is unavailable.",
+            "prompt": "How can I mark a safe campsite?",
+            "source": "text",
+            "tokenCount": 0
+          },
+          "history": {},
+          "position": "failed",
+          "seq": 10,
+          "viewSlots": {
+            "main": {
+              "revision": 0,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "transcriptVersion": 1
+}
