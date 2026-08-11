@@ -1,0 +1,722 @@
+{
+  "$schema": "https://svyatov.github.io/botchart/conformance/0.1.0/transcript.schema.json",
+  "initial": {
+    "now": "2026-08-11T09:00:00Z",
+    "session": {
+      "callStack": [],
+      "callbacks": {},
+      "context": {
+        "choice": ""
+      },
+      "history": {},
+      "position": "start",
+      "seq": 0,
+      "viewSlots": {
+        "main": {
+          "revision": 0,
+          "target": {
+            "chatId": 42,
+            "kind": "chat"
+          }
+        }
+      }
+    }
+  },
+  "name": "press freshness and callback indirection",
+  "schemaRevision": "0.1.0",
+  "spec": {
+    "path": "../specs/press-freshness.json",
+    "sha256": "47373218be65b13c4f8db1f19599970400464eb80b2dec0e4e0f5baf2a97e4b3"
+  },
+  "steps": [
+    {
+      "covers": [
+        "runtime.callback.identifier",
+        "runtime.callback.payload",
+        "runtime.callback.stalenessToken"
+      ],
+      "input": {
+        "name": "photo",
+        "origin": "telegram",
+        "payload": {
+          "sessionKey": "chat:42"
+        },
+        "source": "message"
+      },
+      "name": "render short callback identifiers",
+      "result": {
+        "intents": [
+          {
+            "kind": "view",
+            "operation": "send",
+            "slot": "main",
+            "target": {
+              "chatId": 42,
+              "kind": "chat"
+            },
+            "view": {
+              "keyboard": [
+                {
+                  "buttons": [
+                    {
+                      "callbackId": "callback:1",
+                      "kind": "button",
+                      "label": "Choose"
+                    },
+                    {
+                      "callbackId": "callback:2",
+                      "kind": "button",
+                      "label": "Cancel"
+                    }
+                  ],
+                  "kind": "row"
+                }
+              ],
+              "kind": "text",
+              "parseMode": "plain",
+              "text": "Menu"
+            }
+          }
+        ],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {
+            "callback:1": {
+              "durable": false,
+              "payload": {
+                "id": "first"
+              },
+              "press": "choose",
+              "seq": 1,
+              "sessionKey": "chat:42",
+              "stateId": "menu",
+              "viewRevision": 1,
+              "viewSlot": "main"
+            },
+            "callback:2": {
+              "durable": true,
+              "payload": {},
+              "press": "cancel",
+              "seq": 1,
+              "sessionKey": "chat:42",
+              "stateId": "menu",
+              "viewRevision": 1,
+              "viewSlot": "main"
+            }
+          },
+          "context": {
+            "choice": ""
+          },
+          "history": {},
+          "position": "menu",
+          "seq": 1,
+          "viewSlots": {
+            "main": {
+              "revision": 0,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.callback.revision"
+      ],
+      "input": {
+        "name": "send",
+        "origin": "adapter",
+        "payload": {
+          "handle": {
+            "chatId": 42,
+            "kind": "chat",
+            "messageId": 7
+          },
+          "interactive": true,
+          "slot": "main",
+          "viewKind": "text"
+        },
+        "source": "view"
+      },
+      "name": "commit the first interactive revision",
+      "result": {
+        "intents": [],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {
+            "callback:1": {
+              "durable": false,
+              "handle": {
+                "chatId": 42,
+                "kind": "chat",
+                "messageId": 7
+              },
+              "payload": {
+                "id": "first"
+              },
+              "press": "choose",
+              "seq": 1,
+              "sessionKey": "chat:42",
+              "stateId": "menu",
+              "viewRevision": 1,
+              "viewSlot": "main"
+            },
+            "callback:2": {
+              "durable": true,
+              "handle": {
+                "chatId": 42,
+                "kind": "chat",
+                "messageId": 7
+              },
+              "payload": {},
+              "press": "cancel",
+              "seq": 1,
+              "sessionKey": "chat:42",
+              "stateId": "menu",
+              "viewRevision": 1,
+              "viewSlot": "main"
+            }
+          },
+          "context": {
+            "choice": ""
+          },
+          "history": {},
+          "position": "menu",
+          "seq": 1,
+          "viewSlots": {
+            "main": {
+              "current": {
+                "handle": {
+                  "chatId": 42,
+                  "kind": "chat",
+                  "messageId": 7
+                },
+                "viewKind": "text"
+              },
+              "revision": 1,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.callback.accepted",
+        "runtime.callback.answer.accepted",
+        "runtime.callback.recovery"
+      ],
+      "input": {
+        "name": "callback:1",
+        "origin": "telegram",
+        "payload": {
+          "callbackQueryId": "query:1",
+          "sessionKey": "chat:42"
+        },
+        "source": "press"
+      },
+      "name": "recover an accepted press and its payload",
+      "result": {
+        "intents": [
+          {
+            "answer": {
+              "kind": "alert",
+              "text": "Selected first"
+            },
+            "callbackQueryId": "query:1",
+            "kind": "pressAnswer"
+          }
+        ],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {
+            "callback:1": {
+              "durable": false,
+              "handle": {
+                "chatId": 42,
+                "kind": "chat",
+                "messageId": 7
+              },
+              "payload": {
+                "id": "first"
+              },
+              "press": "choose",
+              "seq": 1,
+              "sessionKey": "chat:42",
+              "stateId": "menu",
+              "viewRevision": 1,
+              "viewSlot": "main"
+            },
+            "callback:2": {
+              "durable": true,
+              "handle": {
+                "chatId": 42,
+                "kind": "chat",
+                "messageId": 7
+              },
+              "payload": {},
+              "press": "cancel",
+              "seq": 1,
+              "sessionKey": "chat:42",
+              "stateId": "menu",
+              "viewRevision": 1,
+              "viewSlot": "main"
+            }
+          },
+          "context": {
+            "choice": "first"
+          },
+          "history": {},
+          "position": "menu",
+          "seq": 1,
+          "viewSlots": {
+            "main": {
+              "current": {
+                "handle": {
+                  "chatId": 42,
+                  "kind": "chat",
+                  "messageId": 7
+                },
+                "viewKind": "text"
+              },
+              "revision": 1,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.callback.cleanup.state"
+      ],
+      "input": {
+        "name": "video",
+        "origin": "telegram",
+        "payload": {
+          "sessionKey": "chat:42"
+        },
+        "source": "message"
+      },
+      "name": "append a new interactive view",
+      "result": {
+        "intents": [
+          {
+            "kind": "view",
+            "operation": "send",
+            "slot": "main",
+            "target": {
+              "chatId": 42,
+              "kind": "chat"
+            },
+            "view": {
+              "keyboard": [
+                {
+                  "buttons": [
+                    {
+                      "callbackId": "callback:3",
+                      "kind": "button",
+                      "label": "Keep"
+                    }
+                  ],
+                  "kind": "row"
+                }
+              ],
+              "kind": "text",
+              "parseMode": "plain",
+              "text": "Appended"
+            }
+          }
+        ],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {
+            "callback:2": {
+              "durable": true,
+              "handle": {
+                "chatId": 42,
+                "kind": "chat",
+                "messageId": 7
+              },
+              "payload": {},
+              "press": "cancel",
+              "seq": 1,
+              "sessionKey": "chat:42",
+              "stateId": "menu",
+              "viewRevision": 1,
+              "viewSlot": "main"
+            },
+            "callback:3": {
+              "durable": false,
+              "payload": {},
+              "press": "keep",
+              "seq": 2,
+              "sessionKey": "chat:42",
+              "stateId": "appended",
+              "viewRevision": 2,
+              "viewSlot": "main"
+            }
+          },
+          "context": {
+            "choice": "first"
+          },
+          "history": {},
+          "position": "appended",
+          "seq": 2,
+          "viewSlots": {
+            "main": {
+              "current": {
+                "handle": {
+                  "chatId": 42,
+                  "kind": "chat",
+                  "messageId": 7
+                },
+                "viewKind": "text"
+              },
+              "revision": 1,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.callback.cleanup.append"
+      ],
+      "input": {
+        "name": "send",
+        "origin": "adapter",
+        "payload": {
+          "handle": {
+            "chatId": 42,
+            "kind": "chat",
+            "messageId": 8
+          },
+          "interactive": true,
+          "slot": "main",
+          "viewKind": "text"
+        },
+        "source": "view"
+      },
+      "name": "commit the appended message",
+      "result": {
+        "intents": [],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {
+            "callback:2": {
+              "durable": true,
+              "handle": {
+                "chatId": 42,
+                "kind": "chat",
+                "messageId": 7
+              },
+              "payload": {},
+              "press": "cancel",
+              "seq": 1,
+              "sessionKey": "chat:42",
+              "stateId": "menu",
+              "viewRevision": 1,
+              "viewSlot": "main"
+            },
+            "callback:3": {
+              "durable": false,
+              "handle": {
+                "chatId": 42,
+                "kind": "chat",
+                "messageId": 8
+              },
+              "payload": {},
+              "press": "keep",
+              "seq": 2,
+              "sessionKey": "chat:42",
+              "stateId": "appended",
+              "viewRevision": 2,
+              "viewSlot": "main"
+            }
+          },
+          "context": {
+            "choice": "first"
+          },
+          "history": {},
+          "position": "appended",
+          "seq": 2,
+          "viewSlots": {
+            "main": {
+              "current": {
+                "handle": {
+                  "chatId": 42,
+                  "kind": "chat",
+                  "messageId": 8
+                },
+                "viewKind": "text"
+              },
+              "revision": 2,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.callback.stale.rerender"
+      ],
+      "input": {
+        "name": "callback:1",
+        "origin": "telegram",
+        "payload": {
+          "callbackQueryId": "query:2",
+          "sessionKey": "chat:42"
+        },
+        "source": "press"
+      },
+      "name": "rerender after an obsolete callback",
+      "result": {
+        "intents": [
+          {
+            "answer": {
+              "kind": "toast",
+              "text": "Expired"
+            },
+            "callbackQueryId": "query:2",
+            "kind": "pressAnswer"
+          },
+          {
+            "handle": {
+              "chatId": 42,
+              "kind": "chat",
+              "messageId": 8
+            },
+            "kind": "view",
+            "operation": "edit",
+            "slot": "main",
+            "view": {
+              "keyboard": [
+                {
+                  "buttons": [
+                    {
+                      "callbackId": "callback:4",
+                      "kind": "button",
+                      "label": "Keep"
+                    }
+                  ],
+                  "kind": "row"
+                }
+              ],
+              "kind": "text",
+              "parseMode": "plain",
+              "text": "Appended"
+            }
+          }
+        ],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {
+            "callback:2": {
+              "durable": true,
+              "handle": {
+                "chatId": 42,
+                "kind": "chat",
+                "messageId": 7
+              },
+              "payload": {},
+              "press": "cancel",
+              "seq": 1,
+              "sessionKey": "chat:42",
+              "stateId": "menu",
+              "viewRevision": 1,
+              "viewSlot": "main"
+            },
+            "callback:3": {
+              "durable": false,
+              "handle": {
+                "chatId": 42,
+                "kind": "chat",
+                "messageId": 8
+              },
+              "payload": {},
+              "press": "keep",
+              "seq": 2,
+              "sessionKey": "chat:42",
+              "stateId": "appended",
+              "viewRevision": 2,
+              "viewSlot": "main"
+            },
+            "callback:4": {
+              "durable": false,
+              "payload": {},
+              "press": "keep",
+              "seq": 2,
+              "sessionKey": "chat:42",
+              "stateId": "appended",
+              "viewRevision": 3,
+              "viewSlot": "main"
+            }
+          },
+          "context": {
+            "choice": "first"
+          },
+          "history": {},
+          "position": "appended",
+          "seq": 2,
+          "viewSlots": {
+            "main": {
+              "current": {
+                "handle": {
+                  "chatId": 42,
+                  "kind": "chat",
+                  "messageId": 8
+                },
+                "viewKind": "text"
+              },
+              "revision": 2,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.callback.cleanup.edit"
+      ],
+      "input": {
+        "name": "edit",
+        "origin": "adapter",
+        "payload": {
+          "interactive": true,
+          "slot": "main",
+          "viewKind": "text"
+        },
+        "source": "view"
+      },
+      "name": "commit the rerendered revision",
+      "result": {
+        "intents": [],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {
+            "callback:2": {
+              "durable": true,
+              "handle": {
+                "chatId": 42,
+                "kind": "chat",
+                "messageId": 7
+              },
+              "payload": {},
+              "press": "cancel",
+              "seq": 1,
+              "sessionKey": "chat:42",
+              "stateId": "menu",
+              "viewRevision": 1,
+              "viewSlot": "main"
+            },
+            "callback:4": {
+              "durable": false,
+              "handle": {
+                "chatId": 42,
+                "kind": "chat",
+                "messageId": 8
+              },
+              "payload": {},
+              "press": "keep",
+              "seq": 2,
+              "sessionKey": "chat:42",
+              "stateId": "appended",
+              "viewRevision": 3,
+              "viewSlot": "main"
+            }
+          },
+          "context": {
+            "choice": "first"
+          },
+          "history": {},
+          "position": "appended",
+          "seq": 2,
+          "viewSlots": {
+            "main": {
+              "current": {
+                "handle": {
+                  "chatId": 42,
+                  "kind": "chat",
+                  "messageId": 8
+                },
+                "viewKind": "text"
+              },
+              "revision": 3,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.callback.answer.required",
+        "runtime.callback.cleanup.session",
+        "runtime.callback.durable"
+      ],
+      "input": {
+        "name": "callback:2",
+        "origin": "telegram",
+        "payload": {
+          "callbackQueryId": "query:3",
+          "sessionKey": "chat:42"
+        },
+        "source": "press"
+      },
+      "name": "resolve a durable press in the current state and end the session",
+      "result": {
+        "intents": [
+          {
+            "callbackQueryId": "query:3",
+            "kind": "pressAnswer"
+          },
+          {
+            "handle": {
+              "chatId": 42,
+              "kind": "chat",
+              "messageId": 8
+            },
+            "kind": "view",
+            "operation": "delete",
+            "slot": "main"
+          }
+        ],
+        "kind": "ok",
+        "session": null
+      }
+    }
+  ],
+  "transcriptVersion": 1
+}

@@ -1,0 +1,34 @@
+{
+  "$schema": "https://svyatov.github.io/botchart/schema/0.1.0.json",
+  "version": 1,
+  "schemaRevision": "0.1.0",
+  "packs": [],
+  "scope": "chat+user",
+  "context": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+      "name": { "type": "string" }
+    },
+    "required": ["name"],
+    "additionalProperties": false,
+    "default": { "name": "Ada" }
+  },
+  "parameters": {},
+  "guards": {},
+  "effects": {},
+  "presses": {},
+  "units": {},
+  "stalePress": {
+    "action": "answer",
+    "answer": {
+      "kind": "alert",
+      "text": ["Expired for ", { "context": "name", "escape": "text" }]
+    }
+  },
+  "initial": "main",
+  "on": {},
+  "states": {
+    "main": { "kind": "state", "render": "keep" }
+  }
+}

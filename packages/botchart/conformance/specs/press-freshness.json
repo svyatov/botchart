@@ -1,0 +1,122 @@
+{
+  "$schema": "https://svyatov.github.io/botchart/schema/0.1.0.json",
+  "version": 1,
+  "schemaRevision": "0.1.0",
+  "packs": [],
+  "scope": "chat+user",
+  "context": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+      "choice": { "type": "string" }
+    },
+    "required": ["choice"],
+    "additionalProperties": false,
+    "default": { "choice": "" }
+  },
+  "parameters": {},
+  "guards": {},
+  "effects": {},
+  "presses": {
+    "choose": {
+      "payload": { "id": { "type": "string" } }
+    },
+    "cancel": { "payload": {} },
+    "keep": { "payload": {} }
+  },
+  "units": {},
+  "stalePress": {
+    "action": "rerender",
+    "answer": { "kind": "toast", "text": ["Expired"] }
+  },
+  "initial": "start",
+  "on": {},
+  "states": {
+    "start": {
+      "kind": "state",
+      "render": "keep",
+      "on": {
+        "message": {
+          "photo": [{ "target": "menu" }]
+        }
+      }
+    },
+    "menu": {
+      "kind": "state",
+      "view": {
+        "kind": "text",
+        "text": ["Menu"],
+        "parseMode": "plain",
+        "keyboard": [
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": ["Choose"],
+                "press": "choose",
+                "payload": { "id": "first" },
+                "durable": false
+              },
+              {
+                "kind": "button",
+                "label": ["Cancel"],
+                "press": "cancel",
+                "durable": true
+              }
+            ]
+          }
+        ]
+      },
+      "render": "edit",
+      "on": {
+        "press": {
+          "choose": [
+            {
+              "assign": { "choice": { "from": "id" } },
+              "answer": {
+                "kind": "alert",
+                "text": ["Selected ", { "context": "choice", "escape": "text" }]
+              }
+            }
+          ]
+        },
+        "message": {
+          "video": [{ "target": "appended" }]
+        }
+      }
+    },
+    "appended": {
+      "kind": "state",
+      "view": {
+        "kind": "text",
+        "text": ["Appended"],
+        "parseMode": "plain",
+        "keyboard": [
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": ["Keep"],
+                "press": "keep",
+                "durable": false
+              }
+            ]
+          }
+        ]
+      },
+      "render": "append",
+      "on": {
+        "press": {
+          "cancel": [{ "target": "done" }],
+          "keep": [{}]
+        }
+      }
+    },
+    "done": {
+      "kind": "final",
+      "render": "delete"
+    }
+  }
+}

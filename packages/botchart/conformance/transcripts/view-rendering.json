@@ -76,7 +76,9 @@
       "input": {
         "name": "photo",
         "origin": "telegram",
-        "payload": {},
+        "payload": {
+          "sessionKey": "chat:42"
+        },
         "source": "message"
       },
       "name": "replace an incompatible view with rendered bindings and projection rows",
@@ -100,13 +102,9 @@
                 {
                   "buttons": [
                     {
-                      "durable": false,
+                      "callbackId": "callback:1",
                       "kind": "button",
-                      "label": "&lt;First&gt;",
-                      "payload": {
-                        "id": "first"
-                      },
-                      "press": "pick"
+                      "label": "&lt;First&gt;"
                     }
                   ],
                   "kind": "row"
@@ -121,7 +119,20 @@
         "kind": "ok",
         "session": {
           "callStack": [],
-          "callbacks": {},
+          "callbacks": {
+            "callback:1": {
+              "durable": false,
+              "payload": {
+                "id": "first"
+              },
+              "press": "pick",
+              "seq": 1,
+              "sessionKey": "chat:42",
+              "stateId": "summary",
+              "viewRevision": 1,
+              "viewSlot": "main"
+            }
+          },
           "context": {
             "empty": "",
             "name": "<Ada & Co>",
@@ -197,7 +208,25 @@
         "kind": "ok",
         "session": {
           "callStack": [],
-          "callbacks": {},
+          "callbacks": {
+            "callback:1": {
+              "durable": false,
+              "handle": {
+                "chatId": 42,
+                "kind": "chat",
+                "messageId": 8
+              },
+              "payload": {
+                "id": "first"
+              },
+              "press": "pick",
+              "seq": 1,
+              "sessionKey": "chat:42",
+              "stateId": "summary",
+              "viewRevision": 1,
+              "viewSlot": "main"
+            }
+          },
           "context": {
             "empty": "",
             "name": "<Ada & Co>",
@@ -413,39 +442,13 @@
       },
       "name": "append an interactive view",
       "result": {
-        "intents": [
-          {
-            "kind": "view",
-            "operation": "send",
-            "slot": "main",
-            "target": {
-              "chatId": 42,
-              "kind": "chat"
-            },
-            "view": {
-              "keyboard": [
-                {
-                  "buttons": [
-                    {
-                      "durable": true,
-                      "kind": "button",
-                      "label": "Keep",
-                      "payload": {
-                        "id": "keep"
-                      },
-                      "press": "pick"
-                    }
-                  ],
-                  "kind": "row"
-                }
-              ],
-              "kind": "text",
-              "parseMode": "plain",
-              "text": "Appended"
-            }
-          }
-        ],
-        "kind": "ok",
+        "error": {
+          "code": "missing_session_key",
+          "message": "Add the sessionKey value before this view renders a button.",
+          "path": "$.input.payload.sessionKey"
+        },
+        "intents": [],
+        "kind": "error",
         "session": {
           "callStack": [],
           "callbacks": {},
@@ -476,8 +479,8 @@
             ]
           },
           "history": {},
-          "position": "append",
-          "seq": 3,
+          "position": "details",
+          "seq": 2,
           "viewSlots": {
             "main": {
               "current": {
@@ -551,8 +554,8 @@
             ]
           },
           "history": {},
-          "position": "append",
-          "seq": 3,
+          "position": "details",
+          "seq": 2,
           "viewSlots": {
             "main": {
               "current": {
@@ -630,7 +633,7 @@
           },
           "history": {},
           "position": "remove",
-          "seq": 4,
+          "seq": 3,
           "viewSlots": {
             "main": {
               "current": {
@@ -698,7 +701,7 @@
           },
           "history": {},
           "position": "remove",
-          "seq": 4,
+          "seq": 3,
           "viewSlots": {
             "main": {
               "revision": 2,
@@ -756,7 +759,7 @@
           },
           "history": {},
           "position": "kept",
-          "seq": 5,
+          "seq": 4,
           "viewSlots": {
             "main": {
               "revision": 2,
@@ -820,7 +823,7 @@
           },
           "history": {},
           "position": "kept",
-          "seq": 5,
+          "seq": 4,
           "viewSlots": {
             "main": {
               "revision": 2,
@@ -883,7 +886,7 @@
           },
           "history": {},
           "position": "kept",
-          "seq": 5,
+          "seq": 4,
           "viewSlots": {
             "main": {
               "revision": 2,
@@ -946,7 +949,7 @@
           },
           "history": {},
           "position": "kept",
-          "seq": 5,
+          "seq": 4,
           "viewSlots": {
             "main": {
               "revision": 2,
@@ -1030,7 +1033,7 @@
           },
           "history": {},
           "position": "screen",
-          "seq": 7,
+          "seq": 6,
           "viewSlots": {
             "main": {
               "revision": 2,

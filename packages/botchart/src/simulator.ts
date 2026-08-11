@@ -408,11 +408,17 @@ function validateCallback(value: unknown, path: string): TranscriptIssue | undef
     "seq",
     "viewSlot",
     "viewRevision",
+    "handle",
     "press",
     "payload",
     "durable",
   ];
-  const issue = closedObject(value, path, fields);
+  const issue = closedObject(
+    value,
+    path,
+    fields,
+    fields.filter((field) => field !== "handle"),
+  );
   if (issue !== undefined) return issue;
   const callback = value as Record<string, unknown>;
   if (!isNonEmptyString(callback.sessionKey)) return invalidValue(`${path}.sessionKey`, "Set sessionKey to a non-empty key.");
@@ -423,6 +429,10 @@ function validateCallback(value: unknown, path: string): TranscriptIssue | undef
   if (!isNonEmptyString(callback.viewSlot)) return invalidValue(`${path}.viewSlot`, "Set viewSlot to a non-empty slot name.");
   if (!Number.isInteger(callback.viewRevision) || Number(callback.viewRevision) < 0) {
     return invalidValue(`${path}.viewRevision`, "Set viewRevision to a non-negative integer.");
+  }
+  if (callback.handle !== undefined) {
+    const handleIssue = validateChatHandle(callback.handle, `${path}.handle`);
+    if (handleIssue !== undefined) return handleIssue;
   }
   if (!isNonEmptyString(callback.press)) return invalidValue(`${path}.press`, "Set press to a non-empty press name.");
   if (!isRecord(callback.payload) || !isJsonValue(callback.payload)) {
@@ -717,6 +727,7 @@ function runTranscript(
   const steps: TranscriptStep[] = [];
   let now = Date.parse(transcript.initial.now);
   let session = transcript.initial.session;
+  let runtimeSession = transcript.initial.session;
   let final = false;
 
   for (const [index, step] of transcript.steps.entries()) {
@@ -733,12 +744,13 @@ function runTranscript(
 
     if (step.advance !== undefined) now += delayMilliseconds(step.advance);
 
-    const result = normalizeResult(runner({
+    const runtimeResult = runner({
       spec,
-      session,
+      session: runtimeSession,
       input: restoreInputIds(step.input, counters),
       now: new Date(now).toISOString(),
-    }), counters);
+    });
+    const result = normalizeResult(runtimeResult, counters);
 
     if (result.kind === "error") {
       const sessionIssues = compareTranscriptValues(
@@ -770,9 +782,11 @@ function runTranscript(
         final = true;
       } else {
         session = result.session;
+        runtimeSession = runtimeResult.session!;
       }
     } else {
       session = result.session;
+      runtimeSession = runtimeResult.session!;
     }
   }
 
@@ -786,6 +800,9 @@ function restoreInputIds(
   input: CoreInput,
   counters: ReplayTranscriptIdCounters,
 ): CoreInput {
+  if (input.origin === "telegram" && input.source === "press") {
+    return { ...input, name: counters.original("callback", input.name) };
+  }
   if (
     input.origin !== "effect"
     || !isRecord(input.payload)
@@ -875,6 +892,12 @@ function normalizeResult(result: CoreResult, counters: TranscriptIdCounters): Co
     if (intent.kind === "timer") {
       return { ...intent, id: counters.stable("timer", intent.id) };
     }
+    if (intent.kind === "view" && "view" in intent) {
+      return {
+        ...intent,
+        view: normalizeViewCallbackIds(intent.view, counters),
+      };
+    }
     return intent;
   });
 
@@ -883,6 +906,31 @@ function normalizeResult(result: CoreResult, counters: TranscriptIdCounters): Co
   }
 
   return { ...result, session, intents };
+}
+
+function normalizeViewCallbackIds(
+  value: Readonly<Record<string, JsonValue>>,
+  counters: TranscriptIdCounters,
+): Readonly<Record<string, JsonValue>> {
+  return normalizeCallbackValue(value, counters) as Readonly<Record<string, JsonValue>>;
+}
+
+function normalizeCallbackValue(
+  value: JsonValue,
+  counters: TranscriptIdCounters,
+): JsonValue {
+  if (Array.isArray(value)) {
+    return value.map((item) => normalizeCallbackValue(item, counters));
+  }
+  if (typeof value !== "object" || value === null) return value;
+  return Object.fromEntries(
+    Object.entries(value).map(([name, item]) => [
+      name,
+      name === "callbackId" && typeof item === "string"
+        ? counters.stable("callback", item)
+        : normalizeCallbackValue(item, counters),
+    ]),
+  );
 }
 
 function sortJson(value: JsonValue): JsonValue {

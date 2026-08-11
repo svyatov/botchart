@@ -1,0 +1,309 @@
+{
+  "$schema": "https://svyatov.github.io/botchart/conformance/0.1.0/transcript.schema.json",
+  "initial": {
+    "now": "2026-08-11T09:00:00Z",
+    "session": {
+      "callStack": [],
+      "callbacks": {
+        "callback:1": {
+          "durable": true,
+          "payload": {},
+          "press": "keep",
+          "seq": 0,
+          "sessionKey": "chat:42",
+          "stateId": "main",
+          "viewRevision": 0,
+          "viewSlot": "main"
+        },
+        "callback:2": {
+          "durable": true,
+          "payload": {},
+          "press": "keep",
+          "seq": 0,
+          "sessionKey": "chat:42",
+          "stateId": "main",
+          "viewRevision": 1,
+          "viewSlot": "main"
+        },
+        "callback:3": {
+          "durable": false,
+          "payload": {},
+          "press": "keep",
+          "seq": 0,
+          "sessionKey": "chat:42",
+          "stateId": "main",
+          "viewRevision": 1,
+          "viewSlot": "main"
+        },
+        "callback:4": {
+          "durable": false,
+          "payload": {},
+          "press": "keep",
+          "seq": 0,
+          "sessionKey": "chat:42",
+          "stateId": "main",
+          "viewRevision": 2,
+          "viewSlot": "main"
+        },
+        "callback:5": {
+          "durable": true,
+          "payload": {},
+          "press": "keep",
+          "seq": 0,
+          "sessionKey": "chat:42",
+          "stateId": "main",
+          "viewRevision": 3,
+          "viewSlot": "main"
+        }
+      },
+      "context": {},
+      "history": {},
+      "position": "main",
+      "seq": 0,
+      "viewSlots": {
+        "main": {
+          "current": {
+            "handle": {
+              "chatId": 42,
+              "kind": "chat",
+              "messageId": 7
+            },
+            "viewKind": "text"
+          },
+          "revision": 1,
+          "target": {
+            "chatId": 42,
+            "kind": "chat"
+          }
+        }
+      }
+    }
+  },
+  "name": "callback cleanup by message lifetime",
+  "schemaRevision": "0.1.0",
+  "spec": {
+    "path": "../specs/callback-cleanup.json",
+    "sha256": "f835750376a37cc6dc105dae51db35e890b23189747780991b7ca726a3a55640"
+  },
+  "steps": [
+    {
+      "covers": [
+        "runtime.callback.durable.edit"
+      ],
+      "input": {
+        "name": "edit",
+        "origin": "adapter",
+        "payload": {
+          "interactive": true,
+          "slot": "main",
+          "viewKind": "text"
+        },
+        "source": "view"
+      },
+      "name": "carry a durable callback across an edit",
+      "result": {
+        "intents": [],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {
+            "callback:1": {
+              "durable": true,
+              "payload": {},
+              "press": "keep",
+              "seq": 0,
+              "sessionKey": "chat:42",
+              "stateId": "main",
+              "viewRevision": 0,
+              "viewSlot": "main"
+            },
+            "callback:2": {
+              "durable": true,
+              "handle": {
+                "chatId": 42,
+                "kind": "chat",
+                "messageId": 7
+              },
+              "payload": {},
+              "press": "keep",
+              "seq": 0,
+              "sessionKey": "chat:42",
+              "stateId": "main",
+              "viewRevision": 2,
+              "viewSlot": "main"
+            },
+            "callback:4": {
+              "durable": false,
+              "handle": {
+                "chatId": 42,
+                "kind": "chat",
+                "messageId": 7
+              },
+              "payload": {},
+              "press": "keep",
+              "seq": 0,
+              "sessionKey": "chat:42",
+              "stateId": "main",
+              "viewRevision": 2,
+              "viewSlot": "main"
+            },
+            "callback:5": {
+              "durable": true,
+              "payload": {},
+              "press": "keep",
+              "seq": 0,
+              "sessionKey": "chat:42",
+              "stateId": "main",
+              "viewRevision": 3,
+              "viewSlot": "main"
+            }
+          },
+          "context": {},
+          "history": {},
+          "position": "main",
+          "seq": 0,
+          "viewSlots": {
+            "main": {
+              "current": {
+                "handle": {
+                  "chatId": 42,
+                  "kind": "chat",
+                  "messageId": 7
+                },
+                "viewKind": "text"
+              },
+              "revision": 2,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.callback.cleanup.replace"
+      ],
+      "input": {
+        "name": "replace",
+        "origin": "adapter",
+        "payload": {
+          "handle": {
+            "chatId": 42,
+            "kind": "chat",
+            "messageId": 8
+          },
+          "interactive": true,
+          "slot": "main",
+          "viewKind": "text"
+        },
+        "source": "view"
+      },
+      "name": "remove callbacks for a replaced message",
+      "result": {
+        "intents": [],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {
+            "callback:1": {
+              "durable": true,
+              "payload": {},
+              "press": "keep",
+              "seq": 0,
+              "sessionKey": "chat:42",
+              "stateId": "main",
+              "viewRevision": 0,
+              "viewSlot": "main"
+            },
+            "callback:5": {
+              "durable": true,
+              "handle": {
+                "chatId": 42,
+                "kind": "chat",
+                "messageId": 8
+              },
+              "payload": {},
+              "press": "keep",
+              "seq": 0,
+              "sessionKey": "chat:42",
+              "stateId": "main",
+              "viewRevision": 3,
+              "viewSlot": "main"
+            }
+          },
+          "context": {},
+          "history": {},
+          "position": "main",
+          "seq": 0,
+          "viewSlots": {
+            "main": {
+              "current": {
+                "handle": {
+                  "chatId": 42,
+                  "kind": "chat",
+                  "messageId": 8
+                },
+                "viewKind": "text"
+              },
+              "revision": 3,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.callback.cleanup.delete"
+      ],
+      "input": {
+        "name": "delete",
+        "origin": "adapter",
+        "payload": {
+          "slot": "main"
+        },
+        "source": "view"
+      },
+      "name": "remove callbacks for a deleted message",
+      "result": {
+        "intents": [],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {
+            "callback:1": {
+              "durable": true,
+              "payload": {},
+              "press": "keep",
+              "seq": 0,
+              "sessionKey": "chat:42",
+              "stateId": "main",
+              "viewRevision": 0,
+              "viewSlot": "main"
+            }
+          },
+          "context": {},
+          "history": {},
+          "position": "main",
+          "seq": 0,
+          "viewSlots": {
+            "main": {
+              "revision": 3,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "transcriptVersion": 1
+}
