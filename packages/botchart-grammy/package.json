@@ -20,7 +20,7 @@
   "keywords": ["telegram", "telegram-bot", "grammy", "grammy-plugin", "botchart"],
   "peerDependencies": {
     "botchart": "0.x",
-    "grammy": "^1.0.0"
+    "grammy": "^1.10.0"
   },
   "devDependencies": {
     "botchart": "workspace:*",
@@ -38,5 +38,8 @@
   },
   "scripts": {
     "build": "tsc -p ."
+  },
+  "dependencies": {
+    "@grammyjs/auto-retry": "2.0.2"
   }
 }

@@ -1,3 +1,4 @@
+import { autoRetry } from "@grammyjs/auto-retry";
 import { createSession, step } from "botchart";
 import type {
   BotchartSpec,
@@ -6,13 +7,15 @@ import type {
   CoreRunner,
   EffectIntent,
   Intent,
+  IntentFailure,
+  IntentFailureChain,
   JsonObject,
   Scheduler,
   SemanticSessionSnapshot,
   TimerPayload,
   ViewIntent,
 } from "botchart";
-import type { Api, Context, MiddlewareFn } from "grammy";
+import { GrammyError, type Api, type Context, type MiddlewareFn } from "grammy";
 
 export interface SessionStorage {
   read(key: string): string | undefined | Promise<string | undefined>;
@@ -187,10 +190,21 @@ export function createBotchartMiddleware<
   }
   const queues = new Map<string, Promise<void>>();
   const albums = new Map<string, PendingAlbum>();
+  const retry = autoRetry();
+  const retryApis = new WeakSet<Api>();
+  let failureSequence = 0;
+  const apiWithRetry = (api: Api): Api => {
+    if (!retryApis.has(api)) {
+      api.config.use(retry);
+      retryApis.add(api);
+    }
+    return api;
+  };
   const processInput = async (
     execution: AdapterExecution,
     sessionKey: string,
     input: CoreInput,
+    failureChain?: IntentFailureChain,
   ): Promise<void> => {
     const pendingEffects: PendingEffect[] = [];
     await serialize(queues, sessionKey, async () => {
@@ -212,7 +226,10 @@ export function createBotchartMiddleware<
       }
       const nextSession = await executeIntents({
         api: execution.api,
+        apiWithRetry,
         effectBindings: options.effects ?? {},
+        failureChain,
+        failureChainId: () => `failure:${++failureSequence}`,
         intents: result.intents,
         now,
         pendingEffects,
@@ -234,6 +251,20 @@ export function createBotchartMiddleware<
       await executeEffect(
         pending,
         (feedback) => processInput(execution, sessionKey, feedback),
+        async (error) => {
+          const failed = appendIntentFailure(
+            pending.failureChain,
+            () => `failure:${++failureSequence}`,
+            pending.intent,
+            error,
+          );
+          await processInput(execution, sessionKey, {
+            origin: "adapter",
+            source: "lifecycle",
+            name: failed.lifecycle,
+            payload: failed.chain,
+          }, failed.chain);
+        },
       );
     }
   };
@@ -311,23 +342,42 @@ function specUsesTimers(spec: BotchartSpec): boolean {
 
 type PendingEffect = {
   readonly binding: EffectBinding;
+  readonly failureChain?: IntentFailureChain;
   readonly intent: EffectIntent;
 };
 
 async function executeEffect(
   pending: PendingEffect,
   feedback: (input: CoreInput) => Promise<void>,
+  failure: (error: unknown) => Promise<void>,
 ): Promise<void> {
   const { binding, intent } = pending;
-  const result = await binding({
-    input: intent.input,
-    progress: (output) => feedback({
-      origin: "effect",
-      source: "progress",
-      name: intent.effect,
-      payload: { id: intent.id, token: intent.token, output },
-    }),
-  });
+  let feedbackError: unknown;
+  let feedbackFailed = false;
+  let result: EffectBindingResult;
+  try {
+    result = await binding({
+      input: intent.input,
+      progress: async (output) => {
+        try {
+          await feedback({
+            origin: "effect",
+            source: "progress",
+            name: intent.effect,
+            payload: { id: intent.id, token: intent.token, output },
+          });
+        } catch (error) {
+          feedbackFailed = true;
+          feedbackError = error;
+          throw error;
+        }
+      },
+    });
+  } catch (error) {
+    if (feedbackFailed) throw feedbackError;
+    await failure(error);
+    return;
+  }
   await feedback({
     origin: "effect",
     source: "outcome",
@@ -338,7 +388,10 @@ async function executeEffect(
 
 type ExecuteIntentsOptions<SessionContext extends JsonObject> = {
   readonly api: Api;
+  readonly apiWithRetry: (api: Api) => Api;
   readonly effectBindings: Readonly<Record<string, EffectBinding>>;
+  readonly failureChain?: IntentFailureChain;
+  readonly failureChainId: () => string;
   readonly intents: readonly Intent[];
   readonly now: () => string;
   readonly pendingEffects: PendingEffect[];
@@ -354,51 +407,140 @@ async function executeIntents<SessionContext extends JsonObject>(
 ): Promise<SemanticSessionSnapshot<SessionContext> | null> {
   let session = options.session;
   for (const intent of options.intents) {
-    if (intent.kind === "pressAnswer") {
-      await options.api.answerCallbackQuery(
-        intent.callbackQueryId,
-        intent.answer === undefined
-          ? undefined
-          : { text: intent.answer.text, show_alert: intent.answer.kind === "alert" },
-      );
-      continue;
-    }
-    if (intent.kind === "timer") {
-      if (options.scheduler === undefined) {
-        throw new SchedulerBindingError(
-          "A timer intent has no scheduler. Add a durable Scheduler or memoryScheduler() to the scheduler option.",
+    try {
+      if (intent.kind === "pressAnswer") {
+        await options.apiWithRetry(options.api).answerCallbackQuery(
+          intent.callbackQueryId,
+          intent.answer === undefined
+            ? undefined
+            : { text: intent.answer.text, show_alert: intent.answer.kind === "alert" },
         );
+        continue;
       }
-      if (intent.operation === "cancel") {
-        await options.scheduler.cancel(intent.id);
-      } else {
-        await options.scheduler.schedule(intent.id, new Date(intent.fireAt), {
-          ...intent.token,
-          timer: intent.timer,
+      if (intent.kind === "timer") {
+        if (options.scheduler === undefined) {
+          throw new SchedulerBindingError(
+            "A timer intent has no scheduler. Add a durable Scheduler or memoryScheduler() to the scheduler option.",
+          );
+        }
+        if (intent.operation === "cancel") {
+          await options.scheduler.cancel(intent.id);
+        } else {
+          await options.scheduler.schedule(intent.id, new Date(intent.fireAt), {
+            ...intent.token,
+            timer: intent.timer,
+          });
+        }
+        continue;
+      }
+      if (intent.kind === "effect") {
+        const binding = options.effectBindings[intent.effect];
+        if (binding === undefined) throw new EffectBindingError(intent.effect);
+        options.pendingEffects.push({
+          binding,
+          failureChain: options.failureChain,
+          intent,
         });
+        continue;
       }
-      continue;
+      const input = await executeViewIntent(options.apiWithRetry(options.api), intent);
+      if (session === null) continue;
+      const result = options.runner({
+        spec: options.spec,
+        session,
+        input,
+        now: options.now(),
+      });
+      if (result.kind === "error") {
+        throw new CoreRunnerError(options.sessionKey, result.error);
+      }
+      session = await executeIntents({ ...options, ...result });
+    } catch (error) {
+      if (intent.kind === "pressAnswer") continue;
+      if (error instanceof CoreRunnerError || session === null) throw error;
+      const failed = appendIntentFailure(
+        options.failureChain,
+        options.failureChainId,
+        intent,
+        error,
+      );
+      const result = options.runner({
+        spec: options.spec,
+        session,
+        input: {
+          origin: "adapter",
+          source: "lifecycle",
+          name: failed.lifecycle,
+          payload: failed.chain,
+        },
+        now: options.now(),
+      });
+      if (result.kind === "error") {
+        throw new CoreRunnerError(options.sessionKey, result.error);
+      }
+      return executeIntents({ ...options, ...result, failureChain: failed.chain });
     }
-    if (intent.kind === "effect") {
-      const binding = options.effectBindings[intent.effect];
-      if (binding === undefined) throw new EffectBindingError(intent.effect);
-      options.pendingEffects.push({ binding, intent });
-      continue;
-    }
-    const input = await executeViewIntent(options.api, intent);
-    if (session === null) continue;
-    const result = options.runner({
-      spec: options.spec,
-      session,
-      input,
-      now: options.now(),
-    });
-    if (result.kind === "error") {
-      throw new CoreRunnerError(options.sessionKey, result.error);
-    }
-    session = await executeIntents({ ...options, ...result });
   }
   return session;
+}
+
+function classifyIntentFailure(
+  intent: Intent,
+  value: unknown,
+): {
+  readonly lifecycle: "blocked" | "error";
+  readonly failure: IntentFailure;
+} {
+  const blocked = isRecipientBlocked(value);
+  const error = asError(value);
+  return {
+    lifecycle: blocked ? "blocked" : "error",
+    failure: {
+      intent,
+      code: intentFailureCode(intent, value, blocked),
+      message: value instanceof GrammyError ? value.description : error.message,
+    },
+  };
+}
+
+function intentFailureCode(
+  intent: Intent,
+  value: unknown,
+  blocked: boolean,
+): string {
+  if (blocked) return "recipient_blocked";
+  if (value instanceof GrammyError) return "telegram_api_error";
+  if (intent.kind === "effect") return "effect_execution_error";
+  if (intent.kind === "timer") return "scheduler_execution_error";
+  return "intent_execution_error";
+}
+
+function appendIntentFailure(
+  chain: IntentFailureChain | undefined,
+  chainId: () => string,
+  intent: Intent,
+  value: unknown,
+): {
+  readonly lifecycle: "blocked" | "error";
+  readonly chain: IntentFailureChain;
+} {
+  const classified = classifyIntentFailure(intent, value);
+  return {
+    lifecycle: classified.lifecycle,
+    chain: {
+      chainId: chain?.chainId ?? chainId(),
+      failures: [
+        ...(chain?.failures ?? []),
+        classified.failure,
+      ] as [IntentFailure, ...IntentFailure[]],
+    },
+  };
+}
+
+function isRecipientBlocked(value: unknown): value is GrammyError {
+  return value instanceof GrammyError
+    && value.error_code === 403
+    && value.description.toLowerCase().includes("bot was blocked");
 }
 
 type RenderedTextView = {
