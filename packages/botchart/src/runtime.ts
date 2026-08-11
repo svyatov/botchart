@@ -62,6 +62,16 @@ export type TimerFiringPayload = {
   readonly token: StalenessToken;
 };
 
+export type TimerPayload = StalenessToken & {
+  readonly timer: string;
+};
+
+export interface Scheduler {
+  schedule(id: string, fireAt: Date, payload: TimerPayload): Promise<void>;
+  cancel(id: string): Promise<void>;
+  onFire(handler: (payload: TimerPayload) => Promise<void>): void;
+}
+
 export type ChatTarget = {
   readonly kind: "chat";
   readonly chatId: number;

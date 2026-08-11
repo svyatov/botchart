@@ -4,11 +4,15 @@ import type {
   CoreError,
   CoreInput,
   CoreRunner,
+  EffectIntent,
   Intent,
   JsonObject,
+  Scheduler,
   SemanticSessionSnapshot,
+  TimerPayload,
+  ViewIntent,
 } from "botchart";
-import type { Context, MiddlewareFn } from "grammy";
+import type { Api, Context, MiddlewareFn } from "grammy";
 
 export interface SessionStorage {
   read(key: string): string | undefined | Promise<string | undefined>;
@@ -16,12 +20,29 @@ export interface SessionStorage {
   delete(key: string): void | Promise<void>;
 }
 
+export type EffectBindingOptions = {
+  readonly input: Readonly<JsonObject>;
+  readonly progress: (output: JsonObject) => Promise<void>;
+};
+
+export type EffectBindingResult = {
+  readonly outcome: string;
+  readonly output: JsonObject;
+};
+
+export type EffectBinding = (
+  options: EffectBindingOptions,
+) => EffectBindingResult | Promise<EffectBindingResult>;
+
 export type CreateBotchartMiddlewareOptions<
   SessionContext extends JsonObject = JsonObject,
 > = {
   readonly spec: BotchartSpec;
   readonly storage: SessionStorage;
+  readonly api?: Api;
   readonly runner?: CoreRunner<SessionContext>;
+  readonly effects?: Readonly<Record<string, EffectBinding>>;
+  readonly scheduler?: Scheduler;
   readonly now?: () => string;
   readonly albumDebounceMs?: number;
 };
@@ -62,18 +83,20 @@ export class CoreRunnerError extends Error {
   }
 }
 
-export class IntentExecutionError extends Error {
-  readonly sessionKey: string;
-  readonly intents: readonly Intent[];
+export class EffectBindingError extends Error {
+  readonly effect: string;
 
-  constructor(sessionKey: string, intents: readonly Intent[]) {
-    const noun = intents.length === 1 ? "intent" : "intents";
-    super(
-      `Core emitted ${intents.length} ${noun}. Execute every intent before this session is stored.`,
-    );
-    this.name = "IntentExecutionError";
-    this.sessionKey = sessionKey;
-    this.intents = intents;
+  constructor(effect: string) {
+    super(`Effect ${effect} has no binding. Add it to the effects option.`);
+    this.name = "EffectBindingError";
+    this.effect = effect;
+  }
+}
+
+export class SchedulerBindingError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "SchedulerBindingError";
   }
 }
 
@@ -90,6 +113,57 @@ export function memoryStorage(): SessionStorage {
   };
 }
 
+export function memoryScheduler(): Scheduler {
+  console.warn(
+    "memoryScheduler() is non-durable. Use a durable Scheduler for production timers.",
+  );
+  let handler: ((payload: TimerPayload) => Promise<void>) | undefined;
+  const timers = new Map<string, MemoryTimer>();
+  const arm = (id: string, payload: TimerPayload, delay: number): void => {
+    const timer: MemoryTimer = {
+      payload,
+      timeout: setTimeout(() => {
+        void deliver(id, timer);
+      }, delay),
+    };
+    timers.set(id, timer);
+  };
+  const deliver = async (id: string, timer: MemoryTimer): Promise<void> => {
+    if (timers.get(id) !== timer) return;
+    if (handler === undefined) {
+      arm(id, timer.payload, 1_000);
+      return;
+    }
+    try {
+      await handler(timer.payload);
+      if (timers.get(id) === timer) timers.delete(id);
+    } catch {
+      if (timers.get(id) === timer) arm(id, timer.payload, 1_000);
+    }
+  };
+  return {
+    schedule: async (id, fireAt, payload) => {
+      const existing = timers.get(id);
+      if (existing !== undefined) clearTimeout(existing.timeout);
+      arm(id, payload, Math.max(0, fireAt.getTime() - Date.now()));
+    },
+    cancel: async (id) => {
+      const existing = timers.get(id);
+      if (existing === undefined) return;
+      clearTimeout(existing.timeout);
+      timers.delete(id);
+    },
+    onFire: (nextHandler) => {
+      handler = nextHandler;
+    },
+  };
+}
+
+type MemoryTimer = {
+  readonly payload: TimerPayload;
+  timeout: ReturnType<typeof setTimeout>;
+};
+
 export function createBotchartMiddleware<
   BotContext extends Context = Context,
   SessionContext extends JsonObject = JsonObject,
@@ -102,8 +176,91 @@ export function createBotchartMiddleware<
   if (!isNonNegativeInteger(albumDebounceMs)) {
     throw new RangeError("Set albumDebounceMs to a non-negative integer.");
   }
+  const missingEffect = Object.keys(options.spec.effects ?? {}).find((name) =>
+    options.effects?.[name] === undefined
+  );
+  if (missingEffect !== undefined) throw new EffectBindingError(missingEffect);
+  if (specUsesTimers(options.spec) && options.scheduler === undefined) {
+    throw new SchedulerBindingError(
+      "This spec uses state timers. Add a durable Scheduler or memoryScheduler() to the scheduler option.",
+    );
+  }
   const queues = new Map<string, Promise<void>>();
   const albums = new Map<string, PendingAlbum>();
+  const processInput = async (
+    execution: AdapterExecution,
+    sessionKey: string,
+    input: CoreInput,
+  ): Promise<void> => {
+    const pendingEffects: PendingEffect[] = [];
+    await serialize(queues, sessionKey, async () => {
+      const stored = await options.storage.read(sessionKey);
+      const session = stored === undefined
+        ? createSession<SessionContext>({
+            spec: options.spec,
+            target: execution.target,
+          })
+        : decodeSession<SessionContext>(stored, sessionKey);
+      const result = runner({
+        spec: options.spec,
+        session,
+        input,
+        now: now(),
+      });
+      if (result.kind === "error") {
+        throw new CoreRunnerError(sessionKey, result.error);
+      }
+      const nextSession = await executeIntents({
+        api: execution.api,
+        effectBindings: options.effects ?? {},
+        intents: result.intents,
+        now,
+        pendingEffects,
+        runner,
+        session: result.session,
+        sessionKey,
+        scheduler: options.scheduler,
+        spec: options.spec,
+      });
+      if (nextSession === null) await options.storage.delete(sessionKey);
+      else {
+        await options.storage.write(sessionKey, JSON.stringify({
+          formatVersion: 1,
+          session: nextSession,
+        }));
+      }
+    });
+    for (const pending of pendingEffects) {
+      await executeEffect(
+        pending,
+        (feedback) => processInput(execution, sessionKey, feedback),
+      );
+    }
+  };
+  if (options.scheduler !== undefined) {
+    if (options.api === undefined) {
+      throw new SchedulerBindingError(
+        "A scheduler needs a grammY API. Pass bot.api in the api option.",
+      );
+    }
+    options.scheduler.onFire((payload) => processInput(
+      { api: options.api! },
+      payload.sessionKey,
+      {
+        origin: "scheduler",
+        source: "timer",
+        name: payload.timer,
+        payload: {
+          id: timerId(payload),
+          token: {
+            sessionKey: payload.sessionKey,
+            stateId: payload.stateId,
+            seq: payload.seq,
+          },
+        },
+      },
+    ));
+  }
   return async (context, next) => {
     const album = await collectAlbum(albums, context, albumDebounceMs);
     if (album === albumFollower) {
@@ -114,38 +271,198 @@ export function createBotchartMiddleware<
     const input = album === undefined
       ? normalizeInput(context, sessionKey)
       : normalizeAlbum(album, sessionKey);
-    await serialize(queues, sessionKey, async () => {
-      const stored = await options.storage.read(sessionKey);
-      const session = stored === undefined
-        ? createSession<SessionContext>({
-            spec: options.spec,
-            target: context.chat === undefined
-              ? undefined
-              : { kind: "chat", chatId: context.chat.id },
-          })
-        : decodeSession<SessionContext>(stored, sessionKey);
-      const result = runner({
-        spec: options.spec,
-        session,
-        input,
-        now: now(),
-      });
-      if (result.kind === "ok") {
-        if (result.intents.length > 0) {
-          throw new IntentExecutionError(sessionKey, result.intents);
-        }
-        if (result.session === null) await options.storage.delete(sessionKey);
-        else {
-          await options.storage.write(sessionKey, JSON.stringify({
-            formatVersion: 1,
-            session: result.session,
-          }));
-        }
-      } else {
-        throw new CoreRunnerError(sessionKey, result.error);
-      }
-    });
+    await processInput({
+      api: context.api,
+      target: context.chat === undefined
+        ? undefined
+        : { kind: "chat", chatId: context.chat.id },
+    }, sessionKey, input);
     await next();
+  };
+}
+
+type AdapterExecution = {
+  readonly api: Api;
+  readonly target?: {
+    readonly kind: "chat";
+    readonly chatId: number;
+  };
+};
+
+function timerId(payload: TimerPayload): string {
+  return `${payload.sessionKey}:${payload.stateId}:${payload.seq}:${payload.timer}`;
+}
+
+function specUsesTimers(spec: BotchartSpec): boolean {
+  const nodeUsesTimers = (value: unknown): boolean => {
+    if (!isRecord(value)) return false;
+    const on = value.on;
+    if (
+      isRecord(on)
+      && isRecord(on.after)
+      && Object.keys(on.after).length > 0
+    ) return true;
+    const states = value.states;
+    return isRecord(states) && Object.values(states).some(nodeUsesTimers);
+  };
+  return Object.values(spec.states).some(nodeUsesTimers)
+    || Object.values(spec.units ?? {}).some(nodeUsesTimers);
+}
+
+type PendingEffect = {
+  readonly binding: EffectBinding;
+  readonly intent: EffectIntent;
+};
+
+async function executeEffect(
+  pending: PendingEffect,
+  feedback: (input: CoreInput) => Promise<void>,
+): Promise<void> {
+  const { binding, intent } = pending;
+  const result = await binding({
+    input: intent.input,
+    progress: (output) => feedback({
+      origin: "effect",
+      source: "progress",
+      name: intent.effect,
+      payload: { id: intent.id, token: intent.token, output },
+    }),
+  });
+  await feedback({
+    origin: "effect",
+    source: "outcome",
+    name: result.outcome,
+    payload: { id: intent.id, token: intent.token, output: result.output },
+  });
+}
+
+type ExecuteIntentsOptions<SessionContext extends JsonObject> = {
+  readonly api: Api;
+  readonly effectBindings: Readonly<Record<string, EffectBinding>>;
+  readonly intents: readonly Intent[];
+  readonly now: () => string;
+  readonly pendingEffects: PendingEffect[];
+  readonly runner: CoreRunner<SessionContext>;
+  readonly session: SemanticSessionSnapshot<SessionContext> | null;
+  readonly sessionKey: string;
+  readonly scheduler?: Scheduler;
+  readonly spec: BotchartSpec;
+};
+
+async function executeIntents<SessionContext extends JsonObject>(
+  options: ExecuteIntentsOptions<SessionContext>,
+): Promise<SemanticSessionSnapshot<SessionContext> | null> {
+  let session = options.session;
+  for (const intent of options.intents) {
+    if (intent.kind === "pressAnswer") {
+      await options.api.answerCallbackQuery(
+        intent.callbackQueryId,
+        intent.answer === undefined
+          ? undefined
+          : { text: intent.answer.text, show_alert: intent.answer.kind === "alert" },
+      );
+      continue;
+    }
+    if (intent.kind === "timer") {
+      if (options.scheduler === undefined) {
+        throw new SchedulerBindingError(
+          "A timer intent has no scheduler. Add a durable Scheduler or memoryScheduler() to the scheduler option.",
+        );
+      }
+      if (intent.operation === "cancel") {
+        await options.scheduler.cancel(intent.id);
+      } else {
+        await options.scheduler.schedule(intent.id, new Date(intent.fireAt), {
+          ...intent.token,
+          timer: intent.timer,
+        });
+      }
+      continue;
+    }
+    if (intent.kind === "effect") {
+      const binding = options.effectBindings[intent.effect];
+      if (binding === undefined) throw new EffectBindingError(intent.effect);
+      options.pendingEffects.push({ binding, intent });
+      continue;
+    }
+    const input = await executeViewIntent(options.api, intent);
+    if (session === null) continue;
+    const result = options.runner({
+      spec: options.spec,
+      session,
+      input,
+      now: options.now(),
+    });
+    if (result.kind === "error") {
+      throw new CoreRunnerError(options.sessionKey, result.error);
+    }
+    session = await executeIntents({ ...options, ...result });
+  }
+  return session;
+}
+
+type RenderedTextView = {
+  readonly kind: "text";
+  readonly text: string;
+  readonly parseMode: "plain" | "HTML" | "MarkdownV2";
+  readonly keyboard?: readonly {
+    readonly kind: "row";
+    readonly buttons: readonly {
+      readonly kind: "button";
+      readonly label: string;
+      readonly callbackId: string;
+    }[];
+  }[];
+};
+
+async function executeViewIntent(api: Api, intent: ViewIntent): Promise<CoreInput> {
+  if (intent.operation === "delete") {
+    await api.deleteMessage(intent.handle.chatId, intent.handle.messageId);
+    return {
+      origin: "adapter",
+      source: "view",
+      name: "delete",
+      payload: { slot: intent.slot },
+    };
+  }
+  const view = intent.view as unknown as RenderedTextView;
+  const replyMarkup = view.keyboard === undefined || view.keyboard.length === 0
+    ? undefined
+    : {
+        inline_keyboard: view.keyboard.map((row) => row.buttons.map((button) => ({
+          text: button.label,
+          callback_data: button.callbackId,
+        }))),
+      };
+  const other = {
+    ...(view.parseMode === "plain" ? {} : { parse_mode: view.parseMode }),
+    ...(replyMarkup === undefined ? {} : { reply_markup: replyMarkup }),
+  };
+  let handle = intent.operation === "edit" ? intent.handle : undefined;
+  if (intent.operation === "edit") {
+    await api.editMessageText(
+      intent.handle.chatId,
+      intent.handle.messageId,
+      view.text,
+      other,
+    );
+  } else {
+    if (intent.operation === "replace") {
+      await api.deleteMessage(intent.handle.chatId, intent.handle.messageId);
+    }
+    const message = await api.sendMessage(intent.target.chatId, view.text, other);
+    handle = { kind: "chat", chatId: message.chat.id, messageId: message.message_id };
+  }
+  return {
+    origin: "adapter",
+    source: "view",
+    name: intent.operation,
+    payload: {
+      slot: intent.slot,
+      ...(intent.operation === "edit" ? {} : { handle }),
+      viewKind: view.kind,
+      interactive: replyMarkup !== undefined,
+    },
   };
 }
 
