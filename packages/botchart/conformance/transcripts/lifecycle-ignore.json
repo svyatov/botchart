@@ -1,0 +1,186 @@
+{
+  "$schema": "https://svyatov.github.io/botchart/conformance/0.1.0/transcript.schema.json",
+  "initial": {
+    "now": "2026-08-11T12:00:00Z",
+    "session": {
+      "callStack": [],
+      "callbacks": {},
+      "context": {},
+      "history": {},
+      "position": "main",
+      "seq": 0,
+      "viewSlots": {}
+    }
+  },
+  "name": "ignored lifecycle inputs",
+  "schemaRevision": "0.1.0",
+  "spec": {
+    "path": "../specs/lifecycle-ignore.json",
+    "sha256": "ed310d1138f94836b641160c0e58ecc137e0aaa0880b1762ff9835134725680b"
+  },
+  "steps": [
+    {
+      "covers": [
+        "runtime.lifecycle.unhandledIgnored"
+      ],
+      "input": {
+        "name": "photo",
+        "origin": "telegram",
+        "payload": {},
+        "source": "message"
+      },
+      "name": "ignore generated unhandled without a handler",
+      "result": {
+        "intents": [],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {},
+          "history": {},
+          "position": "main",
+          "seq": 0,
+          "viewSlots": {}
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.lifecycle.failureIgnored"
+      ],
+      "input": {
+        "name": "error",
+        "origin": "adapter",
+        "payload": {
+          "chainId": "failure:1",
+          "failures": [
+            {
+              "code": "telegram_error",
+              "intent": {
+                "callbackQueryId": "query:1",
+                "kind": "pressAnswer"
+              },
+              "message": "The callback query expired."
+            }
+          ]
+        },
+        "source": "lifecycle"
+      },
+      "name": "ignore a first failure without a handler",
+      "result": {
+        "intents": [],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {},
+          "history": {},
+          "position": "main",
+          "seq": 0,
+          "viewSlots": {}
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.lifecycle.noRecursion"
+      ],
+      "input": {
+        "name": "unhandled",
+        "origin": "adapter",
+        "payload": {},
+        "source": "lifecycle"
+      },
+      "name": "ignore direct unhandled without recursion",
+      "result": {
+        "intents": [],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {},
+          "history": {},
+          "position": "main",
+          "seq": 0,
+          "viewSlots": {}
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.lifecycle.input",
+        "runtime.error.invalidLifecycleInput"
+      ],
+      "input": {
+        "name": "blocked",
+        "origin": "adapter",
+        "payload": {
+          "chainId": "failure:2"
+        },
+        "source": "lifecycle"
+      },
+      "name": "reject an incomplete failure chain",
+      "result": {
+        "error": {
+          "code": "invalid_lifecycle_input",
+          "message": "Provide the failed intents in this lifecycle chain.",
+          "path": "$.input.payload.failures"
+        },
+        "intents": [],
+        "kind": "error",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {},
+          "history": {},
+          "position": "main",
+          "seq": 0,
+          "viewSlots": {}
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.lifecycle.adapterOrigin"
+      ],
+      "input": {
+        "name": "error",
+        "origin": "telegram",
+        "payload": {
+          "chainId": "failure:3",
+          "failures": [
+            {
+              "code": "telegram_error",
+              "intent": {
+                "callbackQueryId": "query:3",
+                "kind": "pressAnswer"
+              },
+              "message": "The callback query expired."
+            }
+          ]
+        },
+        "source": "lifecycle"
+      },
+      "name": "reject failure classification outside the adapter",
+      "result": {
+        "error": {
+          "code": "invalid_lifecycle_input",
+          "message": "Use the adapter origin for a failure lifecycle input.",
+          "path": "$.input.origin"
+        },
+        "intents": [],
+        "kind": "error",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {},
+          "history": {},
+          "position": "main",
+          "seq": 0,
+          "viewSlots": {}
+        }
+      }
+    }
+  ],
+  "transcriptVersion": 1
+}

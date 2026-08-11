@@ -179,6 +179,24 @@ export type PressAnswerIntent = {
 
 export type Intent = ViewIntent | EffectIntent | TimerIntent | PressAnswerIntent;
 
+export type IntentFailure = {
+  readonly intent: Intent;
+  readonly code: string;
+  readonly message: string;
+};
+
+export type IntentFailureChain = {
+  readonly chainId: string;
+  readonly failures: readonly [IntentFailure, ...IntentFailure[]];
+};
+
+export type LifecycleFailureInput = {
+  readonly origin: "adapter";
+  readonly source: "lifecycle";
+  readonly name: "blocked" | "error";
+  readonly payload: IntentFailureChain;
+};
+
 export type CoreError = {
   readonly code: string;
   readonly path: string;
@@ -257,6 +275,96 @@ function evaluationError(code: string, path: string, message: string): Evaluatio
   return { kind: "error", error: { code, path, message } };
 }
 
+function lifecycleFailureChain(
+  input: CoreInput,
+): Evaluation<IntentFailureChain | undefined> {
+  if (
+    input.source !== "lifecycle"
+    || (input.name !== "blocked" && input.name !== "error")
+  ) return { kind: "ok", value: undefined };
+  if (input.origin !== "adapter") {
+    return evaluationError(
+      "invalid_lifecycle_input",
+      "$.input.origin",
+      "Use the adapter origin for a failure lifecycle input.",
+    );
+  }
+  if (!isJsonObject(input.payload)) {
+    return evaluationError(
+      "invalid_lifecycle_input",
+      "$.input.payload",
+      "Provide a portable intent failure chain.",
+    );
+  }
+  const payload = input.payload;
+  const unknown = Object.keys(payload).find((name) =>
+    name !== "chainId" && name !== "failures"
+  );
+  if (unknown !== undefined) {
+    return evaluationError(
+      "invalid_lifecycle_input",
+      `$.input.payload.${unknown}`,
+      `Remove the ${unknown} lifecycle input field.`,
+    );
+  }
+  if (typeof payload.chainId !== "string" || payload.chainId.length === 0) {
+    return evaluationError(
+      "invalid_lifecycle_input",
+      "$.input.payload.chainId",
+      "Set chainId to the adapter failure chain id.",
+    );
+  }
+  if (!Array.isArray(payload.failures) || payload.failures.length === 0) {
+    return evaluationError(
+      "invalid_lifecycle_input",
+      "$.input.payload.failures",
+      "Provide the failed intents in this lifecycle chain.",
+    );
+  }
+  for (const [index, failure] of payload.failures.entries()) {
+    const path = `$.input.payload.failures[${index}]`;
+    if (!isJsonObject(failure)) {
+      return evaluationError(
+        "invalid_lifecycle_input",
+        path,
+        "Provide an intent, error code, and message for this failure.",
+      );
+    }
+    const unknownFailureField = Object.keys(failure).find((name) =>
+      name !== "intent" && name !== "code" && name !== "message"
+    );
+    if (unknownFailureField !== undefined) {
+      return evaluationError(
+        "invalid_lifecycle_input",
+        `${path}.${unknownFailureField}`,
+        `Remove the ${unknownFailureField} intent failure field.`,
+      );
+    }
+    if (!isJsonObject(failure.intent)) {
+      return evaluationError(
+        "invalid_lifecycle_input",
+        `${path}.intent`,
+        "Provide the failed core intent.",
+      );
+    }
+    if (typeof failure.code !== "string" || failure.code.length === 0) {
+      return evaluationError(
+        "invalid_lifecycle_input",
+        `${path}.code`,
+        "Set code to the portable adapter error code.",
+      );
+    }
+    if (typeof failure.message !== "string" || failure.message.length === 0) {
+      return evaluationError(
+        "invalid_lifecycle_input",
+        `${path}.message`,
+        "Set message to the portable adapter error message.",
+      );
+    }
+  }
+  return { kind: "ok", value: payload as unknown as IntentFailureChain };
+}
+
 type SelectedTransition = {
   readonly transition: RuntimeTransition;
   readonly path: string;
@@ -332,6 +440,27 @@ function executeStep<Context extends JsonObject>(
   options: CreateRunnerOptions<Context>,
 ): CoreResult<Context> {
   let request = originalRequest;
+  const lifecycle = lifecycleFailureChain(request.input);
+  if (lifecycle.kind === "error") {
+    return {
+      kind: "error",
+      session: request.session,
+      intents: [],
+      error: lifecycle.error,
+    };
+  }
+  if (lifecycle.value !== undefined && lifecycle.value.failures.length > 1) {
+    return {
+      kind: "error",
+      session: request.session,
+      intents: [],
+      error: {
+        code: "terminal_intent_failure",
+        path: "$.input.payload.failures[1]",
+        message: "Stop this failure chain after its lifecycle intent fails.",
+      },
+    };
+  }
   if (request.input.origin === "adapter" && request.input.source === "view") {
     return commitViewResult(request);
   }

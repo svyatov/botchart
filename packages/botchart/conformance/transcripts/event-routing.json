@@ -310,7 +310,17 @@
         "name": "blocked",
         "origin": "adapter",
         "payload": {
-          "chainId": "failure:1"
+          "chainId": "failure:1",
+          "failures": [
+            {
+              "code": "recipient_blocked",
+              "intent": {
+                "callbackQueryId": "query:1",
+                "kind": "pressAnswer"
+              },
+              "message": "The recipient blocked the bot."
+            }
+          ]
         },
         "source": "lifecycle"
       },
