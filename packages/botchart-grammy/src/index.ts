@@ -209,6 +209,7 @@ export function createBotchartMiddleware<
     const pendingEffects: PendingEffect[] = [];
     await serialize(queues, sessionKey, async () => {
       const stored = await options.storage.read(sessionKey);
+      if (stored === undefined && input.origin !== "telegram") return;
       const session = stored === undefined
         ? createSession<SessionContext>({
             spec: options.spec,
@@ -590,7 +591,18 @@ async function executeViewIntent(api: Api, intent: ViewIntent): Promise<CoreInpu
     );
   } else {
     if (intent.operation === "replace") {
-      await api.deleteMessage(intent.handle.chatId, intent.handle.messageId);
+      try {
+        await api.deleteMessage(intent.handle.chatId, intent.handle.messageId);
+      } catch {
+        try {
+          await api.editMessageReplyMarkup(
+            intent.handle.chatId,
+            intent.handle.messageId,
+          );
+        } catch {
+          // Cleanup is best-effort. The replacement send decides success.
+        }
+      }
     }
     const message = await api.sendMessage(intent.target.chatId, view.text, other);
     handle = { kind: "chat", chatId: message.chat.id, messageId: message.message_id };

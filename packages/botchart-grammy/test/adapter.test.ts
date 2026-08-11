@@ -1062,6 +1062,106 @@ test("the grammY middleware edits, replaces, and deletes one text view", async (
   });
 });
 
+test("a replacement sends the new view after cleanup fails", async () => {
+  const storage = memoryStorage();
+  const key = "chat:7:user:7";
+  const session = createSession({ spec, target: { kind: "chat", chatId: 7 } });
+  await storage.write(key, JSON.stringify({
+    formatVersion: 1,
+    session: {
+      ...session,
+      viewSlots: {
+        main: {
+          ...session.viewSlots.main,
+          current: {
+            handle: { kind: "chat", chatId: 7, messageId: 7 },
+            viewKind: "text",
+          },
+        },
+      },
+    },
+  }));
+  const calls: Array<{ method: string; payload: unknown }> = [];
+  const inputs: CoreRunnerRequest["input"][] = [];
+  const bot = new Bot("test", { botInfo });
+  bot.api.config.use(async (_previous, method, payload) => {
+    calls.push({ method, payload });
+    if (method === "sendMessage") {
+      return {
+        ok: true,
+        result: {
+          message_id: 8,
+          date: 1,
+          chat: { id: 7, type: "private", first_name: "Ada" },
+          text: "Replacement",
+        },
+      } as never;
+    }
+    return {
+      ok: false,
+      error_code: 400,
+      description: "Bad Request: cleanup failed",
+    } as never;
+  });
+  bot.use(createBotchartMiddleware({
+    spec,
+    storage,
+    runner: (request) => {
+      inputs.push(request.input);
+      if (request.input.origin === "adapter" && request.input.source === "view") {
+        return step(request);
+      }
+      if (request.input.origin !== "telegram") {
+        return { kind: "ok", session: request.session, intents: [] };
+      }
+      const handle = request.session.viewSlots.main?.current?.handle;
+      if (handle === undefined) throw new Error("Seed the current message handle.");
+      return {
+        kind: "ok",
+        session: request.session,
+        intents: [{
+          kind: "view",
+          operation: "replace",
+          slot: "main",
+          handle,
+          target: { kind: "chat", chatId: 7 },
+          view: { kind: "text", text: "Replacement", parseMode: "plain" },
+        }],
+      };
+    },
+  }));
+
+  await bot.handleUpdate({
+    update_id: 31,
+    message: {
+      message_id: 31,
+      date: 1,
+      chat: { id: 7, type: "private", first_name: "Ada" },
+      from: { id: 7, is_bot: false, first_name: "Ada" },
+      text: "replace",
+    },
+  } as Update);
+
+  expect(calls).toEqual([
+    {
+      method: "deleteMessage",
+      payload: { chat_id: 7, message_id: 7 },
+    },
+    {
+      method: "editMessageReplyMarkup",
+      payload: { chat_id: 7, message_id: 7 },
+    },
+    {
+      method: "sendMessage",
+      payload: { chat_id: 7, text: "Replacement" },
+    },
+  ]);
+  expect(inputs.map(({ origin, source }) => ({ origin, source }))).toEqual([
+    { origin: "telegram", source: "text" },
+    { origin: "adapter", source: "view" },
+  ]);
+});
+
 test("the grammY middleware queues effect progress and its outcome", async () => {
   const storage = memoryStorage();
   const seen: Array<{ input: CoreRunnerRequest["input"]; seq: number }> = [];
@@ -1144,6 +1244,142 @@ test("the grammY middleware queues effect progress and its outcome", async () =>
     output: { loaded: 1 },
   });
   expect(JSON.parse((await storage.read("chat:7:user:7"))!).session.seq).toBe(3);
+});
+
+test("effect feedback shares the update queue for its session key", async () => {
+  const storage = memoryStorage();
+  const seen: Array<{ origin: string; seq: number }> = [];
+  const effectSpec = {
+    ...spec,
+    effects: { load: { input: {}, outcomes: { done: {} } } },
+  } as BotchartSpec;
+  const { bot } = createTestBot();
+  bot.use(createBotchartMiddleware({
+    spec: effectSpec,
+    storage,
+    runner: (request) => {
+      seen.push({ origin: request.input.origin, seq: request.session.seq });
+      const isLoad = request.input.origin === "telegram"
+        && (request.input.payload as { text?: string }).text === "load";
+      return {
+        kind: "ok",
+        session: { ...request.session, seq: request.session.seq + 1 },
+        intents: isLoad
+          ? [{
+              kind: "effect",
+              id: "chat:7:user:7:main:1:0",
+              effect: "load",
+              input: {},
+              token: {
+                sessionKey: "chat:7:user:7",
+                stateId: "main",
+                seq: 1,
+              },
+            }]
+          : [],
+      };
+    },
+    effects: {
+      load: async ({ progress }) => {
+        const progressing = progress({ loaded: 1 });
+        const updating = bot.handleUpdate({
+          update_id: 33,
+          message: {
+            message_id: 33,
+            date: 1,
+            chat: { id: 7, type: "private", first_name: "Ada" },
+            from: { id: 7, is_bot: false, first_name: "Ada" },
+            text: "other",
+          },
+        } as Update);
+        await Promise.all([progressing, updating]);
+        return { outcome: "done", output: {} };
+      },
+    },
+  }));
+
+  await bot.handleUpdate({
+    update_id: 32,
+    message: {
+      message_id: 32,
+      date: 1,
+      chat: { id: 7, type: "private", first_name: "Ada" },
+      from: { id: 7, is_bot: false, first_name: "Ada" },
+      text: "load",
+    },
+  } as Update);
+
+  expect(seen).toEqual([
+    { origin: "telegram", seq: 0 },
+    { origin: "effect", seq: 1 },
+    { origin: "telegram", seq: 2 },
+    { origin: "effect", seq: 3 },
+  ]);
+  expect(JSON.parse((await storage.read("chat:7:user:7"))!).session.seq).toBe(4);
+});
+
+test("an effect outcome does not recreate a missing session", async () => {
+  const storage = memoryStorage();
+  const key = "chat:7:user:7";
+  const origins: CoreRunnerRequest["input"]["origin"][] = [];
+  let markEffectStarted: () => void = () => {};
+  const effectStarted = new Promise<void>((resolve) => {
+    markEffectStarted = resolve;
+  });
+  let releaseEffect: () => void = () => {};
+  const effectReleased = new Promise<void>((resolve) => {
+    releaseEffect = resolve;
+  });
+  const effectSpec = {
+    ...spec,
+    effects: { load: { input: {}, outcomes: { done: {} } } },
+  } as BotchartSpec;
+  const { bot } = createTestBot();
+  bot.use(createBotchartMiddleware({
+    spec: effectSpec,
+    storage,
+    runner: (request) => {
+      origins.push(request.input.origin);
+      return request.input.origin === "telegram"
+        ? {
+            kind: "ok",
+            session: { ...request.session, seq: 1 },
+            intents: [{
+              kind: "effect",
+              id: `${key}:main:1:0`,
+              effect: "load",
+              input: {},
+              token: { sessionKey: key, stateId: "main", seq: 1 },
+            }],
+          }
+        : { kind: "ok", session: request.session, intents: [] };
+    },
+    effects: {
+      load: async () => {
+        markEffectStarted();
+        await effectReleased;
+        return { outcome: "done", output: {} };
+      },
+    },
+  }));
+
+  const handling = bot.handleUpdate({
+    update_id: 30,
+    message: {
+      message_id: 30,
+      date: 1,
+      chat: { id: 7, type: "private", first_name: "Ada" },
+      from: { id: 7, is_bot: false, first_name: "Ada" },
+      text: "load",
+    },
+  } as Update);
+  await effectStarted;
+  await storage.delete(key);
+  releaseEffect();
+  await handling;
+
+  expect(origins).toEqual(["telegram"]);
+  expect(await storage.read(key)).toBeUndefined();
 });
 
 test("the grammY middleware routes an effect binding failure back to core", async () => {
@@ -1299,6 +1535,40 @@ test("the grammY middleware queues a scheduler firing and cancels its timer", as
   ]);
   expect(cancelled).toEqual(["chat:7:user:7:main:1:remind"]);
   expect(JSON.parse((await storage.read("chat:7:user:7"))!).session.seq).toBe(2);
+});
+
+test("a scheduler firing does not recreate a missing session", async () => {
+  const storage = memoryStorage();
+  let fire: (payload: TimerPayload) => Promise<void> = async () => {};
+  const scheduler: Scheduler = {
+    schedule: async () => {},
+    cancel: async () => {},
+    onFire: (handler) => {
+      fire = handler;
+    },
+  };
+  let runnerCalls = 0;
+  const { bot } = createTestBot();
+  createBotchartMiddleware({
+    api: bot.api,
+    spec,
+    storage,
+    scheduler,
+    runner: (request) => {
+      runnerCalls += 1;
+      return { kind: "ok", session: request.session, intents: [] };
+    },
+  });
+
+  await fire({
+    sessionKey: "chat:7:user:7",
+    stateId: "main",
+    seq: 1,
+    timer: "remind",
+  });
+
+  expect(runnerCalls).toBe(0);
+  expect(await storage.read("chat:7:user:7")).toBeUndefined();
 });
 
 test("a scheduler firing shares the update queue for its session key", async () => {
