@@ -437,21 +437,58 @@
       "input": {
         "name": "video",
         "origin": "telegram",
-        "payload": {},
+        "payload": {
+          "sessionKey": "chat:42"
+        },
         "source": "message"
       },
       "name": "append an interactive view",
       "result": {
-        "error": {
-          "code": "missing_session_key",
-          "message": "Add the sessionKey value before this view renders a button.",
-          "path": "$.input.payload.sessionKey"
-        },
-        "intents": [],
-        "kind": "error",
+        "intents": [
+          {
+            "kind": "view",
+            "operation": "send",
+            "slot": "main",
+            "target": {
+              "chatId": 42,
+              "kind": "chat"
+            },
+            "view": {
+              "keyboard": [
+                {
+                  "buttons": [
+                    {
+                      "callbackId": "callback:2",
+                      "kind": "button",
+                      "label": "Keep"
+                    }
+                  ],
+                  "kind": "row"
+                }
+              ],
+              "kind": "text",
+              "parseMode": "plain",
+              "text": "Appended"
+            }
+          }
+        ],
+        "kind": "ok",
         "session": {
           "callStack": [],
-          "callbacks": {},
+          "callbacks": {
+            "callback:2": {
+              "durable": true,
+              "payload": {
+                "id": "keep"
+              },
+              "press": "pick",
+              "seq": 3,
+              "sessionKey": "chat:42",
+              "stateId": "append",
+              "viewRevision": 2,
+              "viewSlot": "main"
+            }
+          },
           "context": {
             "empty": "",
             "name": "<Ada & Co>",
@@ -479,8 +516,8 @@
             ]
           },
           "history": {},
-          "position": "details",
-          "seq": 2,
+          "position": "append",
+          "seq": 3,
           "viewSlots": {
             "main": {
               "current": {
@@ -526,7 +563,25 @@
         "kind": "ok",
         "session": {
           "callStack": [],
-          "callbacks": {},
+          "callbacks": {
+            "callback:2": {
+              "durable": true,
+              "handle": {
+                "chatId": 42,
+                "kind": "chat",
+                "messageId": 9
+              },
+              "payload": {
+                "id": "keep"
+              },
+              "press": "pick",
+              "seq": 3,
+              "sessionKey": "chat:42",
+              "stateId": "append",
+              "viewRevision": 2,
+              "viewSlot": "main"
+            }
+          },
           "context": {
             "empty": "",
             "name": "<Ada & Co>",
@@ -554,8 +609,8 @@
             ]
           },
           "history": {},
-          "position": "details",
-          "seq": 2,
+          "position": "append",
+          "seq": 3,
           "viewSlots": {
             "main": {
               "current": {
@@ -604,7 +659,25 @@
         "kind": "ok",
         "session": {
           "callStack": [],
-          "callbacks": {},
+          "callbacks": {
+            "callback:2": {
+              "durable": true,
+              "handle": {
+                "chatId": 42,
+                "kind": "chat",
+                "messageId": 9
+              },
+              "payload": {
+                "id": "keep"
+              },
+              "press": "pick",
+              "seq": 3,
+              "sessionKey": "chat:42",
+              "stateId": "append",
+              "viewRevision": 2,
+              "viewSlot": "main"
+            }
+          },
           "context": {
             "empty": "",
             "name": "<Ada & Co>",
@@ -633,7 +706,7 @@
           },
           "history": {},
           "position": "remove",
-          "seq": 3,
+          "seq": 4,
           "viewSlots": {
             "main": {
               "current": {
@@ -701,7 +774,7 @@
           },
           "history": {},
           "position": "remove",
-          "seq": 3,
+          "seq": 4,
           "viewSlots": {
             "main": {
               "revision": 2,
@@ -759,7 +832,7 @@
           },
           "history": {},
           "position": "kept",
-          "seq": 4,
+          "seq": 5,
           "viewSlots": {
             "main": {
               "revision": 2,
@@ -823,7 +896,7 @@
           },
           "history": {},
           "position": "kept",
-          "seq": 4,
+          "seq": 5,
           "viewSlots": {
             "main": {
               "revision": 2,
@@ -886,7 +959,7 @@
           },
           "history": {},
           "position": "kept",
-          "seq": 4,
+          "seq": 5,
           "viewSlots": {
             "main": {
               "revision": 2,
@@ -949,7 +1022,7 @@
           },
           "history": {},
           "position": "kept",
-          "seq": 4,
+          "seq": 5,
           "viewSlots": {
             "main": {
               "revision": 2,
@@ -1033,7 +1106,7 @@
           },
           "history": {},
           "position": "screen",
-          "seq": 6,
+          "seq": 7,
           "viewSlots": {
             "main": {
               "revision": 2,
