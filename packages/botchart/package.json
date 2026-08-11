@@ -18,7 +18,7 @@
     "./schema": "./schema.json",
     "./package.json": "./package.json"
   },
-  "files": ["conformance", "dist", "schema.json"],
+  "files": ["THIRD-PARTY-NOTICES.md", "conformance", "dist", "schema.json"],
   "sideEffects": false,
   "engines": {
     "node": ">=22"

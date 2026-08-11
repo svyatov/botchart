@@ -62,7 +62,6 @@
   "steps": [
     {
       "covers": [
-        "runtime.view.text",
         "runtime.view.binding.context",
         "runtime.view.binding.parameter",
         "runtime.view.binding.item",
@@ -70,7 +69,6 @@
         "runtime.view.keyboard",
         "runtime.view.projection",
         "runtime.view.projectionCondition",
-        "runtime.view.render.edit",
         "runtime.view.reconcile.replace"
       ],
       "input": {
@@ -184,8 +182,7 @@
     },
     {
       "covers": [
-        "runtime.view.slot.replace",
-        "runtime.view.revision.interactive"
+        "runtime.view.slot.replace"
       ],
       "input": {
         "name": "replace",
@@ -278,7 +275,7 @@
     },
     {
       "covers": [
-        "runtime.view.reconcile.edit"
+        "runtime.view.render.edit"
       ],
       "input": {
         "name": "document",
@@ -360,7 +357,6 @@
     },
     {
       "covers": [
-        "runtime.view.slot.edit",
         "runtime.view.revision.static"
       ],
       "input": {
@@ -431,8 +427,7 @@
     },
     {
       "covers": [
-        "runtime.view.render.append",
-        "runtime.view.reconcile.send"
+        "runtime.view.text"
       ],
       "input": {
         "name": "video",
@@ -540,7 +535,7 @@
     },
     {
       "covers": [
-        "runtime.view.slot.send"
+        "runtime.view.render.append"
       ],
       "input": {
         "name": "send",

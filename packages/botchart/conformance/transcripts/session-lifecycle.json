@@ -29,7 +29,6 @@
   "steps": [
     {
       "covers": [
-        "runtime.session.initial",
         "runtime.transition.nonMoving"
       ],
       "input": {
@@ -63,7 +62,6 @@
     },
     {
       "covers": [
-        "runtime.transition.external",
         "runtime.transition.seq"
       ],
       "input": {
@@ -130,8 +128,7 @@
     },
     {
       "covers": [
-        "runtime.state.exit",
-        "runtime.state.entry"
+        "runtime.state.exit"
       ],
       "input": {
         "name": "document",
