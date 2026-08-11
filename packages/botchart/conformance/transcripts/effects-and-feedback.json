@@ -34,8 +34,6 @@
   "steps": [
     {
       "covers": [
-        "runtime.effect.intent",
-        "runtime.effect.inputSnapshot",
         "runtime.effect.pipelineOrder"
       ],
       "input": {
@@ -90,8 +88,7 @@
     },
     {
       "covers": [
-        "runtime.effect.feedback",
-        "runtime.effect.progress"
+        "runtime.effect.feedback"
       ],
       "input": {
         "name": "load",
