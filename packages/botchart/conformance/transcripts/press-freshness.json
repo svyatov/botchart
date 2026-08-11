@@ -208,8 +208,7 @@
     },
     {
       "covers": [
-        "runtime.callback.answer.accepted",
-        "runtime.callback.recovery"
+        "runtime.callback.answer.accepted"
       ],
       "input": {
         "name": "callback:1",

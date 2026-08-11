@@ -1,0 +1,520 @@
+{
+  "$schema": "https://svyatov.github.io/botchart/conformance/0.1.0/transcript.schema.json",
+  "initial": {
+    "now": "2026-08-11T12:00:00Z",
+    "session": {
+      "callStack": [],
+      "callbacks": {},
+      "context": {
+        "behavior": "Feeding near reeds",
+        "conditions": "Light rain and calm wind",
+        "contact": "Mira",
+        "count": "7",
+        "equipment": "Binoculars and notebook",
+        "habitat": "wetland",
+        "location": "North marsh",
+        "notes": "Observed for twenty minutes",
+        "photoReady": false,
+        "subject": "Reed warbler",
+        "title": "Wetland survey",
+        "urgency": "routine",
+        "visitDate": "2026-08-10"
+      },
+      "history": {},
+      "position": "photo",
+      "seq": 0,
+      "viewSlots": {
+        "main": {
+          "current": {
+            "handle": {
+              "chatId": 42,
+              "kind": "chat",
+              "messageId": 100
+            },
+            "viewKind": "text"
+          },
+          "revision": 1,
+          "target": {
+            "chatId": 42,
+            "kind": "chat"
+          }
+        }
+      }
+    }
+  },
+  "name": "long field report",
+  "schemaRevision": "0.1.0",
+  "spec": {
+    "path": "../specs/long-form.json",
+    "sha256": "6348beddff5d743ac55d6869ca7cb0964c3f409f4957df8e368bcbd666f58656"
+  },
+  "steps": [
+    {
+      "covers": [
+        "runtime.effect.intent"
+      ],
+      "input": {
+        "name": "photo",
+        "origin": "telegram",
+        "payload": {
+          "sessionKey": "chat:42"
+        },
+        "source": "message"
+      },
+      "name": "send a clear photo",
+      "result": {
+        "intents": [
+          {
+            "effect": "inspectPhoto",
+            "id": "effect:1",
+            "input": {},
+            "kind": "effect",
+            "token": {
+              "seq": 1,
+              "sessionKey": "chat:42",
+              "stateId": "checkingPhoto"
+            }
+          }
+        ],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {
+            "behavior": "Feeding near reeds",
+            "conditions": "Light rain and calm wind",
+            "contact": "Mira",
+            "count": "7",
+            "equipment": "Binoculars and notebook",
+            "habitat": "wetland",
+            "location": "North marsh",
+            "notes": "Observed for twenty minutes",
+            "photoReady": false,
+            "subject": "Reed warbler",
+            "title": "Wetland survey",
+            "urgency": "routine",
+            "visitDate": "2026-08-10"
+          },
+          "history": {},
+          "position": "checkingPhoto",
+          "seq": 1,
+          "viewSlots": {
+            "main": {
+              "current": {
+                "handle": {
+                  "chatId": 42,
+                  "kind": "chat",
+                  "messageId": 100
+                },
+                "viewKind": "text"
+              },
+              "revision": 1,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.effect.outcomeOrdering"
+      ],
+      "input": {
+        "name": "accepted",
+        "origin": "effect",
+        "payload": {
+          "id": "effect:1",
+          "output": {},
+          "token": {
+            "seq": 1,
+            "sessionKey": "chat:42",
+            "stateId": "checkingPhoto"
+          }
+        },
+        "source": "outcome"
+      },
+      "name": "accept the clear photo",
+      "result": {
+        "intents": [
+          {
+            "handle": {
+              "chatId": 42,
+              "kind": "chat",
+              "messageId": 100
+            },
+            "kind": "view",
+            "operation": "edit",
+            "slot": "main",
+            "view": {
+              "keyboard": [
+                {
+                  "buttons": [
+                    {
+                      "callbackId": "callback:1",
+                      "kind": "button",
+                      "label": "Edit location"
+                    },
+                    {
+                      "callbackId": "callback:2",
+                      "kind": "button",
+                      "label": "Submit report"
+                    }
+                  ],
+                  "kind": "row"
+                }
+              ],
+              "kind": "text",
+              "parseMode": "plain",
+              "text": "Field report summary\n\nTitle: Wetland survey\nLocation: North marsh\nDate: 2026-08-10\nHabitat: wetland\nSubject: Reed warbler\nCount: 7\nConditions: Light rain and calm wind\nBehavior: Feeding near reeds\nPriority: routine\nContact: Mira\nEquipment: Binoculars and notebook\nNotes: Observed for twenty minutes\nPhoto accepted: true"
+            }
+          }
+        ],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {
+            "callback:1": {
+              "durable": false,
+              "payload": {},
+              "press": "editLocation",
+              "seq": 2,
+              "sessionKey": "chat:42",
+              "stateId": "summary",
+              "viewRevision": 2,
+              "viewSlot": "main"
+            },
+            "callback:2": {
+              "durable": false,
+              "payload": {},
+              "press": "submit",
+              "seq": 2,
+              "sessionKey": "chat:42",
+              "stateId": "summary",
+              "viewRevision": 2,
+              "viewSlot": "main"
+            }
+          },
+          "context": {
+            "behavior": "Feeding near reeds",
+            "conditions": "Light rain and calm wind",
+            "contact": "Mira",
+            "count": "7",
+            "equipment": "Binoculars and notebook",
+            "habitat": "wetland",
+            "location": "North marsh",
+            "notes": "Observed for twenty minutes",
+            "photoReady": true,
+            "subject": "Reed warbler",
+            "title": "Wetland survey",
+            "urgency": "routine",
+            "visitDate": "2026-08-10"
+          },
+          "history": {},
+          "position": "summary",
+          "seq": 2,
+          "viewSlots": {
+            "main": {
+              "current": {
+                "handle": {
+                  "chatId": 42,
+                  "kind": "chat",
+                  "messageId": 100
+                },
+                "viewKind": "text"
+              },
+              "revision": 1,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.view.keyboard"
+      ],
+      "input": {
+        "name": "edit",
+        "origin": "adapter",
+        "payload": {
+          "interactive": true,
+          "slot": "main",
+          "viewKind": "text"
+        },
+        "source": "view"
+      },
+      "name": "commit the report summary",
+      "result": {
+        "intents": [],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {
+            "callback:1": {
+              "durable": false,
+              "handle": {
+                "chatId": 42,
+                "kind": "chat",
+                "messageId": 100
+              },
+              "payload": {},
+              "press": "editLocation",
+              "seq": 2,
+              "sessionKey": "chat:42",
+              "stateId": "summary",
+              "viewRevision": 2,
+              "viewSlot": "main"
+            },
+            "callback:2": {
+              "durable": false,
+              "handle": {
+                "chatId": 42,
+                "kind": "chat",
+                "messageId": 100
+              },
+              "payload": {},
+              "press": "submit",
+              "seq": 2,
+              "sessionKey": "chat:42",
+              "stateId": "summary",
+              "viewRevision": 2,
+              "viewSlot": "main"
+            }
+          },
+          "context": {
+            "behavior": "Feeding near reeds",
+            "conditions": "Light rain and calm wind",
+            "contact": "Mira",
+            "count": "7",
+            "equipment": "Binoculars and notebook",
+            "habitat": "wetland",
+            "location": "North marsh",
+            "notes": "Observed for twenty minutes",
+            "photoReady": true,
+            "subject": "Reed warbler",
+            "title": "Wetland survey",
+            "urgency": "routine",
+            "visitDate": "2026-08-10"
+          },
+          "history": {},
+          "position": "summary",
+          "seq": 2,
+          "viewSlots": {
+            "main": {
+              "current": {
+                "handle": {
+                  "chatId": 42,
+                  "kind": "chat",
+                  "messageId": 100
+                },
+                "viewKind": "text"
+              },
+              "revision": 2,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.callback.recovery"
+      ],
+      "input": {
+        "name": "callback:1",
+        "origin": "telegram",
+        "payload": {
+          "callbackQueryId": "query:1",
+          "sessionKey": "chat:42"
+        },
+        "source": "press"
+      },
+      "name": "edit the earlier location",
+      "result": {
+        "intents": [
+          {
+            "callbackQueryId": "query:1",
+            "kind": "pressAnswer"
+          },
+          {
+            "handle": {
+              "chatId": 42,
+              "kind": "chat",
+              "messageId": 100
+            },
+            "kind": "view",
+            "operation": "edit",
+            "slot": "main",
+            "view": {
+              "kind": "text",
+              "parseMode": "plain",
+              "text": "Enter the corrected observation location."
+            }
+          }
+        ],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {
+            "behavior": "Feeding near reeds",
+            "conditions": "Light rain and calm wind",
+            "contact": "Mira",
+            "count": "7",
+            "equipment": "Binoculars and notebook",
+            "habitat": "wetland",
+            "location": "North marsh",
+            "notes": "Observed for twenty minutes",
+            "photoReady": true,
+            "subject": "Reed warbler",
+            "title": "Wetland survey",
+            "urgency": "routine",
+            "visitDate": "2026-08-10"
+          },
+          "history": {},
+          "position": "editLocation",
+          "seq": 3,
+          "viewSlots": {
+            "main": {
+              "current": {
+                "handle": {
+                  "chatId": 42,
+                  "kind": "chat",
+                  "messageId": 100
+                },
+                "viewKind": "text"
+              },
+              "revision": 2,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.assignment.event"
+      ],
+      "input": {
+        "name": "message",
+        "origin": "telegram",
+        "payload": {
+          "sessionKey": "chat:42",
+          "text": "South marsh"
+        },
+        "source": "text"
+      },
+      "name": "record the corrected location",
+      "result": {
+        "intents": [
+          {
+            "handle": {
+              "chatId": 42,
+              "kind": "chat",
+              "messageId": 100
+            },
+            "kind": "view",
+            "operation": "edit",
+            "slot": "main",
+            "view": {
+              "keyboard": [
+                {
+                  "buttons": [
+                    {
+                      "callbackId": "callback:3",
+                      "kind": "button",
+                      "label": "Edit location"
+                    },
+                    {
+                      "callbackId": "callback:4",
+                      "kind": "button",
+                      "label": "Submit report"
+                    }
+                  ],
+                  "kind": "row"
+                }
+              ],
+              "kind": "text",
+              "parseMode": "plain",
+              "text": "Field report summary\n\nTitle: Wetland survey\nLocation: South marsh\nDate: 2026-08-10\nHabitat: wetland\nSubject: Reed warbler\nCount: 7\nConditions: Light rain and calm wind\nBehavior: Feeding near reeds\nPriority: routine\nContact: Mira\nEquipment: Binoculars and notebook\nNotes: Observed for twenty minutes\nPhoto accepted: true"
+            }
+          }
+        ],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {
+            "callback:3": {
+              "durable": false,
+              "payload": {},
+              "press": "editLocation",
+              "seq": 4,
+              "sessionKey": "chat:42",
+              "stateId": "summary",
+              "viewRevision": 3,
+              "viewSlot": "main"
+            },
+            "callback:4": {
+              "durable": false,
+              "payload": {},
+              "press": "submit",
+              "seq": 4,
+              "sessionKey": "chat:42",
+              "stateId": "summary",
+              "viewRevision": 3,
+              "viewSlot": "main"
+            }
+          },
+          "context": {
+            "behavior": "Feeding near reeds",
+            "conditions": "Light rain and calm wind",
+            "contact": "Mira",
+            "count": "7",
+            "equipment": "Binoculars and notebook",
+            "habitat": "wetland",
+            "location": "South marsh",
+            "notes": "Observed for twenty minutes",
+            "photoReady": true,
+            "subject": "Reed warbler",
+            "title": "Wetland survey",
+            "urgency": "routine",
+            "visitDate": "2026-08-10"
+          },
+          "history": {},
+          "position": "summary",
+          "seq": 4,
+          "viewSlots": {
+            "main": {
+              "current": {
+                "handle": {
+                  "chatId": 42,
+                  "kind": "chat",
+                  "messageId": 100
+                },
+                "viewKind": "text"
+              },
+              "revision": 2,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "transcriptVersion": 1
+}
