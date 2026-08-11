@@ -1,0 +1,193 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-11T18:19:11Z",
+  "title": "Design System: botchart playground",
+  "extensions": {
+    "colorMeta": {
+      "workspace": {
+        "role": "neutral",
+        "displayName": "Night Workspace",
+        "canonical": "#17212b",
+        "tonalRamp": ["oklch(15% 0.018 245)", "oklch(25% 0.018 245)", "oklch(35% 0.018 245)", "oklch(45% 0.018 245)", "oklch(58% 0.018 245)", "oklch(70% 0.018 245)", "oklch(84% 0.018 245)", "oklch(95% 0.018 245)"]
+      },
+      "pane": {
+        "role": "neutral",
+        "displayName": "Workbench Pane",
+        "canonical": "#1e2b38",
+        "tonalRamp": ["oklch(15% 0.022 245)", "oklch(25% 0.022 245)", "oklch(35% 0.022 245)", "oklch(45% 0.022 245)", "oklch(58% 0.022 245)", "oklch(70% 0.022 245)", "oklch(84% 0.022 245)", "oklch(95% 0.022 245)"]
+      },
+      "pane-deep": {
+        "role": "neutral",
+        "displayName": "Deep Canvas",
+        "canonical": "#131d27",
+        "tonalRamp": ["oklch(15% 0.016 245)", "oklch(25% 0.016 245)", "oklch(35% 0.016 245)", "oklch(45% 0.016 245)", "oklch(58% 0.016 245)", "oklch(70% 0.016 245)", "oklch(84% 0.016 245)", "oklch(95% 0.016 245)"]
+      },
+      "pane-soft": {
+        "role": "neutral",
+        "displayName": "Soft Control Surface",
+        "canonical": "#223242",
+        "tonalRamp": ["oklch(15% 0.028 245)", "oklch(25% 0.028 245)", "oklch(35% 0.028 245)", "oklch(45% 0.028 245)", "oklch(58% 0.028 245)", "oklch(70% 0.028 245)", "oklch(84% 0.028 245)", "oklch(95% 0.028 245)"]
+      },
+      "border": {
+        "role": "neutral",
+        "displayName": "Structural Border",
+        "canonical": "#334658",
+        "tonalRamp": ["oklch(15% 0.03 245)", "oklch(25% 0.03 245)", "oklch(35% 0.03 245)", "oklch(45% 0.03 245)", "oklch(58% 0.03 245)", "oklch(70% 0.03 245)", "oklch(84% 0.03 245)", "oklch(95% 0.03 245)"]
+      },
+      "border-strong": {
+        "role": "neutral",
+        "displayName": "Strong Structural Border",
+        "canonical": "#4b647b",
+        "tonalRamp": ["oklch(15% 0.04 245)", "oklch(25% 0.04 245)", "oklch(35% 0.04 245)", "oklch(45% 0.04 245)", "oklch(58% 0.04 245)", "oklch(70% 0.04 245)", "oklch(84% 0.04 245)", "oklch(95% 0.04 245)"]
+      },
+      "text": {
+        "role": "neutral",
+        "displayName": "Primary Ink",
+        "canonical": "#edf4fa",
+        "tonalRamp": ["oklch(15% 0.01 245)", "oklch(25% 0.01 245)", "oklch(35% 0.01 245)", "oklch(45% 0.01 245)", "oklch(58% 0.01 245)", "oklch(70% 0.01 245)", "oklch(84% 0.01 245)", "oklch(95% 0.01 245)"]
+      },
+      "text-dim": {
+        "role": "neutral",
+        "displayName": "Muted Ink",
+        "canonical": "#9bb0c3",
+        "tonalRamp": ["oklch(15% 0.025 245)", "oklch(25% 0.025 245)", "oklch(35% 0.025 245)", "oklch(45% 0.025 245)", "oklch(58% 0.025 245)", "oklch(70% 0.025 245)", "oklch(84% 0.025 245)", "oklch(95% 0.025 245)"]
+      },
+      "accent": {
+        "role": "primary",
+        "displayName": "Workbench Blue",
+        "canonical": "#6bc1ff",
+        "tonalRamp": ["oklch(15% 0.12 240)", "oklch(25% 0.12 240)", "oklch(35% 0.12 240)", "oklch(45% 0.12 240)", "oklch(58% 0.12 240)", "oklch(70% 0.12 240)", "oklch(84% 0.12 240)", "oklch(95% 0.12 240)"]
+      },
+      "accent-deep": {
+        "role": "primary",
+        "displayName": "Deep Action Blue",
+        "canonical": "#2b5278",
+        "tonalRamp": ["oklch(15% 0.08 240)", "oklch(25% 0.08 240)", "oklch(35% 0.08 240)", "oklch(45% 0.08 240)", "oklch(58% 0.08 240)", "oklch(70% 0.08 240)", "oklch(84% 0.08 240)", "oklch(95% 0.08 240)"]
+      },
+      "message": {
+        "role": "neutral",
+        "displayName": "Telegram Message",
+        "canonical": "#182533",
+        "tonalRamp": ["oklch(15% 0.022 245)", "oklch(25% 0.022 245)", "oklch(35% 0.022 245)", "oklch(45% 0.022 245)", "oklch(58% 0.022 245)", "oklch(70% 0.022 245)", "oklch(84% 0.022 245)", "oklch(95% 0.022 245)"]
+      },
+      "message-action": {
+        "role": "primary",
+        "displayName": "Telegram Action",
+        "canonical": "#29435c",
+        "tonalRamp": ["oklch(15% 0.05 245)", "oklch(25% 0.05 245)", "oklch(35% 0.05 245)", "oklch(45% 0.05 245)", "oklch(58% 0.05 245)", "oklch(70% 0.05 245)", "oklch(84% 0.05 245)", "oklch(95% 0.05 245)"]
+      },
+      "sample": {
+        "role": "tertiary",
+        "displayName": "Sample Gold",
+        "canonical": "#f3c76d",
+        "tonalRamp": ["oklch(15% 0.12 85)", "oklch(25% 0.12 85)", "oklch(35% 0.12 85)", "oklch(45% 0.12 85)", "oklch(58% 0.12 85)", "oklch(70% 0.12 85)", "oklch(84% 0.12 85)", "oklch(95% 0.12 85)"]
+      },
+      "danger": {
+        "role": "tertiary",
+        "displayName": "Failure Coral",
+        "canonical": "#ff9e9e",
+        "tonalRamp": ["oklch(15% 0.12 25)", "oklch(25% 0.12 25)", "oklch(35% 0.12 25)", "oklch(45% 0.12 25)", "oklch(58% 0.12 25)", "oklch(70% 0.12 25)", "oklch(84% 0.12 25)", "oklch(95% 0.12 25)"]
+      }
+    },
+    "typographyMeta": {
+      "body": {"displayName": "Interface Body", "purpose": "Normal interface content."},
+      "title": {"displayName": "Pane Title", "purpose": "Compact pane headings."},
+      "label": {"displayName": "Compact Label", "purpose": "Compact state and status labels."},
+      "mono": {"displayName": "Machine Text", "purpose": "JSON, state names, and transitions."}
+    },
+    "shadows": [
+      {
+        "name": "state-node-low",
+        "value": "0 8px 20px rgba(4, 10, 15, 0.2)",
+        "purpose": "Separates state nodes from chart edges."
+      }
+    ],
+    "breakpoints": [
+      {"name": "workbench-stack", "value": "940px"}
+    ]
+  },
+  "components": [
+    {
+      "name": "Active Mode Control",
+      "kind": "button",
+      "refersTo": "mode-control",
+      "description": "Selects canvas or inspector mode.",
+      "html": "<button class=\"ds-mode\" aria-pressed=\"true\">Canvas</button>",
+      "css": ".ds-mode { border: 0; border-radius: 999px; background: #2b5278; color: #edf4fa; padding: 6px 13px; font: 14px/1.5 ui-sans-serif, sans-serif; } .ds-mode:hover { background: #334f69; } .ds-mode:focus-visible { outline: 2px solid #6bc1ff; outline-offset: 3px; }"
+    },
+    {
+      "name": "Starter Select",
+      "kind": "input",
+      "description": "Selects a read-only starter.",
+      "html": "<select class=\"ds-select\"><option>Field Signal Atlas</option></select>",
+      "css": ".ds-select { border: 1px solid #4b647b; border-radius: 8px; background: #223242; color: #edf4fa; padding: 7px 34px 7px 10px; font: 14px/1.5 ui-sans-serif, sans-serif; } .ds-select:hover { border-color: #6bc1ff; } .ds-select:focus-visible { outline: 2px solid #6bc1ff; outline-offset: 3px; }"
+    },
+    {
+      "name": "Workbench Pane",
+      "kind": "card",
+      "refersTo": "pane",
+      "description": "Contains source, chart, or preview content.",
+      "html": "<section class=\"ds-pane\"><h2>Statechart</h2><p>20 states, 23 transitions</p></section>",
+      "css": ".ds-pane { overflow: hidden; border: 1px solid #334658; border-radius: 14px; background: #1e2b38; color: #edf4fa; } .ds-pane h2 { margin: 0; padding: 9px 13px; border-bottom: 1px solid #334658; font: 750 12px/1.5 ui-sans-serif, sans-serif; } .ds-pane p { margin: 0; padding: 16px; color: #9bb0c3; } .ds-pane:focus-within { border-color: #4b647b; }"
+    },
+    {
+      "name": "Selected State Node",
+      "kind": "button",
+      "refersTo": "state-node",
+      "description": "Shows one selected state and its preview.",
+      "html": "<button class=\"ds-state\" aria-pressed=\"true\"><strong>home</strong><span>Field Signal Atlas</span></button>",
+      "css": ".ds-state { display: grid; gap: 10px; width: 260px; border: 1px solid #f3c76d; border-radius: 12px; background: #131d27; box-shadow: 0 8px 20px rgba(4, 10, 15, 0.24), 0 0 0 2px rgba(243, 199, 109, 0.28); color: #edf4fa; padding: 10px; text-align: left; } .ds-state strong { color: #6bc1ff; font: 700 11px/1.3 ui-monospace, monospace; } .ds-state:hover { border-color: #6bc1ff; } .ds-state:focus-visible { outline: 2px solid #6bc1ff; outline-offset: 3px; }"
+    },
+    {
+      "name": "Telegram Message",
+      "kind": "custom",
+      "refersTo": "message",
+      "description": "Previews rendered Telegram message text.",
+      "html": "<div class=\"ds-message\">Welcome, Northstar.</div>",
+      "css": ".ds-message { width: fit-content; max-width: 320px; min-width: 110px; border-radius: 12px; background: #182533; color: #edf4fa; padding: 8px 10px; font: 12px/1.45 ui-sans-serif, sans-serif; white-space: pre-wrap; }"
+    },
+    {
+      "name": "Telegram Inline Action",
+      "kind": "button",
+      "refersTo": "message-action",
+      "description": "Shows a read-only Telegram inline action.",
+      "html": "<span class=\"ds-action\">Open signal atlas</span>",
+      "css": ".ds-action { display: block; border-radius: 8px; background: #29435c; color: #dff2ff; padding: 6px; font: 11px/1.5 ui-sans-serif, sans-serif; text-align: center; }"
+    },
+    {
+      "name": "Sample Data Badge",
+      "kind": "chip",
+      "description": "Marks a preview that uses sidecar sample data.",
+      "html": "<span class=\"ds-sample\">Rendered with sample data</span>",
+      "css": ".ds-sample { color: #f3c76d; font: 700 10px/1.5 ui-sans-serif, sans-serif; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Telegram Workbench",
+    "overview": "The playground is a compact technical workbench. It combines Telegram message forms with a clear statechart canvas. Dark layered surfaces keep attention on state changes, views, and source data.\n\nThe interface uses dense controls and direct labels. Blue marks actions and structure. Warm yellow marks the selected state and sample data.",
+    "keyCharacteristics": [
+      "Dark Telegram-inspired surfaces",
+      "Compact technical typography",
+      "Clear borders and restrained depth",
+      "Read-only source, chart, and preview panes",
+      "Preview-first order on narrow inspector screens"
+    ],
+    "rules": [
+      {"name": "The One Warm Signal Rule", "body": "Use sample gold only for selection and sample-data status.", "section": "colors"},
+      {"name": "The Identifier Rule", "body": "Keep state names and transition labels in monospace type.", "section": "typography"},
+      {"name": "The Flat Pane Rule", "body": "Keep main panes flat. Use shadow only on chart nodes and interactive focus states.", "section": "elevation"}
+    ],
+    "dos": [
+      "Do keep source, chart, and preview roles visually distinct.",
+      "Do use blue for navigation, focus, and chart structure.",
+      "Do keep interactive targets at least 44px high where space permits.",
+      "Do keep mobile DOM order equal to visible order."
+    ],
+    "donts": [
+      "Don't add decorative color without a semantic role.",
+      "Don't use proportional type for state identifiers or JSON.",
+      "Don't make preview buttons behave like live Telegram actions.",
+      "Don't use large shadows on workbench panes."
+    ]
+  }
+}

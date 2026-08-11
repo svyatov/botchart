@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#17212b">
+    <title>botchart playground</title>
+    <link rel="stylesheet" href="./styles.css">
+    <script src="./vendor/elk.bundled.js" defer></script>
+    <script src="./app.js" type="module"></script>
+  </head>
+  <body data-mode="canvas">
+    <a class="skip-link" href="#diagram-viewport">Skip to the statechart</a>
+    <div class="app-shell">
+      <header class="toolbar">
+        <a class="brand" href="https://github.com/svyatov/botchart">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <span>botchart</span>
+          <span class="brand-suffix">playground</span>
+        </a>
+
+        <label class="starter-control">
+          <span>Starter</span>
+          <select id="starter-select">
+            <option value="visual-menu">Field Signal Atlas</option>
+            <option value="dynamic-list">Field Journal Browser</option>
+          </select>
+        </label>
+
+        <div class="mode-switch" role="group" aria-label="Diagram mode">
+          <button type="button" data-mode="canvas" aria-pressed="true">Canvas</button>
+          <button type="button" data-mode="inspector" aria-pressed="false">Inspector</button>
+        </div>
+      </header>
+
+      <main id="workbench" class="workbench">
+        <section id="spec-pane" class="pane spec-pane" aria-labelledby="spec-heading">
+          <header class="pane-heading">
+            <h1 id="spec-heading">Canonical spec</h1>
+            <span>Read only</span>
+          </header>
+          <pre id="spec-json" tabindex="0" aria-label="Canonical JSON specification"></pre>
+        </section>
+
+        <section id="diagram-pane" class="pane diagram-pane" aria-labelledby="diagram-heading">
+          <header class="pane-heading diagram-heading">
+            <div>
+              <h2 id="diagram-heading">Statechart</h2>
+              <span id="starter-summary">Loading starter</span>
+            </div>
+            <output id="graph-counts" aria-live="polite"></output>
+          </header>
+          <div id="diagram-viewport" class="diagram-viewport" tabindex="0">
+            <div id="diagram-loading" class="diagram-message">Measuring views and laying out the statechart...</div>
+            <div id="measurement-layer" aria-hidden="true"></div>
+            <div id="diagram-canvas" class="diagram-canvas"></div>
+            <section id="transition-summary" class="visually-hidden" aria-label="Statechart transitions">
+              <ul id="transition-list"></ul>
+            </section>
+          </div>
+        </section>
+
+        <aside id="inspector-pane" class="pane inspector-pane" aria-labelledby="inspector-heading">
+          <header class="pane-heading">
+            <h2 id="inspector-heading">State preview</h2>
+            <span id="selected-kind">State</span>
+          </header>
+          <div id="inspector-content" class="inspector-content" aria-live="polite" aria-atomic="true">
+            <div class="diagram-message">Select a state to inspect its view.</div>
+          </div>
+        </aside>
+      </main>
+
+      <footer class="footer">
+        <span id="source-credit">Starter source loading</span>
+        <a href="./THIRD-PARTY-NOTICES.md">Third-party notices</a>
+      </footer>
+    </div>
+  </body>
+</html>
