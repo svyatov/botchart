@@ -471,40 +471,32 @@
       "input": {
         "name": "document",
         "origin": "telegram",
-        "payload": {},
+        "payload": {
+          "sessionKey": "chat:42"
+        },
         "source": "message"
       },
       "name": "fall through to raw last",
       "result": {
-        "error": {
-          "code": "missing_session_key",
-          "message": "Add the sessionKey value before this transition cancels a timer.",
-          "path": "$.input.payload.sessionKey"
-        },
-        "intents": [],
-        "kind": "error",
+        "intents": [
+          {
+            "id": "timer:1",
+            "kind": "timer",
+            "operation": "cancel"
+          }
+        ],
+        "kind": "ok",
         "session": {
           "callStack": [],
-          "callbacks": {
-            "callback:1": {
-              "durable": false,
-              "payload": {},
-              "press": "pick",
-              "seq": 0,
-              "sessionKey": "chat:42",
-              "stateId": "main",
-              "viewRevision": 0,
-              "viewSlot": "main"
-            }
-          },
+          "callbacks": {},
           "context": {
             "name": "Ada",
             "referrer": "alice",
-            "route": "raw"
+            "route": "rawFallback"
           },
           "history": {},
-          "position": "main",
-          "seq": 0,
+          "position": "plain",
+          "seq": 1,
           "viewSlots": {
             "main": {
               "revision": 0,
@@ -529,35 +521,19 @@
       },
       "name": "consume a non-moving event",
       "result": {
-        "error": {
-          "code": "missing_session_key",
-          "message": "Add the sessionKey value before this transition cancels a timer.",
-          "path": "$.input.payload.sessionKey"
-        },
         "intents": [],
-        "kind": "error",
+        "kind": "ok",
         "session": {
           "callStack": [],
-          "callbacks": {
-            "callback:1": {
-              "durable": false,
-              "payload": {},
-              "press": "pick",
-              "seq": 0,
-              "sessionKey": "chat:42",
-              "stateId": "main",
-              "viewRevision": 0,
-              "viewSlot": "main"
-            }
-          },
+          "callbacks": {},
           "context": {
             "name": "Ada",
             "referrer": "alice",
-            "route": "raw"
+            "route": "rawFallback"
           },
           "history": {},
-          "position": "main",
-          "seq": 0,
+          "position": "plain",
+          "seq": 1,
           "viewSlots": {
             "main": {
               "revision": 0,
@@ -582,35 +558,19 @@
       },
       "name": "emit one unhandled lifecycle event",
       "result": {
-        "error": {
-          "code": "missing_session_key",
-          "message": "Add the sessionKey value before this transition cancels a timer.",
-          "path": "$.input.payload.sessionKey"
-        },
         "intents": [],
-        "kind": "error",
+        "kind": "ok",
         "session": {
           "callStack": [],
-          "callbacks": {
-            "callback:1": {
-              "durable": false,
-              "payload": {},
-              "press": "pick",
-              "seq": 0,
-              "sessionKey": "chat:42",
-              "stateId": "main",
-              "viewRevision": 0,
-              "viewSlot": "main"
-            }
-          },
+          "callbacks": {},
           "context": {
             "name": "Ada",
             "referrer": "alice",
-            "route": "raw"
+            "route": "unhandled"
           },
           "history": {},
-          "position": "main",
-          "seq": 0,
+          "position": "unhandled",
+          "seq": 2,
           "viewSlots": {
             "main": {
               "revision": 0,
