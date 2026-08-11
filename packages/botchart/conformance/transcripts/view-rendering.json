@@ -65,7 +65,6 @@
         "runtime.view.binding.item",
         "runtime.view.keyboard",
         "runtime.view.projection",
-        "runtime.view.projectionCondition",
         "runtime.view.reconcile.replace"
       ],
       "input": {

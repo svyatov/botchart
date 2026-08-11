@@ -1,0 +1,391 @@
+{
+  "$schema": "https://svyatov.github.io/botchart/conformance/0.1.0/transcript.schema.json",
+  "initial": {
+    "now": "2026-08-11T15:00:00Z",
+    "session": {
+      "callStack": [],
+      "callbacks": {},
+      "context": {
+        "amount": 25,
+        "balance": 480,
+        "bcBlocked": 0,
+        "bcDuration": 0,
+        "bcFailed": 0,
+        "bcProgress": 0,
+        "bcSent": 0,
+        "bcSuccess": 0,
+        "bcTotal": 0,
+        "broadcastText": "Inspection starts at 16:00.",
+        "callerPerms": 7,
+        "canBlockTarget": true,
+        "canBroadcast": false,
+        "canManageCategories": false,
+        "canManageGoods": false,
+        "canManagePromo": false,
+        "canManageRoles": false,
+        "canManageShop": false,
+        "canManageUsers": false,
+        "canUnblockTarget": true,
+        "earningId": 9,
+        "earningSource": "all",
+        "earningText": "Credit adjustment",
+        "hasNext": false,
+        "hasPrev": false,
+        "itemsCount": 3,
+        "maintenanceSnapshot": false,
+        "page": 1,
+        "pageLabel": "Page 1 of 1",
+        "permissions": [
+          {
+            "allowed": true,
+            "bit": 1,
+            "enabled": true,
+            "label": "Review records"
+          },
+          {
+            "allowed": true,
+            "bit": 2,
+            "enabled": false,
+            "label": "Edit records"
+          }
+        ],
+        "profileHasCart": false,
+        "profileHasItems": true,
+        "profileHasReferral": true,
+        "referralsCount": 2,
+        "registrationDate": "2026-02-14",
+        "roleId": 17,
+        "roleName": "Field reviewer",
+        "rolePerms": 5,
+        "roleUserCount": 12,
+        "roles": [
+          {
+            "id": 17,
+            "label": "Field reviewer",
+            "visible": true
+          },
+          {
+            "id": 18,
+            "label": "Dispatch lead",
+            "visible": true
+          }
+        ],
+        "rows": [
+          {
+            "id": 1,
+            "label": "Morning log"
+          }
+        ],
+        "selectedBit": 2,
+        "targetBlocked": false,
+        "targetIsOwner": false,
+        "targetName": "Morgan Lee",
+        "targetUser": 42,
+        "totalTopup": 1200,
+        "userName": "Alex Chen"
+      },
+      "history": {},
+      "position": "rolePermissionChanging",
+      "seq": 4,
+      "viewSlots": {
+        "main": {
+          "revision": 0,
+          "target": {
+            "chatId": 42,
+            "kind": "chat"
+          }
+        }
+      }
+    }
+  },
+  "name": "admin role boundary",
+  "schemaRevision": "0.1.0",
+  "spec": {
+    "path": "../specs/admin-surface.json",
+    "sha256": "48cd6589ad1a447d96bb7be9d67149c5f5338bb8e8b5ae6745d7fc28e2fa7c09"
+  },
+  "steps": [
+    {
+      "covers": [
+        "runtime.view.projectionCondition"
+      ],
+      "input": {
+        "name": "toggled",
+        "origin": "effect",
+        "payload": {
+          "id": "user:42:rolePermissionChanging:4:0",
+          "output": {
+            "permissions": [
+              {
+                "allowed": true,
+                "bit": 1,
+                "enabled": true,
+                "label": "Review records"
+              },
+              {
+                "allowed": true,
+                "bit": 2,
+                "enabled": true,
+                "label": "Edit records"
+              }
+            ],
+            "rolePerms": 7
+          },
+          "token": {
+            "seq": 4,
+            "sessionKey": "user:42",
+            "stateId": "rolePermissionChanging"
+          }
+        },
+        "source": "outcome"
+      },
+      "name": "apply a permission change to one runtime role",
+      "result": {
+        "intents": [
+          {
+            "kind": "view",
+            "operation": "send",
+            "slot": "main",
+            "target": {
+              "chatId": 42,
+              "kind": "chat"
+            },
+            "view": {
+              "keyboard": [
+                {
+                  "buttons": [
+                    {
+                      "callbackId": "callback:1",
+                      "kind": "button",
+                      "label": "Select Review records"
+                    }
+                  ],
+                  "kind": "row"
+                },
+                {
+                  "buttons": [
+                    {
+                      "callbackId": "callback:2",
+                      "kind": "button",
+                      "label": "Select Edit records"
+                    }
+                  ],
+                  "kind": "row"
+                },
+                {
+                  "buttons": [
+                    {
+                      "callbackId": "callback:3",
+                      "kind": "button",
+                      "label": "Action: role edit"
+                    }
+                  ],
+                  "kind": "row"
+                },
+                {
+                  "buttons": [
+                    {
+                      "callbackId": "callback:4",
+                      "kind": "button",
+                      "label": "Action: role delete"
+                    }
+                  ],
+                  "kind": "row"
+                },
+                {
+                  "buttons": [
+                    {
+                      "callbackId": "callback:5",
+                      "kind": "button",
+                      "label": "Action: perm done"
+                    }
+                  ],
+                  "kind": "row"
+                },
+                {
+                  "buttons": [
+                    {
+                      "callbackId": "callback:6",
+                      "kind": "button",
+                      "label": "Action: back to menu"
+                    }
+                  ],
+                  "kind": "row"
+                }
+              ],
+              "kind": "text",
+              "parseMode": "HTML",
+              "text": "Operations console: role detail\nValue: Field reviewer\nValue: 7\nValue: 12"
+            }
+          }
+        ],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {
+            "callback:1": {
+              "durable": false,
+              "payload": {
+                "bit": 1
+              },
+              "press": "permToggle",
+              "seq": 5,
+              "sessionKey": "user:42",
+              "stateId": "roleDetail",
+              "viewRevision": 1,
+              "viewSlot": "main"
+            },
+            "callback:2": {
+              "durable": false,
+              "payload": {
+                "bit": 2
+              },
+              "press": "permToggle",
+              "seq": 5,
+              "sessionKey": "user:42",
+              "stateId": "roleDetail",
+              "viewRevision": 1,
+              "viewSlot": "main"
+            },
+            "callback:3": {
+              "durable": false,
+              "payload": {
+                "roleId": 17
+              },
+              "press": "roleEdit",
+              "seq": 5,
+              "sessionKey": "user:42",
+              "stateId": "roleDetail",
+              "viewRevision": 1,
+              "viewSlot": "main"
+            },
+            "callback:4": {
+              "durable": false,
+              "payload": {
+                "roleId": 17
+              },
+              "press": "roleDelete",
+              "seq": 5,
+              "sessionKey": "user:42",
+              "stateId": "roleDetail",
+              "viewRevision": 1,
+              "viewSlot": "main"
+            },
+            "callback:5": {
+              "durable": false,
+              "payload": {},
+              "press": "permDone",
+              "seq": 5,
+              "sessionKey": "user:42",
+              "stateId": "roleDetail",
+              "viewRevision": 1,
+              "viewSlot": "main"
+            },
+            "callback:6": {
+              "durable": false,
+              "payload": {},
+              "press": "backToMenu",
+              "seq": 5,
+              "sessionKey": "user:42",
+              "stateId": "roleDetail",
+              "viewRevision": 1,
+              "viewSlot": "main"
+            }
+          },
+          "context": {
+            "amount": 25,
+            "balance": 480,
+            "bcBlocked": 0,
+            "bcDuration": 0,
+            "bcFailed": 0,
+            "bcProgress": 0,
+            "bcSent": 0,
+            "bcSuccess": 0,
+            "bcTotal": 0,
+            "broadcastText": "Inspection starts at 16:00.",
+            "callerPerms": 7,
+            "canBlockTarget": true,
+            "canBroadcast": false,
+            "canManageCategories": false,
+            "canManageGoods": false,
+            "canManagePromo": false,
+            "canManageRoles": false,
+            "canManageShop": false,
+            "canManageUsers": false,
+            "canUnblockTarget": true,
+            "earningId": 9,
+            "earningSource": "all",
+            "earningText": "Credit adjustment",
+            "hasNext": false,
+            "hasPrev": false,
+            "itemsCount": 3,
+            "maintenanceSnapshot": false,
+            "page": 1,
+            "pageLabel": "Page 1 of 1",
+            "permissions": [
+              {
+                "allowed": true,
+                "bit": 1,
+                "enabled": true,
+                "label": "Review records"
+              },
+              {
+                "allowed": true,
+                "bit": 2,
+                "enabled": true,
+                "label": "Edit records"
+              }
+            ],
+            "profileHasCart": false,
+            "profileHasItems": true,
+            "profileHasReferral": true,
+            "referralsCount": 2,
+            "registrationDate": "2026-02-14",
+            "roleId": 17,
+            "roleName": "Field reviewer",
+            "rolePerms": 7,
+            "roleUserCount": 12,
+            "roles": [
+              {
+                "id": 17,
+                "label": "Field reviewer",
+                "visible": true
+              },
+              {
+                "id": 18,
+                "label": "Dispatch lead",
+                "visible": true
+              }
+            ],
+            "rows": [
+              {
+                "id": 1,
+                "label": "Morning log"
+              }
+            ],
+            "selectedBit": 2,
+            "targetBlocked": false,
+            "targetIsOwner": false,
+            "targetName": "Morgan Lee",
+            "targetUser": 42,
+            "totalTopup": 1200,
+            "userName": "Alex Chen"
+          },
+          "history": {},
+          "position": "roleDetail",
+          "seq": 5,
+          "viewSlots": {
+            "main": {
+              "revision": 0,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "transcriptVersion": 1
+}

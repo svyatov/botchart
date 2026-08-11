@@ -1,0 +1,6523 @@
+{
+  "$schema": "https://svyatov.github.io/botchart/schema/0.1.0.json",
+  "version": 1,
+  "schemaRevision": "0.1.0",
+  "packs": [],
+  "scope": "user",
+  "context": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+      "pendingText": {
+        "type": "string"
+      },
+      "callerPerms": {
+        "type": "number"
+      },
+      "targetUser": {
+        "type": "number"
+      },
+      "targetName": {
+        "type": "string"
+      },
+      "targetBlocked": {
+        "type": "boolean"
+      },
+      "targetIsOwner": {
+        "type": "boolean"
+      },
+      "canBlockTarget": {
+        "type": "boolean"
+      },
+      "canUnblockTarget": {
+        "type": "boolean"
+      },
+      "balance": {
+        "type": "number"
+      },
+      "amount": {
+        "type": "number"
+      },
+      "roleId": {
+        "type": "number"
+      },
+      "roleName": {
+        "type": "string"
+      },
+      "rolePerms": {
+        "type": "number"
+      },
+      "roleUserCount": {
+        "type": "number"
+      },
+      "selectedBit": {
+        "type": "number"
+      },
+      "userName": {
+        "type": "string"
+      },
+      "totalTopup": {
+        "type": "number"
+      },
+      "itemsCount": {
+        "type": "number"
+      },
+      "referralsCount": {
+        "type": "number"
+      },
+      "registrationDate": {
+        "type": "string"
+      },
+      "profileHasReferral": {
+        "type": "boolean"
+      },
+      "profileHasItems": {
+        "type": "boolean"
+      },
+      "profileHasCart": {
+        "type": "boolean"
+      },
+      "canManageUsers": {
+        "type": "boolean"
+      },
+      "canManageRoles": {
+        "type": "boolean"
+      },
+      "canBroadcast": {
+        "type": "boolean"
+      },
+      "canManageShop": {
+        "type": "boolean"
+      },
+      "canManageGoods": {
+        "type": "boolean"
+      },
+      "canManageCategories": {
+        "type": "boolean"
+      },
+      "canManagePromo": {
+        "type": "boolean"
+      },
+      "maintenanceSnapshot": {
+        "type": "boolean"
+      },
+      "page": {
+        "type": "number"
+      },
+      "pageLabel": {
+        "type": "string"
+      },
+      "hasPrev": {
+        "type": "boolean"
+      },
+      "hasNext": {
+        "type": "boolean"
+      },
+      "rows": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "number"
+            },
+            "label": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "id",
+            "label"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "roles": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "number"
+            },
+            "label": {
+              "type": "string"
+            },
+            "visible": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "id",
+            "label",
+            "visible"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "permissions": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "bit": {
+              "type": "number"
+            },
+            "label": {
+              "type": "string"
+            },
+            "enabled": {
+              "type": "boolean"
+            },
+            "allowed": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "bit",
+            "label",
+            "enabled",
+            "allowed"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "earningSource": {
+        "type": "string"
+      },
+      "earningId": {
+        "type": "number"
+      },
+      "earningText": {
+        "type": "string"
+      },
+      "broadcastText": {
+        "type": "string"
+      },
+      "bcTotal": {
+        "type": "number"
+      },
+      "bcSent": {
+        "type": "number"
+      },
+      "bcFailed": {
+        "type": "number"
+      },
+      "bcBlocked": {
+        "type": "number"
+      },
+      "bcSuccess": {
+        "type": "number"
+      },
+      "bcDuration": {
+        "type": "number"
+      },
+      "bcProgress": {
+        "type": "number"
+      }
+    },
+    "required": [
+      "callerPerms",
+      "targetBlocked",
+      "targetIsOwner",
+      "canBlockTarget",
+      "canUnblockTarget",
+      "balance",
+      "amount",
+      "rolePerms",
+      "roleUserCount",
+      "selectedBit",
+      "totalTopup",
+      "itemsCount",
+      "referralsCount",
+      "profileHasReferral",
+      "profileHasItems",
+      "profileHasCart",
+      "canManageUsers",
+      "canManageRoles",
+      "canBroadcast",
+      "canManageShop",
+      "canManageGoods",
+      "canManageCategories",
+      "canManagePromo",
+      "maintenanceSnapshot",
+      "page",
+      "hasPrev",
+      "hasNext",
+      "rows",
+      "roles",
+      "permissions",
+      "bcTotal",
+      "bcSent",
+      "bcFailed",
+      "bcBlocked",
+      "bcSuccess",
+      "bcDuration",
+      "bcProgress"
+    ],
+    "additionalProperties": false,
+    "default": {
+      "callerPerms": 7,
+      "targetBlocked": false,
+      "targetIsOwner": false,
+      "canBlockTarget": true,
+      "canUnblockTarget": true,
+      "balance": 480,
+      "amount": 25,
+      "rolePerms": 5,
+      "roleUserCount": 12,
+      "selectedBit": 2,
+      "totalTopup": 1200,
+      "itemsCount": 3,
+      "referralsCount": 2,
+      "profileHasReferral": true,
+      "profileHasItems": true,
+      "profileHasCart": false,
+      "canManageUsers": false,
+      "canManageRoles": false,
+      "canBroadcast": false,
+      "canManageShop": false,
+      "canManageGoods": false,
+      "canManageCategories": false,
+      "canManagePromo": false,
+      "maintenanceSnapshot": false,
+      "page": 1,
+      "hasPrev": false,
+      "hasNext": false,
+      "rows": [
+        {
+          "id": 1,
+          "label": "Morning log"
+        }
+      ],
+      "roles": [
+        {
+          "id": 17,
+          "label": "Field reviewer",
+          "visible": true
+        },
+        {
+          "id": 18,
+          "label": "Dispatch lead",
+          "visible": true
+        }
+      ],
+      "permissions": [
+        {
+          "bit": 1,
+          "label": "Review records",
+          "enabled": true,
+          "allowed": true
+        },
+        {
+          "bit": 2,
+          "label": "Edit records",
+          "enabled": false,
+          "allowed": true
+        }
+      ],
+      "bcTotal": 0,
+      "bcSent": 0,
+      "bcFailed": 0,
+      "bcBlocked": 0,
+      "bcSuccess": 0,
+      "bcDuration": 0,
+      "bcProgress": 0,
+      "targetUser": 42,
+      "targetName": "Morgan Lee",
+      "roleId": 17,
+      "roleName": "Field reviewer",
+      "userName": "Alex Chen",
+      "registrationDate": "2026-02-14",
+      "pageLabel": "Page 1 of 1",
+      "earningSource": "all",
+      "earningId": 9,
+      "earningText": "Credit adjustment",
+      "broadcastText": "Inspection starts at 16:00."
+    }
+  },
+  "parameters": {
+    "currency": {
+      "type": "string",
+      "default": "credits"
+    },
+    "minAmount": {
+      "type": "number",
+      "default": 10
+    },
+    "maxAmount": {
+      "type": "number",
+      "default": 100000
+    },
+    "referralPercent": {
+      "type": "number",
+      "default": 5
+    },
+    "channelUrl": {
+      "type": "string",
+      "default": "https://example.com/field-ops"
+    },
+    "helperId": {
+      "type": "number",
+      "default": 0
+    },
+    "rules": {
+      "type": "string",
+      "default": "Use assigned access only."
+    },
+    "ownerId": {
+      "type": "number",
+      "default": 0
+    },
+    "botLocale": {
+      "type": "string",
+      "default": "en"
+    }
+  },
+  "guards": {
+    "isBlocked": {},
+    "maintenanceBlocks": {},
+    "adminPrefixWithoutRole": {}
+  },
+  "effects": {
+    "ensureUser": {
+      "input": {},
+      "outcomes": {
+        "exists": {},
+        "missing": {}
+      }
+    },
+    "createUser": {
+      "input": {},
+      "outcomes": {
+        "created": {}
+      }
+    },
+    "invalidateUserCache": {
+      "input": {},
+      "outcomes": {
+        "done": {}
+      }
+    },
+    "trackRegistration": {
+      "input": {},
+      "outcomes": {
+        "done": {}
+      }
+    },
+    "loadHome": {
+      "input": {},
+      "outcomes": {
+        "ready": {
+          "callerPerms": {
+            "type": "number"
+          },
+          "userName": {
+            "type": "string"
+          },
+          "canManageUsers": {
+            "type": "boolean"
+          },
+          "canManageRoles": {
+            "type": "boolean"
+          },
+          "canBroadcast": {
+            "type": "boolean"
+          },
+          "canManageShop": {
+            "type": "boolean"
+          },
+          "canManageGoods": {
+            "type": "boolean"
+          },
+          "canManageCategories": {
+            "type": "boolean"
+          },
+          "canManagePromo": {
+            "type": "boolean"
+          }
+        },
+        "subscribeRequired": {}
+      }
+    },
+    "loadProfile": {
+      "input": {},
+      "outcomes": {
+        "loaded": {
+          "targetUser": {
+            "type": "number"
+          },
+          "userName": {
+            "type": "string"
+          },
+          "balance": {
+            "type": "number"
+          },
+          "totalTopup": {
+            "type": "number"
+          },
+          "itemsCount": {
+            "type": "number"
+          },
+          "referralsCount": {
+            "type": "number"
+          },
+          "registrationDate": {
+            "type": "string"
+          },
+          "profileHasReferral": {
+            "type": "boolean"
+          },
+          "profileHasItems": {
+            "type": "boolean"
+          },
+          "profileHasCart": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "loadOperations": {
+      "input": {
+        "page": {
+          "type": "number"
+        }
+      },
+      "outcomes": {
+        "loaded": {
+          "rows": {
+            "type": "array",
+            "items": {
+              "type": "record",
+              "fields": {
+                "id": {
+                  "type": "number"
+                },
+                "label": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "pageLabel": {
+            "type": "string"
+          },
+          "hasPrev": {
+            "type": "boolean"
+          },
+          "hasNext": {
+            "type": "boolean"
+          }
+        },
+        "empty": {}
+      }
+    },
+    "loadMaintenance": {
+      "input": {},
+      "outcomes": {
+        "loaded": {
+          "enabled": {
+            "type": "boolean"
+          }
+        },
+        "denied": {}
+      }
+    },
+    "setMaintenance": {
+      "input": {},
+      "outcomes": {
+        "enabled": {
+          "enabled": {
+            "type": "boolean"
+          }
+        },
+        "disabled": {
+          "enabled": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "loadUserProfile": {
+      "input": {
+        "rawId": {
+          "type": "string"
+        }
+      },
+      "outcomes": {
+        "found": {
+          "targetUser": {
+            "type": "number"
+          },
+          "targetName": {
+            "type": "string"
+          },
+          "balance": {
+            "type": "number"
+          },
+          "blocked": {
+            "type": "boolean"
+          },
+          "isOwner": {
+            "type": "boolean"
+          },
+          "canBlock": {
+            "type": "boolean"
+          },
+          "canUnblock": {
+            "type": "boolean"
+          }
+        },
+        "missing": {}
+      }
+    },
+    "validateAmount": {
+      "input": {
+        "raw": {
+          "type": "string"
+        },
+        "minimum": {
+          "type": "number"
+        },
+        "maximum": {
+          "type": "number"
+        }
+      },
+      "outcomes": {
+        "valid": {
+          "amount": {
+            "type": "number"
+          }
+        },
+        "invalid": {}
+      }
+    },
+    "adminBalanceChange": {
+      "input": {
+        "targetUser": {
+          "type": "number"
+        },
+        "amount": {
+          "type": "number"
+        },
+        "operation": {
+          "type": "string"
+        }
+      },
+      "outcomes": {
+        "done": {
+          "balance": {
+            "type": "number"
+          }
+        },
+        "insufficient": {
+          "balance": {
+            "type": "number"
+          }
+        },
+        "failed": {}
+      }
+    },
+    "blockUser": {
+      "input": {
+        "targetUser": {
+          "type": "number"
+        }
+      },
+      "outcomes": {
+        "done": {},
+        "isOwner": {},
+        "failed": {}
+      }
+    },
+    "unblockUser": {
+      "input": {
+        "targetUser": {
+          "type": "number"
+        }
+      },
+      "outcomes": {
+        "done": {},
+        "failed": {}
+      }
+    },
+    "loadPurchases": {
+      "input": {
+        "targetUser": {
+          "type": "number"
+        },
+        "page": {
+          "type": "number"
+        }
+      },
+      "outcomes": {
+        "loaded": {
+          "rows": {
+            "type": "array",
+            "items": {
+              "type": "record",
+              "fields": {
+                "id": {
+                  "type": "number"
+                },
+                "label": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "pageLabel": {
+            "type": "string"
+          },
+          "hasPrev": {
+            "type": "boolean"
+          },
+          "hasNext": {
+            "type": "boolean"
+          }
+        },
+        "empty": {}
+      }
+    },
+    "loadReferrals": {
+      "input": {
+        "targetUser": {
+          "type": "number"
+        },
+        "page": {
+          "type": "number"
+        }
+      },
+      "outcomes": {
+        "loaded": {
+          "rows": {
+            "type": "array",
+            "items": {
+              "type": "record",
+              "fields": {
+                "id": {
+                  "type": "number"
+                },
+                "label": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "pageLabel": {
+            "type": "string"
+          },
+          "hasPrev": {
+            "type": "boolean"
+          },
+          "hasNext": {
+            "type": "boolean"
+          }
+        },
+        "empty": {}
+      }
+    },
+    "loadEarnings": {
+      "input": {
+        "targetUser": {
+          "type": "number"
+        },
+        "source": {
+          "type": "string"
+        },
+        "page": {
+          "type": "number"
+        }
+      },
+      "outcomes": {
+        "loaded": {
+          "rows": {
+            "type": "array",
+            "items": {
+              "type": "record",
+              "fields": {
+                "id": {
+                  "type": "number"
+                },
+                "label": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "pageLabel": {
+            "type": "string"
+          },
+          "hasPrev": {
+            "type": "boolean"
+          },
+          "hasNext": {
+            "type": "boolean"
+          }
+        },
+        "empty": {}
+      }
+    },
+    "loadEarningDetail": {
+      "input": {
+        "earningId": {
+          "type": "number"
+        }
+      },
+      "outcomes": {
+        "found": {
+          "text": {
+            "type": "string"
+          }
+        },
+        "missing": {}
+      }
+    },
+    "loadRoles": {
+      "input": {
+        "callerPerms": {
+          "type": "number"
+        }
+      },
+      "outcomes": {
+        "loaded": {
+          "roles": {
+            "type": "array",
+            "items": {
+              "type": "record",
+              "fields": {
+                "id": {
+                  "type": "number"
+                },
+                "label": {
+                  "type": "string"
+                },
+                "visible": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "loadRoleDetail": {
+      "input": {
+        "roleId": {
+          "type": "number"
+        },
+        "callerPerms": {
+          "type": "number"
+        }
+      },
+      "outcomes": {
+        "loaded": {
+          "roleName": {
+            "type": "string"
+          },
+          "rolePerms": {
+            "type": "number"
+          },
+          "roleUserCount": {
+            "type": "number"
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "record",
+              "fields": {
+                "bit": {
+                  "type": "number"
+                },
+                "label": {
+                  "type": "string"
+                },
+                "enabled": {
+                  "type": "boolean"
+                },
+                "allowed": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        },
+        "denied": {}
+      }
+    },
+    "createRole": {
+      "input": {
+        "name": {
+          "type": "string"
+        },
+        "permissions": {
+          "type": "number"
+        }
+      },
+      "outcomes": {
+        "created": {
+          "roleId": {
+            "type": "number"
+          }
+        },
+        "nameExists": {}
+      }
+    },
+    "updateRole": {
+      "input": {
+        "roleId": {
+          "type": "number"
+        },
+        "name": {
+          "type": "string"
+        },
+        "permissions": {
+          "type": "number"
+        }
+      },
+      "outcomes": {
+        "updated": {},
+        "nameExists": {},
+        "failed": {}
+      }
+    },
+    "deleteRole": {
+      "input": {
+        "roleId": {
+          "type": "number"
+        }
+      },
+      "outcomes": {
+        "deleted": {},
+        "failed": {}
+      }
+    },
+    "togglePermBit": {
+      "input": {
+        "roleId": {
+          "type": "number"
+        },
+        "bit": {
+          "type": "number"
+        },
+        "callerPerms": {
+          "type": "number"
+        }
+      },
+      "outcomes": {
+        "toggled": {
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "record",
+              "fields": {
+                "bit": {
+                  "type": "number"
+                },
+                "label": {
+                  "type": "string"
+                },
+                "enabled": {
+                  "type": "boolean"
+                },
+                "allowed": {
+                  "type": "boolean"
+                }
+              }
+            }
+          },
+          "rolePerms": {
+            "type": "number"
+          }
+        },
+        "denied": {}
+      }
+    },
+    "setRole": {
+      "input": {
+        "targetUser": {
+          "type": "number"
+        },
+        "roleId": {
+          "type": "number"
+        }
+      },
+      "outcomes": {
+        "done": {
+          "roleName": {
+            "type": "string"
+          }
+        },
+        "isOwner": {},
+        "failed": {}
+      }
+    },
+    "invalidateAuthCaches": {
+      "input": {
+        "targetUser": {
+          "type": "number"
+        }
+      },
+      "outcomes": {
+        "done": {}
+      }
+    },
+    "logAudit": {
+      "input": {},
+      "outcomes": {
+        "done": {}
+      }
+    },
+    "notifyRoleAssigned": {
+      "input": {
+        "targetUser": {
+          "type": "number"
+        },
+        "roleName": {
+          "type": "string"
+        }
+      },
+      "outcomes": {
+        "sent": {},
+        "failed": {}
+      }
+    },
+    "notifyToppedUp": {
+      "input": {
+        "targetUser": {
+          "type": "number"
+        },
+        "amount": {
+          "type": "number"
+        }
+      },
+      "outcomes": {
+        "sent": {},
+        "failed": {}
+      }
+    },
+    "notifyDeducted": {
+      "input": {
+        "targetUser": {
+          "type": "number"
+        },
+        "amount": {
+          "type": "number"
+        }
+      },
+      "outcomes": {
+        "sent": {},
+        "failed": {}
+      }
+    },
+    "notifyRestock": {
+      "input": {},
+      "outcomes": {
+        "sent": {}
+      }
+    },
+    "runBroadcast": {
+      "input": {
+        "message": {
+          "type": "string"
+        }
+      },
+      "outcomes": {
+        "done": {
+          "total": {
+            "type": "number"
+          },
+          "sent": {
+            "type": "number"
+          },
+          "failed": {
+            "type": "number"
+          },
+          "blocked": {
+            "type": "number"
+          },
+          "success": {
+            "type": "number"
+          },
+          "duration": {
+            "type": "number"
+          }
+        },
+        "cancelled": {},
+        "failed": {},
+        "timeout": {}
+      },
+      "progress": {
+        "sent": {
+          "type": "number"
+        }
+      },
+      "timeout": "600s"
+    },
+    "cancelBroadcast": {
+      "input": {},
+      "outcomes": {
+        "cancelled": {},
+        "nothingRunning": {}
+      }
+    }
+  },
+  "presses": {
+    "backToMenu": {
+      "payload": {}
+    },
+    "openShop": {
+      "payload": {}
+    },
+    "openRules": {
+      "payload": {}
+    },
+    "openProfile": {
+      "payload": {}
+    },
+    "openConsole": {
+      "payload": {}
+    },
+    "closeMsg": {
+      "payload": {}
+    },
+    "dummy": {
+      "payload": {}
+    },
+    "checkSub": {
+      "payload": {}
+    },
+    "viewHistory": {
+      "payload": {}
+    },
+    "historyPrev": {
+      "payload": {}
+    },
+    "historyNext": {
+      "payload": {}
+    },
+    "userManagement": {
+      "payload": {}
+    },
+    "roleMgmt": {
+      "payload": {}
+    },
+    "sendBroadcast": {
+      "payload": {}
+    },
+    "toggleMaintenance": {
+      "payload": {}
+    },
+    "shopManagement": {
+      "payload": {}
+    },
+    "goodsManagement": {
+      "payload": {}
+    },
+    "categoriesManagement": {
+      "payload": {}
+    },
+    "promoMgmt": {
+      "payload": {}
+    },
+    "stockAdded": {
+      "payload": {}
+    },
+    "checkUser": {
+      "payload": {
+        "targetId": {
+          "type": "number"
+        }
+      }
+    },
+    "fillUserBalance": {
+      "payload": {
+        "targetId": {
+          "type": "number"
+        }
+      }
+    },
+    "deductUserBalance": {
+      "payload": {
+        "targetId": {
+          "type": "number"
+        }
+      }
+    },
+    "blockUserPress": {
+      "payload": {
+        "targetId": {
+          "type": "number"
+        }
+      }
+    },
+    "unblockUserPress": {
+      "payload": {
+        "targetId": {
+          "type": "number"
+        }
+      }
+    },
+    "userItems": {
+      "payload": {
+        "targetId": {
+          "type": "number"
+        }
+      }
+    },
+    "purchasesPrev": {
+      "payload": {}
+    },
+    "purchasesNext": {
+      "payload": {}
+    },
+    "viewReferrals": {
+      "payload": {
+        "targetId": {
+          "type": "number"
+        }
+      }
+    },
+    "refsPrev": {
+      "payload": {}
+    },
+    "refsNext": {
+      "payload": {}
+    },
+    "refEarnings": {
+      "payload": {
+        "targetId": {
+          "type": "number"
+        }
+      }
+    },
+    "viewEarnings": {
+      "payload": {
+        "targetId": {
+          "type": "number"
+        }
+      }
+    },
+    "earningsPrev": {
+      "payload": {}
+    },
+    "earningsNext": {
+      "payload": {}
+    },
+    "earningDetail": {
+      "payload": {
+        "earningId": {
+          "type": "number"
+        }
+      }
+    },
+    "roleView": {
+      "payload": {
+        "roleId": {
+          "type": "number"
+        }
+      }
+    },
+    "roleNew": {
+      "payload": {}
+    },
+    "roleEdit": {
+      "payload": {
+        "roleId": {
+          "type": "number"
+        }
+      }
+    },
+    "roleDelete": {
+      "payload": {
+        "roleId": {
+          "type": "number"
+        }
+      }
+    },
+    "roleDeleteYes": {
+      "payload": {
+        "roleId": {
+          "type": "number"
+        }
+      }
+    },
+    "permToggle": {
+      "payload": {
+        "bit": {
+          "type": "number"
+        }
+      }
+    },
+    "permDone": {
+      "payload": {}
+    },
+    "assignRoleList": {
+      "payload": {
+        "targetId": {
+          "type": "number"
+        }
+      }
+    },
+    "assignRole": {
+      "payload": {
+        "roleId": {
+          "type": "number"
+        },
+        "targetId": {
+          "type": "number"
+        }
+      }
+    },
+    "cancelBroadcastPress": {
+      "payload": {}
+    }
+  },
+  "units": {
+    "earningBrowser": {
+      "input": {
+        "targetUser": {
+          "type": "number"
+        },
+        "source": {
+          "type": "string"
+        }
+      },
+      "output": {},
+      "initial": "earningsLoading",
+      "states": {
+        "earningsLoading": {
+          "kind": "state",
+          "render": "keep",
+          "entry": [
+            {
+              "kind": "run",
+              "effect": "loadEarnings",
+              "input": {
+                "targetUser": {
+                  "context": "targetUser"
+                },
+                "source": {
+                  "context": "earningSource"
+                },
+                "page": {
+                  "context": "page"
+                }
+              },
+              "outcomes": {
+                "loaded": {
+                  "assign": {
+                    "rows": {
+                      "from": "rows"
+                    },
+                    "pageLabel": {
+                      "from": "pageLabel"
+                    },
+                    "hasPrev": {
+                      "from": "hasPrev"
+                    },
+                    "hasNext": {
+                      "from": "hasNext"
+                    }
+                  },
+                  "do": [
+                    {
+                      "target": "earningsList"
+                    }
+                  ]
+                },
+                "empty": {
+                  "assign": {},
+                  "do": [
+                    {
+                      "target": "earningsEmpty"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "earningsList": {
+          "kind": "state",
+          "render": "edit",
+          "view": {
+            "kind": "text",
+            "text": [
+              "Operations console: earnings list",
+              "\nValue: ",
+              {
+                "context": "pageLabel",
+                "escape": "text"
+              }
+            ],
+            "parseMode": "plain",
+            "keyboard": [
+              {
+                "kind": "project",
+                "source": {
+                  "context": "rows"
+                },
+                "maxItems": 20,
+                "rows": [
+                  {
+                    "kind": "row",
+                    "buttons": [
+                      {
+                        "kind": "button",
+                        "label": [
+                          "Select ",
+                          {
+                            "item": "label",
+                            "escape": "text"
+                          }
+                        ],
+                        "press": "earningDetail",
+                        "durable": false,
+                        "payload": {
+                          "earningId": {
+                            "item": "id"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "kind": "row",
+                "buttons": [
+                  {
+                    "kind": "button",
+                    "label": [
+                      "Action: earnings prev"
+                    ],
+                    "press": "earningsPrev",
+                    "durable": false,
+                    "when": {
+                      "compare": {
+                        "left": {
+                          "context": "hasPrev"
+                        },
+                        "op": "eq",
+                        "right": true
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "kind": "row",
+                "buttons": [
+                  {
+                    "kind": "button",
+                    "label": [
+                      "Action: earnings next"
+                    ],
+                    "press": "earningsNext",
+                    "durable": false,
+                    "when": {
+                      "compare": {
+                        "left": {
+                          "context": "hasNext"
+                        },
+                        "op": "eq",
+                        "right": true
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "kind": "row",
+                "buttons": [
+                  {
+                    "kind": "button",
+                    "label": [
+                      "Action: back to menu"
+                    ],
+                    "press": "backToMenu",
+                    "durable": false
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        "earningsEmpty": {
+          "kind": "return",
+          "output": {}
+        },
+        "earningLoading": {
+          "kind": "state",
+          "render": "keep",
+          "entry": [
+            {
+              "kind": "run",
+              "effect": "loadEarningDetail",
+              "input": {
+                "earningId": {
+                  "context": "earningId"
+                }
+              },
+              "outcomes": {
+                "found": {
+                  "assign": {
+                    "earningText": {
+                      "from": "text"
+                    }
+                  },
+                  "do": [
+                    {
+                      "target": "earningDetail"
+                    }
+                  ]
+                },
+                "missing": {
+                  "assign": {},
+                  "do": [
+                    {
+                      "target": "earningMissing"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "earningDetail": {
+          "kind": "return",
+          "output": {}
+        },
+        "earningMissing": {
+          "kind": "return",
+          "output": {}
+        }
+      }
+    }
+  },
+  "stalePress": {
+    "action": "ignore"
+  },
+  "initial": "start",
+  "on": {
+    "command": {
+      "start": {
+        "do": [
+          {
+            "target": "start"
+          }
+        ]
+      }
+    },
+    "press": {
+      "backToMenu": [
+        {
+          "when": {
+            "guard": "isBlocked"
+          },
+          "target": "blockedGate"
+        },
+        {
+          "when": {
+            "guard": "maintenanceBlocks"
+          },
+          "target": "maintenanceGate"
+        },
+        {
+          "when": {
+            "guard": "adminPrefixWithoutRole"
+          },
+          "target": "notAdminGate"
+        },
+        {
+          "target": "menu"
+        }
+      ],
+      "openShop": [
+        {
+          "when": {
+            "guard": "isBlocked"
+          },
+          "target": "blockedGate"
+        },
+        {
+          "when": {
+            "guard": "maintenanceBlocks"
+          },
+          "target": "maintenanceGate"
+        },
+        {
+          "when": {
+            "guard": "adminPrefixWithoutRole"
+          },
+          "target": "notAdminGate"
+        },
+        {
+          "target": "shopBoundary"
+        }
+      ],
+      "openRules": [
+        {
+          "when": {
+            "guard": "isBlocked"
+          },
+          "target": "blockedGate"
+        },
+        {
+          "when": {
+            "guard": "maintenanceBlocks"
+          },
+          "target": "maintenanceGate"
+        },
+        {
+          "when": {
+            "guard": "adminPrefixWithoutRole"
+          },
+          "target": "notAdminGate"
+        },
+        {
+          "target": "rules"
+        }
+      ],
+      "openProfile": [
+        {
+          "when": {
+            "guard": "isBlocked"
+          },
+          "target": "blockedGate"
+        },
+        {
+          "when": {
+            "guard": "maintenanceBlocks"
+          },
+          "target": "maintenanceGate"
+        },
+        {
+          "when": {
+            "guard": "adminPrefixWithoutRole"
+          },
+          "target": "notAdminGate"
+        },
+        {
+          "target": "profileLoading"
+        }
+      ],
+      "openConsole": [
+        {
+          "when": {
+            "guard": "isBlocked"
+          },
+          "target": "blockedGate"
+        },
+        {
+          "when": {
+            "guard": "maintenanceBlocks"
+          },
+          "target": "maintenanceGate"
+        },
+        {
+          "when": {
+            "guard": "adminPrefixWithoutRole"
+          },
+          "target": "notAdminGate"
+        },
+        {
+          "target": "consoleLoading"
+        }
+      ],
+      "closeMsg": [
+        {
+          "when": {
+            "guard": "isBlocked"
+          },
+          "target": "blockedGate"
+        },
+        {
+          "when": {
+            "guard": "maintenanceBlocks"
+          },
+          "target": "maintenanceGate"
+        },
+        {
+          "when": {
+            "guard": "adminPrefixWithoutRole"
+          },
+          "target": "notAdminGate"
+        },
+        {
+          "target": "closeMessage"
+        }
+      ],
+      "dummy": [
+        {
+          "when": {
+            "guard": "isBlocked"
+          },
+          "target": "blockedGate"
+        },
+        {
+          "when": {
+            "guard": "maintenanceBlocks"
+          },
+          "target": "maintenanceGate"
+        },
+        {
+          "when": {
+            "guard": "adminPrefixWithoutRole"
+          },
+          "target": "notAdminGate"
+        },
+        {}
+      ],
+      "checkSub": [
+        {
+          "when": {
+            "guard": "isBlocked"
+          },
+          "target": "blockedGate"
+        },
+        {
+          "when": {
+            "guard": "maintenanceBlocks"
+          },
+          "target": "maintenanceGate"
+        },
+        {
+          "when": {
+            "guard": "adminPrefixWithoutRole"
+          },
+          "target": "notAdminGate"
+        },
+        {
+          "target": "start"
+        }
+      ],
+      "viewHistory": [
+        {
+          "when": {
+            "guard": "isBlocked"
+          },
+          "target": "blockedGate"
+        },
+        {
+          "when": {
+            "guard": "maintenanceBlocks"
+          },
+          "target": "maintenanceGate"
+        },
+        {
+          "when": {
+            "guard": "adminPrefixWithoutRole"
+          },
+          "target": "notAdminGate"
+        },
+        {
+          "assign": {
+            "page": 1
+          },
+          "target": "historyLoading"
+        }
+      ],
+      "historyPrev": [
+        {
+          "when": {
+            "guard": "isBlocked"
+          },
+          "target": "blockedGate"
+        },
+        {
+          "when": {
+            "guard": "maintenanceBlocks"
+          },
+          "target": "maintenanceGate"
+        },
+        {
+          "when": {
+            "guard": "adminPrefixWithoutRole"
+          },
+          "target": "notAdminGate"
+        },
+        {
+          "assign": {
+            "page": {
+              "decrement": 1
+            }
+          },
+          "target": "historyLoading"
+        }
+      ],
+      "historyNext": [
+        {
+          "when": {
+            "guard": "isBlocked"
+          },
+          "target": "blockedGate"
+        },
+        {
+          "when": {
+            "guard": "maintenanceBlocks"
+          },
+          "target": "maintenanceGate"
+        },
+        {
+          "when": {
+            "guard": "adminPrefixWithoutRole"
+          },
+          "target": "notAdminGate"
+        },
+        {
+          "assign": {
+            "page": {
+              "increment": 1
+            }
+          },
+          "target": "historyLoading"
+        }
+      ],
+      "userManagement": [
+        {
+          "when": {
+            "guard": "isBlocked"
+          },
+          "target": "blockedGate"
+        },
+        {
+          "when": {
+            "guard": "maintenanceBlocks"
+          },
+          "target": "maintenanceGate"
+        },
+        {
+          "when": {
+            "guard": "adminPrefixWithoutRole"
+          },
+          "target": "notAdminGate"
+        },
+        {
+          "target": "userPrompt"
+        }
+      ],
+      "roleMgmt": [
+        {
+          "when": {
+            "guard": "isBlocked"
+          },
+          "target": "blockedGate"
+        },
+        {
+          "when": {
+            "guard": "maintenanceBlocks"
+          },
+          "target": "maintenanceGate"
+        },
+        {
+          "when": {
+            "guard": "adminPrefixWithoutRole"
+          },
+          "target": "notAdminGate"
+        },
+        {
+          "target": "rolesLoading"
+        }
+      ],
+      "sendBroadcast": [
+        {
+          "when": {
+            "guard": "isBlocked"
+          },
+          "target": "blockedGate"
+        },
+        {
+          "when": {
+            "guard": "maintenanceBlocks"
+          },
+          "target": "maintenanceGate"
+        },
+        {
+          "when": {
+            "guard": "adminPrefixWithoutRole"
+          },
+          "target": "notAdminGate"
+        },
+        {
+          "target": "broadcastPrompt"
+        }
+      ],
+      "toggleMaintenance": [
+        {
+          "when": {
+            "guard": "isBlocked"
+          },
+          "target": "blockedGate"
+        },
+        {
+          "when": {
+            "guard": "maintenanceBlocks"
+          },
+          "target": "maintenanceGate"
+        },
+        {
+          "when": {
+            "guard": "adminPrefixWithoutRole"
+          },
+          "target": "notAdminGate"
+        },
+        {
+          "target": "maintenanceChanging"
+        }
+      ],
+      "shopManagement": [
+        {
+          "when": {
+            "guard": "isBlocked"
+          },
+          "target": "blockedGate"
+        },
+        {
+          "when": {
+            "guard": "maintenanceBlocks"
+          },
+          "target": "maintenanceGate"
+        },
+        {
+          "when": {
+            "guard": "adminPrefixWithoutRole"
+          },
+          "target": "notAdminGate"
+        },
+        {
+          "target": "shopManagementBoundary"
+        }
+      ],
+      "goodsManagement": [
+        {
+          "when": {
+            "guard": "isBlocked"
+          },
+          "target": "blockedGate"
+        },
+        {
+          "when": {
+            "guard": "maintenanceBlocks"
+          },
+          "target": "maintenanceGate"
+        },
+        {
+          "when": {
+            "guard": "adminPrefixWithoutRole"
+          },
+          "target": "notAdminGate"
+        },
+        {
+          "target": "goodsBoundary"
+        }
+      ],
+      "categoriesManagement": [
+        {
+          "when": {
+            "guard": "isBlocked"
+          },
+          "target": "blockedGate"
+        },
+        {
+          "when": {
+            "guard": "maintenanceBlocks"
+          },
+          "target": "maintenanceGate"
+        },
+        {
+          "when": {
+            "guard": "adminPrefixWithoutRole"
+          },
+          "target": "notAdminGate"
+        },
+        {
+          "target": "categoriesBoundary"
+        }
+      ],
+      "promoMgmt": [
+        {
+          "when": {
+            "guard": "isBlocked"
+          },
+          "target": "blockedGate"
+        },
+        {
+          "when": {
+            "guard": "maintenanceBlocks"
+          },
+          "target": "maintenanceGate"
+        },
+        {
+          "when": {
+            "guard": "adminPrefixWithoutRole"
+          },
+          "target": "notAdminGate"
+        },
+        {
+          "target": "promoBoundary"
+        }
+      ],
+      "stockAdded": [
+        {
+          "when": {
+            "guard": "isBlocked"
+          },
+          "target": "blockedGate"
+        },
+        {
+          "when": {
+            "guard": "maintenanceBlocks"
+          },
+          "target": "maintenanceGate"
+        },
+        {
+          "when": {
+            "guard": "adminPrefixWithoutRole"
+          },
+          "target": "notAdminGate"
+        },
+        {
+          "target": "restockNotifying"
+        }
+      ],
+      "checkUser": [
+        {
+          "when": {
+            "guard": "isBlocked"
+          },
+          "target": "blockedGate"
+        },
+        {
+          "when": {
+            "guard": "maintenanceBlocks"
+          },
+          "target": "maintenanceGate"
+        },
+        {
+          "when": {
+            "guard": "adminPrefixWithoutRole"
+          },
+          "target": "notAdminGate"
+        },
+        {
+          "assign": {
+            "targetUser": {
+              "from": "targetId"
+            }
+          },
+          "target": "userLoading"
+        }
+      ],
+      "fillUserBalance": [
+        {
+          "when": {
+            "guard": "isBlocked"
+          },
+          "target": "blockedGate"
+        },
+        {
+          "when": {
+            "guard": "maintenanceBlocks"
+          },
+          "target": "maintenanceGate"
+        },
+        {
+          "when": {
+            "guard": "adminPrefixWithoutRole"
+          },
+          "target": "notAdminGate"
+        },
+        {
+          "assign": {
+            "targetUser": {
+              "from": "targetId"
+            }
+          },
+          "target": "topupPrompt"
+        }
+      ],
+      "deductUserBalance": [
+        {
+          "when": {
+            "guard": "isBlocked"
+          },
+          "target": "blockedGate"
+        },
+        {
+          "when": {
+            "guard": "maintenanceBlocks"
+          },
+          "target": "maintenanceGate"
+        },
+        {
+          "when": {
+            "guard": "adminPrefixWithoutRole"
+          },
+          "target": "notAdminGate"
+        },
+        {
+          "assign": {
+            "targetUser": {
+              "from": "targetId"
+            }
+          },
+          "target": "deductPrompt"
+        }
+      ],
+      "blockUserPress": [
+        {
+          "when": {
+            "guard": "isBlocked"
+          },
+          "target": "blockedGate"
+        },
+        {
+          "when": {
+            "guard": "maintenanceBlocks"
+          },
+          "target": "maintenanceGate"
+        },
+        {
+          "when": {
+            "guard": "adminPrefixWithoutRole"
+          },
+          "target": "notAdminGate"
+        },
+        {
+          "assign": {
+            "targetUser": {
+              "from": "targetId"
+            }
+          },
+          "target": "blockChanging"
+        }
+      ],
+      "unblockUserPress": [
+        {
+          "when": {
+            "guard": "isBlocked"
+          },
+          "target": "blockedGate"
+        },
+        {
+          "when": {
+            "guard": "maintenanceBlocks"
+          },
+          "target": "maintenanceGate"
+        },
+        {
+          "when": {
+            "guard": "adminPrefixWithoutRole"
+          },
+          "target": "notAdminGate"
+        },
+        {
+          "assign": {
+            "targetUser": {
+              "from": "targetId"
+            }
+          },
+          "target": "unblockChanging"
+        }
+      ],
+      "userItems": [
+        {
+          "when": {
+            "guard": "isBlocked"
+          },
+          "target": "blockedGate"
+        },
+        {
+          "when": {
+            "guard": "maintenanceBlocks"
+          },
+          "target": "maintenanceGate"
+        },
+        {
+          "when": {
+            "guard": "adminPrefixWithoutRole"
+          },
+          "target": "notAdminGate"
+        },
+        {
+          "assign": {
+            "targetUser": {
+              "from": "targetId"
+            },
+            "page": 1
+          },
+          "target": "purchasesLoading"
+        }
+      ],
+      "purchasesPrev": [
+        {
+          "when": {
+            "guard": "isBlocked"
+          },
+          "target": "blockedGate"
+        },
+        {
+          "when": {
+            "guard": "maintenanceBlocks"
+          },
+          "target": "maintenanceGate"
+        },
+        {
+          "when": {
+            "guard": "adminPrefixWithoutRole"
+          },
+          "target": "notAdminGate"
+        },
+        {
+          "assign": {
+            "page": {
+              "decrement": 1
+            }
+          },
+          "target": "purchasesLoading"
+        }
+      ],
+      "purchasesNext": [
+        {
+          "when": {
+            "guard": "isBlocked"
+          },
+          "target": "blockedGate"
+        },
+        {
+          "when": {
+            "guard": "maintenanceBlocks"
+          },
+          "target": "maintenanceGate"
+        },
+        {
+          "when": {
+            "guard": "adminPrefixWithoutRole"
+          },
+          "target": "notAdminGate"
+        },
+        {
+          "assign": {
+            "page": {
+              "increment": 1
+            }
+          },
+          "target": "purchasesLoading"
+        }
+      ],
+      "viewReferrals": [
+        {
+          "when": {
+            "guard": "isBlocked"
+          },
+          "target": "blockedGate"
+        },
+        {
+          "when": {
+            "guard": "maintenanceBlocks"
+          },
+          "target": "maintenanceGate"
+        },
+        {
+          "when": {
+            "guard": "adminPrefixWithoutRole"
+          },
+          "target": "notAdminGate"
+        },
+        {
+          "assign": {
+            "targetUser": {
+              "from": "targetId"
+            },
+            "page": 1
+          },
+          "target": "referralsLoading"
+        }
+      ],
+      "refsPrev": [
+        {
+          "when": {
+            "guard": "isBlocked"
+          },
+          "target": "blockedGate"
+        },
+        {
+          "when": {
+            "guard": "maintenanceBlocks"
+          },
+          "target": "maintenanceGate"
+        },
+        {
+          "when": {
+            "guard": "adminPrefixWithoutRole"
+          },
+          "target": "notAdminGate"
+        },
+        {
+          "assign": {
+            "page": {
+              "decrement": 1
+            }
+          },
+          "target": "referralsLoading"
+        }
+      ],
+      "refsNext": [
+        {
+          "when": {
+            "guard": "isBlocked"
+          },
+          "target": "blockedGate"
+        },
+        {
+          "when": {
+            "guard": "maintenanceBlocks"
+          },
+          "target": "maintenanceGate"
+        },
+        {
+          "when": {
+            "guard": "adminPrefixWithoutRole"
+          },
+          "target": "notAdminGate"
+        },
+        {
+          "assign": {
+            "page": {
+              "increment": 1
+            }
+          },
+          "target": "referralsLoading"
+        }
+      ],
+      "refEarnings": [
+        {
+          "when": {
+            "guard": "isBlocked"
+          },
+          "target": "blockedGate"
+        },
+        {
+          "when": {
+            "guard": "maintenanceBlocks"
+          },
+          "target": "maintenanceGate"
+        },
+        {
+          "when": {
+            "guard": "adminPrefixWithoutRole"
+          },
+          "target": "notAdminGate"
+        },
+        {
+          "assign": {
+            "targetUser": {
+              "from": "targetId"
+            },
+            "earningSource": "referral",
+            "page": 1
+          },
+          "target": "referralEarningsCaller"
+        }
+      ],
+      "viewEarnings": [
+        {
+          "when": {
+            "guard": "isBlocked"
+          },
+          "target": "blockedGate"
+        },
+        {
+          "when": {
+            "guard": "maintenanceBlocks"
+          },
+          "target": "maintenanceGate"
+        },
+        {
+          "when": {
+            "guard": "adminPrefixWithoutRole"
+          },
+          "target": "notAdminGate"
+        },
+        {
+          "assign": {
+            "targetUser": {
+              "from": "targetId"
+            },
+            "earningSource": "all",
+            "page": 1
+          },
+          "target": "earningsCaller"
+        }
+      ],
+      "earningsPrev": [
+        {
+          "when": {
+            "guard": "isBlocked"
+          },
+          "target": "blockedGate"
+        },
+        {
+          "when": {
+            "guard": "maintenanceBlocks"
+          },
+          "target": "maintenanceGate"
+        },
+        {
+          "when": {
+            "guard": "adminPrefixWithoutRole"
+          },
+          "target": "notAdminGate"
+        },
+        {
+          "assign": {
+            "page": {
+              "decrement": 1
+            }
+          },
+          "target": "earningsCaller.earningsLoading"
+        }
+      ],
+      "earningsNext": [
+        {
+          "when": {
+            "guard": "isBlocked"
+          },
+          "target": "blockedGate"
+        },
+        {
+          "when": {
+            "guard": "maintenanceBlocks"
+          },
+          "target": "maintenanceGate"
+        },
+        {
+          "when": {
+            "guard": "adminPrefixWithoutRole"
+          },
+          "target": "notAdminGate"
+        },
+        {
+          "assign": {
+            "page": {
+              "increment": 1
+            }
+          },
+          "target": "earningsCaller.earningsLoading"
+        }
+      ],
+      "earningDetail": [
+        {
+          "when": {
+            "guard": "isBlocked"
+          },
+          "target": "blockedGate"
+        },
+        {
+          "when": {
+            "guard": "maintenanceBlocks"
+          },
+          "target": "maintenanceGate"
+        },
+        {
+          "when": {
+            "guard": "adminPrefixWithoutRole"
+          },
+          "target": "notAdminGate"
+        },
+        {
+          "assign": {
+            "earningId": {
+              "from": "earningId"
+            }
+          },
+          "target": "earningsCaller.earningLoading"
+        }
+      ],
+      "roleView": [
+        {
+          "when": {
+            "guard": "isBlocked"
+          },
+          "target": "blockedGate"
+        },
+        {
+          "when": {
+            "guard": "maintenanceBlocks"
+          },
+          "target": "maintenanceGate"
+        },
+        {
+          "when": {
+            "guard": "adminPrefixWithoutRole"
+          },
+          "target": "notAdminGate"
+        },
+        {
+          "assign": {
+            "roleId": {
+              "from": "roleId"
+            }
+          },
+          "target": "roleLoading"
+        }
+      ],
+      "roleNew": [
+        {
+          "when": {
+            "guard": "isBlocked"
+          },
+          "target": "blockedGate"
+        },
+        {
+          "when": {
+            "guard": "maintenanceBlocks"
+          },
+          "target": "maintenanceGate"
+        },
+        {
+          "when": {
+            "guard": "adminPrefixWithoutRole"
+          },
+          "target": "notAdminGate"
+        },
+        {
+          "assign": {
+            "rolePerms": 0
+          },
+          "target": "roleCreatePrompt"
+        }
+      ],
+      "roleEdit": [
+        {
+          "when": {
+            "guard": "isBlocked"
+          },
+          "target": "blockedGate"
+        },
+        {
+          "when": {
+            "guard": "maintenanceBlocks"
+          },
+          "target": "maintenanceGate"
+        },
+        {
+          "when": {
+            "guard": "adminPrefixWithoutRole"
+          },
+          "target": "notAdminGate"
+        },
+        {
+          "assign": {
+            "roleId": {
+              "from": "roleId"
+            }
+          },
+          "target": "roleEditPrompt"
+        }
+      ],
+      "roleDelete": [
+        {
+          "when": {
+            "guard": "isBlocked"
+          },
+          "target": "blockedGate"
+        },
+        {
+          "when": {
+            "guard": "maintenanceBlocks"
+          },
+          "target": "maintenanceGate"
+        },
+        {
+          "when": {
+            "guard": "adminPrefixWithoutRole"
+          },
+          "target": "notAdminGate"
+        },
+        {
+          "assign": {
+            "roleId": {
+              "from": "roleId"
+            }
+          },
+          "target": "roleDeleteConfirm"
+        }
+      ],
+      "roleDeleteYes": [
+        {
+          "when": {
+            "guard": "isBlocked"
+          },
+          "target": "blockedGate"
+        },
+        {
+          "when": {
+            "guard": "maintenanceBlocks"
+          },
+          "target": "maintenanceGate"
+        },
+        {
+          "when": {
+            "guard": "adminPrefixWithoutRole"
+          },
+          "target": "notAdminGate"
+        },
+        {
+          "assign": {
+            "roleId": {
+              "from": "roleId"
+            }
+          },
+          "target": "roleDeleting"
+        }
+      ],
+      "permToggle": [
+        {
+          "when": {
+            "guard": "isBlocked"
+          },
+          "target": "blockedGate"
+        },
+        {
+          "when": {
+            "guard": "maintenanceBlocks"
+          },
+          "target": "maintenanceGate"
+        },
+        {
+          "when": {
+            "guard": "adminPrefixWithoutRole"
+          },
+          "target": "notAdminGate"
+        },
+        {
+          "assign": {
+            "selectedBit": {
+              "from": "bit"
+            }
+          },
+          "target": "rolePermissionChanging"
+        }
+      ],
+      "permDone": [
+        {
+          "when": {
+            "guard": "isBlocked"
+          },
+          "target": "blockedGate"
+        },
+        {
+          "when": {
+            "guard": "maintenanceBlocks"
+          },
+          "target": "maintenanceGate"
+        },
+        {
+          "when": {
+            "guard": "adminPrefixWithoutRole"
+          },
+          "target": "notAdminGate"
+        },
+        {
+          "target": "rolesLoading"
+        }
+      ],
+      "assignRoleList": [
+        {
+          "when": {
+            "guard": "isBlocked"
+          },
+          "target": "blockedGate"
+        },
+        {
+          "when": {
+            "guard": "maintenanceBlocks"
+          },
+          "target": "maintenanceGate"
+        },
+        {
+          "when": {
+            "guard": "adminPrefixWithoutRole"
+          },
+          "target": "notAdminGate"
+        },
+        {
+          "assign": {
+            "targetUser": {
+              "from": "targetId"
+            }
+          },
+          "target": "assignRoleLoading"
+        }
+      ],
+      "assignRole": [
+        {
+          "when": {
+            "guard": "isBlocked"
+          },
+          "target": "blockedGate"
+        },
+        {
+          "when": {
+            "guard": "maintenanceBlocks"
+          },
+          "target": "maintenanceGate"
+        },
+        {
+          "when": {
+            "guard": "adminPrefixWithoutRole"
+          },
+          "target": "notAdminGate"
+        },
+        {
+          "assign": {
+            "roleId": {
+              "from": "roleId"
+            },
+            "targetUser": {
+              "from": "targetId"
+            }
+          },
+          "target": "assignRoleApplying"
+        }
+      ],
+      "cancelBroadcastPress": [
+        {
+          "when": {
+            "guard": "isBlocked"
+          },
+          "target": "blockedGate"
+        },
+        {
+          "when": {
+            "guard": "maintenanceBlocks"
+          },
+          "target": "maintenanceGate"
+        },
+        {
+          "when": {
+            "guard": "adminPrefixWithoutRole"
+          },
+          "target": "notAdminGate"
+        },
+        {
+          "target": "broadcastCancelled"
+        }
+      ]
+    }
+  },
+  "states": {
+    "closeMessage": {
+      "kind": "final",
+      "render": "delete"
+    },
+    "blockedGate": {
+      "kind": "state",
+      "render": "edit",
+      "view": {
+        "kind": "text",
+        "text": [
+          "Operations console: blocked gate"
+        ],
+        "parseMode": "plain"
+      }
+    },
+    "maintenanceGate": {
+      "kind": "state",
+      "render": "edit",
+      "view": {
+        "kind": "text",
+        "text": [
+          "Operations console: maintenance gate"
+        ],
+        "parseMode": "plain"
+      }
+    },
+    "notAdminGate": {
+      "kind": "state",
+      "render": "edit",
+      "view": {
+        "kind": "text",
+        "text": [
+          "Operations console: not admin gate"
+        ],
+        "parseMode": "plain"
+      }
+    },
+    "start": {
+      "kind": "state",
+      "render": "keep",
+      "entry": [
+        {
+          "kind": "run",
+          "effect": "ensureUser",
+          "input": {},
+          "outcomes": {
+            "exists": {
+              "assign": {},
+              "do": [
+                {}
+              ]
+            },
+            "missing": {
+              "assign": {},
+              "do": [
+                {
+                  "target": "startRegister"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "kind": "run",
+          "effect": "invalidateUserCache",
+          "input": {},
+          "outcomes": {
+            "done": {
+              "assign": {},
+              "do": [
+                {}
+              ]
+            }
+          }
+        },
+        {
+          "kind": "run",
+          "effect": "trackRegistration",
+          "input": {},
+          "outcomes": {
+            "done": {
+              "assign": {},
+              "do": [
+                {}
+              ]
+            }
+          }
+        },
+        {
+          "kind": "run",
+          "effect": "loadHome",
+          "input": {},
+          "outcomes": {
+            "ready": {
+              "assign": {
+                "callerPerms": {
+                  "from": "callerPerms"
+                },
+                "userName": {
+                  "from": "userName"
+                },
+                "canManageUsers": {
+                  "from": "canManageUsers"
+                },
+                "canManageRoles": {
+                  "from": "canManageRoles"
+                },
+                "canBroadcast": {
+                  "from": "canBroadcast"
+                },
+                "canManageShop": {
+                  "from": "canManageShop"
+                },
+                "canManageGoods": {
+                  "from": "canManageGoods"
+                },
+                "canManageCategories": {
+                  "from": "canManageCategories"
+                },
+                "canManagePromo": {
+                  "from": "canManagePromo"
+                }
+              },
+              "do": [
+                {
+                  "target": "menu"
+                }
+              ]
+            },
+            "subscribeRequired": {
+              "assign": {},
+              "do": [
+                {
+                  "target": "subscribePrompt"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "startRegister": {
+      "kind": "state",
+      "render": "keep",
+      "entry": [
+        {
+          "kind": "run",
+          "effect": "createUser",
+          "input": {},
+          "outcomes": {
+            "created": {
+              "assign": {},
+              "do": [
+                {
+                  "target": "start"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "subscribePrompt": {
+      "kind": "state",
+      "render": "edit",
+      "view": {
+        "kind": "text",
+        "text": [
+          "Operations console: subscribe prompt",
+          "\nValue: ",
+          {
+            "parameter": "channelUrl",
+            "escape": "text"
+          }
+        ],
+        "parseMode": "plain",
+        "keyboard": [
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: check sub"
+                ],
+                "press": "checkSub",
+                "durable": false
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "menu": {
+      "kind": "state",
+      "render": "edit",
+      "view": {
+        "kind": "text",
+        "text": [
+          "Operations console: menu"
+        ],
+        "parseMode": "plain",
+        "keyboard": [
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: open shop"
+                ],
+                "press": "openShop",
+                "durable": false
+              }
+            ]
+          },
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: open rules"
+                ],
+                "press": "openRules",
+                "durable": false
+              }
+            ]
+          },
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: open profile"
+                ],
+                "press": "openProfile",
+                "durable": false
+              }
+            ]
+          },
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: open console"
+                ],
+                "press": "openConsole",
+                "durable": false,
+                "when": {
+                  "compare": {
+                    "left": {
+                      "context": "canManageUsers"
+                    },
+                    "op": "eq",
+                    "right": true
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: dummy"
+                ],
+                "press": "dummy",
+                "durable": false,
+                "when": {
+                  "compare": {
+                    "left": {
+                      "parameter": "helperId"
+                    },
+                    "op": "neq",
+                    "right": 0
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "rules": {
+      "kind": "state",
+      "render": "edit",
+      "view": {
+        "kind": "text",
+        "text": [
+          "Operations console: rules",
+          "\nValue: ",
+          {
+            "parameter": "rules",
+            "escape": "text"
+          }
+        ],
+        "parseMode": "plain",
+        "keyboard": [
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: back to menu"
+                ],
+                "press": "backToMenu",
+                "durable": false
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "profileLoading": {
+      "kind": "state",
+      "render": "keep",
+      "entry": [
+        {
+          "kind": "run",
+          "effect": "loadProfile",
+          "input": {},
+          "outcomes": {
+            "loaded": {
+              "assign": {
+                "targetUser": {
+                  "from": "targetUser"
+                },
+                "userName": {
+                  "from": "userName"
+                },
+                "balance": {
+                  "from": "balance"
+                },
+                "totalTopup": {
+                  "from": "totalTopup"
+                },
+                "itemsCount": {
+                  "from": "itemsCount"
+                },
+                "referralsCount": {
+                  "from": "referralsCount"
+                },
+                "registrationDate": {
+                  "from": "registrationDate"
+                },
+                "profileHasReferral": {
+                  "from": "profileHasReferral"
+                },
+                "profileHasItems": {
+                  "from": "profileHasItems"
+                },
+                "profileHasCart": {
+                  "from": "profileHasCart"
+                }
+              },
+              "do": [
+                {
+                  "target": "profile"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "profile": {
+      "kind": "state",
+      "render": "edit",
+      "view": {
+        "kind": "text",
+        "text": [
+          "Operations console: profile",
+          "\nValue: ",
+          {
+            "context": "userName",
+            "escape": "text"
+          },
+          "\nValue: ",
+          {
+            "context": "balance",
+            "escape": "text"
+          },
+          "\nValue: ",
+          {
+            "parameter": "currency",
+            "escape": "text"
+          },
+          "\nValue: ",
+          {
+            "context": "totalTopup",
+            "escape": "text"
+          },
+          "\nValue: ",
+          {
+            "context": "itemsCount",
+            "escape": "text"
+          },
+          "\nValue: ",
+          {
+            "context": "registrationDate",
+            "escape": "text"
+          }
+        ],
+        "parseMode": "HTML",
+        "keyboard": [
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: view referrals"
+                ],
+                "press": "viewReferrals",
+                "durable": false,
+                "payload": {
+                  "targetId": {
+                    "context": "targetUser"
+                  }
+                },
+                "when": {
+                  "compare": {
+                    "left": {
+                      "context": "profileHasReferral"
+                    },
+                    "op": "eq",
+                    "right": true
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: user items"
+                ],
+                "press": "userItems",
+                "durable": false,
+                "payload": {
+                  "targetId": {
+                    "context": "targetUser"
+                  }
+                },
+                "when": {
+                  "compare": {
+                    "left": {
+                      "context": "profileHasItems"
+                    },
+                    "op": "eq",
+                    "right": true
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: view history"
+                ],
+                "press": "viewHistory",
+                "durable": false
+              }
+            ]
+          },
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: open shop"
+                ],
+                "press": "openShop",
+                "durable": false,
+                "when": {
+                  "compare": {
+                    "left": {
+                      "context": "profileHasCart"
+                    },
+                    "op": "eq",
+                    "right": true
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: back to menu"
+                ],
+                "press": "backToMenu",
+                "durable": false
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "historyLoading": {
+      "kind": "state",
+      "render": "keep",
+      "entry": [
+        {
+          "kind": "run",
+          "effect": "loadOperations",
+          "input": {
+            "page": {
+              "context": "page"
+            }
+          },
+          "outcomes": {
+            "loaded": {
+              "assign": {
+                "rows": {
+                  "from": "rows"
+                },
+                "pageLabel": {
+                  "from": "pageLabel"
+                },
+                "hasPrev": {
+                  "from": "hasPrev"
+                },
+                "hasNext": {
+                  "from": "hasNext"
+                }
+              },
+              "do": [
+                {
+                  "target": "historyList"
+                }
+              ]
+            },
+            "empty": {
+              "assign": {},
+              "do": [
+                {
+                  "target": "historyEmpty"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "historyList": {
+      "kind": "state",
+      "render": "edit",
+      "view": {
+        "kind": "text",
+        "text": [
+          "Operations console: history list",
+          "\nValue: ",
+          {
+            "context": "pageLabel",
+            "escape": "text"
+          }
+        ],
+        "parseMode": "plain",
+        "keyboard": [
+          {
+            "kind": "project",
+            "source": {
+              "context": "rows"
+            },
+            "maxItems": 20,
+            "rows": [
+              {
+                "kind": "row",
+                "buttons": [
+                  {
+                    "kind": "button",
+                    "label": [
+                      "Select ",
+                      {
+                        "item": "label",
+                        "escape": "text"
+                      }
+                    ],
+                    "press": "dummy",
+                    "durable": false
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: history prev"
+                ],
+                "press": "historyPrev",
+                "durable": false,
+                "when": {
+                  "compare": {
+                    "left": {
+                      "context": "hasPrev"
+                    },
+                    "op": "eq",
+                    "right": true
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: history next"
+                ],
+                "press": "historyNext",
+                "durable": false,
+                "when": {
+                  "compare": {
+                    "left": {
+                      "context": "hasNext"
+                    },
+                    "op": "eq",
+                    "right": true
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: back to menu"
+                ],
+                "press": "backToMenu",
+                "durable": false
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "historyEmpty": {
+      "kind": "state",
+      "render": "edit",
+      "view": {
+        "kind": "text",
+        "text": [
+          "Operations console: history empty"
+        ],
+        "parseMode": "plain",
+        "keyboard": [
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: back to menu"
+                ],
+                "press": "backToMenu",
+                "durable": false
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "consoleLoading": {
+      "kind": "state",
+      "render": "keep",
+      "entry": [
+        {
+          "kind": "run",
+          "effect": "loadMaintenance",
+          "input": {},
+          "outcomes": {
+            "loaded": {
+              "assign": {
+                "maintenanceSnapshot": {
+                  "from": "enabled"
+                }
+              },
+              "do": [
+                {
+                  "target": "console"
+                }
+              ]
+            },
+            "denied": {
+              "assign": {},
+              "do": [
+                {
+                  "target": "consoleDenied"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "console": {
+      "kind": "state",
+      "render": "edit",
+      "view": {
+        "kind": "text",
+        "text": [
+          "Operations console: console",
+          "\nValue: ",
+          {
+            "context": "maintenanceSnapshot",
+            "escape": "text"
+          }
+        ],
+        "parseMode": "plain",
+        "keyboard": [
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: user management"
+                ],
+                "press": "userManagement",
+                "durable": false,
+                "when": {
+                  "compare": {
+                    "left": {
+                      "context": "canManageUsers"
+                    },
+                    "op": "eq",
+                    "right": true
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: role mgmt"
+                ],
+                "press": "roleMgmt",
+                "durable": false,
+                "when": {
+                  "compare": {
+                    "left": {
+                      "context": "canManageRoles"
+                    },
+                    "op": "eq",
+                    "right": true
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: send broadcast"
+                ],
+                "press": "sendBroadcast",
+                "durable": false,
+                "when": {
+                  "compare": {
+                    "left": {
+                      "context": "canBroadcast"
+                    },
+                    "op": "eq",
+                    "right": true
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: shop management"
+                ],
+                "press": "shopManagement",
+                "durable": false,
+                "when": {
+                  "compare": {
+                    "left": {
+                      "context": "canManageShop"
+                    },
+                    "op": "eq",
+                    "right": true
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: goods management"
+                ],
+                "press": "goodsManagement",
+                "durable": false,
+                "when": {
+                  "compare": {
+                    "left": {
+                      "context": "canManageGoods"
+                    },
+                    "op": "eq",
+                    "right": true
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: categories management"
+                ],
+                "press": "categoriesManagement",
+                "durable": false,
+                "when": {
+                  "compare": {
+                    "left": {
+                      "context": "canManageCategories"
+                    },
+                    "op": "eq",
+                    "right": true
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: promo mgmt"
+                ],
+                "press": "promoMgmt",
+                "durable": false,
+                "when": {
+                  "compare": {
+                    "left": {
+                      "context": "canManagePromo"
+                    },
+                    "op": "eq",
+                    "right": true
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: toggle maintenance"
+                ],
+                "press": "toggleMaintenance",
+                "durable": false
+              }
+            ]
+          },
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: back to menu"
+                ],
+                "press": "backToMenu",
+                "durable": false
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "consoleDenied": {
+      "kind": "state",
+      "render": "edit",
+      "view": {
+        "kind": "text",
+        "text": [
+          "Operations console: console denied"
+        ],
+        "parseMode": "plain",
+        "keyboard": [
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: back to menu"
+                ],
+                "press": "backToMenu",
+                "durable": false
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "maintenanceChanging": {
+      "kind": "state",
+      "render": "keep",
+      "entry": [
+        {
+          "kind": "run",
+          "effect": "setMaintenance",
+          "input": {},
+          "outcomes": {
+            "enabled": {
+              "assign": {
+                "maintenanceSnapshot": {
+                  "from": "enabled"
+                }
+              },
+              "do": [
+                {
+                  "target": "console"
+                }
+              ]
+            },
+            "disabled": {
+              "assign": {
+                "maintenanceSnapshot": {
+                  "from": "enabled"
+                }
+              },
+              "do": [
+                {
+                  "target": "console"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "shopBoundary": {
+      "kind": "state",
+      "render": "edit",
+      "view": {
+        "kind": "text",
+        "text": [
+          "Operations console: shop boundary"
+        ],
+        "parseMode": "plain",
+        "keyboard": [
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: back to menu"
+                ],
+                "press": "backToMenu",
+                "durable": false
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "shopManagementBoundary": {
+      "kind": "state",
+      "render": "edit",
+      "view": {
+        "kind": "text",
+        "text": [
+          "Operations console: shop management boundary"
+        ],
+        "parseMode": "plain",
+        "keyboard": [
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: back to menu"
+                ],
+                "press": "backToMenu",
+                "durable": false
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "goodsBoundary": {
+      "kind": "state",
+      "render": "edit",
+      "view": {
+        "kind": "text",
+        "text": [
+          "Operations console: goods boundary"
+        ],
+        "parseMode": "plain",
+        "keyboard": [
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: stock added"
+                ],
+                "press": "stockAdded",
+                "durable": false
+              }
+            ]
+          },
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: back to menu"
+                ],
+                "press": "backToMenu",
+                "durable": false
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "categoriesBoundary": {
+      "kind": "state",
+      "render": "edit",
+      "view": {
+        "kind": "text",
+        "text": [
+          "Operations console: categories boundary"
+        ],
+        "parseMode": "plain",
+        "keyboard": [
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: back to menu"
+                ],
+                "press": "backToMenu",
+                "durable": false
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "promoBoundary": {
+      "kind": "state",
+      "render": "edit",
+      "view": {
+        "kind": "text",
+        "text": [
+          "Operations console: promo boundary"
+        ],
+        "parseMode": "plain",
+        "keyboard": [
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: back to menu"
+                ],
+                "press": "backToMenu",
+                "durable": false
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "userPrompt": {
+      "kind": "state",
+      "render": "edit",
+      "view": {
+        "kind": "text",
+        "text": [
+          "Operations console: user prompt"
+        ],
+        "parseMode": "plain",
+        "keyboard": [
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: back to menu"
+                ],
+                "press": "backToMenu",
+                "durable": false
+              }
+            ]
+          }
+        ]
+      },
+      "on": {
+        "text": [
+          {
+            "do": [
+              {
+                "assign": {
+                  "pendingText": {
+                    "from": "value"
+                  }
+                },
+                "target": "userLoading"
+              }
+            ],
+            "pattern": "^(?<value>.+)$"
+          }
+        ]
+      }
+    },
+    "userLoading": {
+      "kind": "state",
+      "render": "keep",
+      "entry": [
+        {
+          "kind": "run",
+          "effect": "loadUserProfile",
+          "input": {
+            "rawId": {
+              "context": "pendingText"
+            }
+          },
+          "outcomes": {
+            "found": {
+              "assign": {
+                "targetUser": {
+                  "from": "targetUser"
+                },
+                "targetName": {
+                  "from": "targetName"
+                },
+                "balance": {
+                  "from": "balance"
+                },
+                "targetBlocked": {
+                  "from": "blocked"
+                },
+                "targetIsOwner": {
+                  "from": "isOwner"
+                },
+                "canBlockTarget": {
+                  "from": "canBlock"
+                },
+                "canUnblockTarget": {
+                  "from": "canUnblock"
+                }
+              },
+              "do": [
+                {
+                  "target": "userProfile"
+                }
+              ]
+            },
+            "missing": {
+              "assign": {},
+              "do": [
+                {
+                  "target": "userMissing"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "userProfile": {
+      "kind": "state",
+      "render": "edit",
+      "view": {
+        "kind": "text",
+        "text": [
+          "Operations console: user profile",
+          "\nValue: ",
+          {
+            "context": "targetName",
+            "escape": "text"
+          },
+          "\nValue: ",
+          {
+            "context": "balance",
+            "escape": "text"
+          },
+          "\nValue: ",
+          {
+            "parameter": "currency",
+            "escape": "text"
+          }
+        ],
+        "parseMode": "plain",
+        "keyboard": [
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: fill user balance"
+                ],
+                "press": "fillUserBalance",
+                "durable": false,
+                "payload": {
+                  "targetId": {
+                    "context": "targetUser"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: deduct user balance"
+                ],
+                "press": "deductUserBalance",
+                "durable": false,
+                "payload": {
+                  "targetId": {
+                    "context": "targetUser"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: block user press"
+                ],
+                "press": "blockUserPress",
+                "durable": false,
+                "payload": {
+                  "targetId": {
+                    "context": "targetUser"
+                  }
+                },
+                "when": {
+                  "compare": {
+                    "left": {
+                      "context": "canBlockTarget"
+                    },
+                    "op": "eq",
+                    "right": true
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: unblock user press"
+                ],
+                "press": "unblockUserPress",
+                "durable": false,
+                "payload": {
+                  "targetId": {
+                    "context": "targetUser"
+                  }
+                },
+                "when": {
+                  "compare": {
+                    "left": {
+                      "context": "canUnblockTarget"
+                    },
+                    "op": "eq",
+                    "right": true
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: user items"
+                ],
+                "press": "userItems",
+                "durable": false,
+                "payload": {
+                  "targetId": {
+                    "context": "targetUser"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: view referrals"
+                ],
+                "press": "viewReferrals",
+                "durable": false,
+                "payload": {
+                  "targetId": {
+                    "context": "targetUser"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: view earnings"
+                ],
+                "press": "viewEarnings",
+                "durable": false,
+                "payload": {
+                  "targetId": {
+                    "context": "targetUser"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: assign role list"
+                ],
+                "press": "assignRoleList",
+                "durable": false,
+                "payload": {
+                  "targetId": {
+                    "context": "targetUser"
+                  }
+                },
+                "when": {
+                  "compare": {
+                    "left": {
+                      "context": "targetIsOwner"
+                    },
+                    "op": "eq",
+                    "right": false
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: back to menu"
+                ],
+                "press": "backToMenu",
+                "durable": false
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "userMissing": {
+      "kind": "state",
+      "render": "edit",
+      "view": {
+        "kind": "text",
+        "text": [
+          "Operations console: user missing"
+        ],
+        "parseMode": "plain",
+        "keyboard": [
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: back to menu"
+                ],
+                "press": "backToMenu",
+                "durable": false
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "topupPrompt": {
+      "kind": "state",
+      "render": "edit",
+      "view": {
+        "kind": "text",
+        "text": [
+          "Operations console: topup prompt",
+          "\nValue: ",
+          {
+            "parameter": "minAmount",
+            "escape": "text"
+          },
+          "\nValue: ",
+          {
+            "parameter": "maxAmount",
+            "escape": "text"
+          },
+          "\nValue: ",
+          {
+            "parameter": "currency",
+            "escape": "text"
+          }
+        ],
+        "parseMode": "plain"
+      },
+      "on": {
+        "text": [
+          {
+            "do": [
+              {
+                "assign": {
+                  "pendingText": {
+                    "from": "value"
+                  }
+                },
+                "target": "topupChanging"
+              }
+            ],
+            "pattern": "^(?<value>.+)$"
+          }
+        ]
+      }
+    },
+    "topupChanging": {
+      "kind": "state",
+      "render": "keep",
+      "entry": [
+        {
+          "kind": "run",
+          "effect": "validateAmount",
+          "input": {
+            "raw": {
+              "context": "pendingText"
+            },
+            "minimum": {
+              "parameter": "minAmount"
+            },
+            "maximum": {
+              "parameter": "maxAmount"
+            }
+          },
+          "outcomes": {
+            "valid": {
+              "assign": {
+                "amount": {
+                  "from": "amount"
+                }
+              },
+              "do": [
+                {}
+              ]
+            },
+            "invalid": {
+              "assign": {},
+              "do": [
+                {
+                  "target": "topupFailed"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "kind": "run",
+          "effect": "adminBalanceChange",
+          "input": {
+            "targetUser": {
+              "context": "targetUser"
+            },
+            "amount": {
+              "context": "amount"
+            },
+            "operation": "topup"
+          },
+          "outcomes": {
+            "done": {
+              "assign": {
+                "balance": {
+                  "from": "balance"
+                }
+              },
+              "do": [
+                {}
+              ]
+            },
+            "insufficient": {
+              "assign": {
+                "balance": {
+                  "from": "balance"
+                }
+              },
+              "do": [
+                {
+                  "target": "topupFailed"
+                }
+              ]
+            },
+            "failed": {
+              "assign": {},
+              "do": [
+                {
+                  "target": "topupFailed"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "kind": "run",
+          "effect": "logAudit",
+          "input": {},
+          "outcomes": {
+            "done": {
+              "assign": {},
+              "do": [
+                {}
+              ]
+            }
+          }
+        },
+        {
+          "kind": "run",
+          "effect": "notifyToppedUp",
+          "input": {
+            "targetUser": {
+              "context": "targetUser"
+            },
+            "amount": {
+              "context": "amount"
+            }
+          },
+          "outcomes": {
+            "sent": {
+              "assign": {},
+              "do": [
+                {
+                  "target": "topupDone"
+                }
+              ]
+            },
+            "failed": {
+              "assign": {},
+              "do": [
+                {
+                  "target": "topupDone"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "topupDone": {
+      "kind": "state",
+      "render": "edit",
+      "view": {
+        "kind": "text",
+        "text": [
+          "Operations console: topup done",
+          "\nValue: ",
+          {
+            "context": "amount",
+            "escape": "text"
+          },
+          "\nValue: ",
+          {
+            "parameter": "currency",
+            "escape": "text"
+          }
+        ],
+        "parseMode": "plain",
+        "keyboard": [
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: back to menu"
+                ],
+                "press": "backToMenu",
+                "durable": false
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "topupFailed": {
+      "kind": "state",
+      "render": "edit",
+      "view": {
+        "kind": "text",
+        "text": [
+          "Operations console: topup failed"
+        ],
+        "parseMode": "plain",
+        "keyboard": [
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: back to menu"
+                ],
+                "press": "backToMenu",
+                "durable": false
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "deductPrompt": {
+      "kind": "state",
+      "render": "edit",
+      "view": {
+        "kind": "text",
+        "text": [
+          "Operations console: deduct prompt",
+          "\nValue: ",
+          {
+            "parameter": "currency",
+            "escape": "text"
+          }
+        ],
+        "parseMode": "plain"
+      },
+      "on": {
+        "text": [
+          {
+            "do": [
+              {
+                "assign": {
+                  "pendingText": {
+                    "from": "value"
+                  }
+                },
+                "target": "deductChanging"
+              }
+            ],
+            "pattern": "^(?<value>.+)$"
+          }
+        ]
+      }
+    },
+    "deductChanging": {
+      "kind": "state",
+      "render": "keep",
+      "entry": [
+        {
+          "kind": "run",
+          "effect": "validateAmount",
+          "input": {
+            "raw": {
+              "context": "pendingText"
+            },
+            "minimum": {
+              "parameter": "minAmount"
+            },
+            "maximum": {
+              "parameter": "maxAmount"
+            }
+          },
+          "outcomes": {
+            "valid": {
+              "assign": {
+                "amount": {
+                  "from": "amount"
+                }
+              },
+              "do": [
+                {}
+              ]
+            },
+            "invalid": {
+              "assign": {},
+              "do": [
+                {
+                  "target": "deductFailed"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "kind": "run",
+          "effect": "adminBalanceChange",
+          "input": {
+            "targetUser": {
+              "context": "targetUser"
+            },
+            "amount": {
+              "context": "amount"
+            },
+            "operation": "deduct"
+          },
+          "outcomes": {
+            "done": {
+              "assign": {
+                "balance": {
+                  "from": "balance"
+                }
+              },
+              "do": [
+                {}
+              ]
+            },
+            "insufficient": {
+              "assign": {
+                "balance": {
+                  "from": "balance"
+                }
+              },
+              "do": [
+                {
+                  "target": "deductInsufficient"
+                }
+              ]
+            },
+            "failed": {
+              "assign": {},
+              "do": [
+                {
+                  "target": "deductFailed"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "kind": "run",
+          "effect": "logAudit",
+          "input": {},
+          "outcomes": {
+            "done": {
+              "assign": {},
+              "do": [
+                {}
+              ]
+            }
+          }
+        },
+        {
+          "kind": "run",
+          "effect": "notifyDeducted",
+          "input": {
+            "targetUser": {
+              "context": "targetUser"
+            },
+            "amount": {
+              "context": "amount"
+            }
+          },
+          "outcomes": {
+            "sent": {
+              "assign": {},
+              "do": [
+                {
+                  "target": "deductDone"
+                }
+              ]
+            },
+            "failed": {
+              "assign": {},
+              "do": [
+                {
+                  "target": "deductDone"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "deductDone": {
+      "kind": "state",
+      "render": "edit",
+      "view": {
+        "kind": "text",
+        "text": [
+          "Operations console: deduct done",
+          "\nValue: ",
+          {
+            "context": "amount",
+            "escape": "text"
+          }
+        ],
+        "parseMode": "plain",
+        "keyboard": [
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: back to menu"
+                ],
+                "press": "backToMenu",
+                "durable": false
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "deductInsufficient": {
+      "kind": "state",
+      "render": "edit",
+      "view": {
+        "kind": "text",
+        "text": [
+          "Operations console: deduct insufficient",
+          "\nValue: ",
+          {
+            "context": "balance",
+            "escape": "text"
+          }
+        ],
+        "parseMode": "plain",
+        "keyboard": [
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: back to menu"
+                ],
+                "press": "backToMenu",
+                "durable": false
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "deductFailed": {
+      "kind": "state",
+      "render": "edit",
+      "view": {
+        "kind": "text",
+        "text": [
+          "Operations console: deduct failed"
+        ],
+        "parseMode": "plain",
+        "keyboard": [
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: back to menu"
+                ],
+                "press": "backToMenu",
+                "durable": false
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "blockChanging": {
+      "kind": "state",
+      "render": "keep",
+      "entry": [
+        {
+          "kind": "run",
+          "effect": "blockUser",
+          "input": {
+            "targetUser": {
+              "context": "targetUser"
+            }
+          },
+          "outcomes": {
+            "done": {
+              "assign": {},
+              "do": [
+                {
+                  "target": "blockDone"
+                }
+              ]
+            },
+            "isOwner": {
+              "assign": {},
+              "do": [
+                {
+                  "target": "blockFailed"
+                }
+              ]
+            },
+            "failed": {
+              "assign": {},
+              "do": [
+                {
+                  "target": "blockFailed"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "blockDone": {
+      "kind": "state",
+      "render": "edit",
+      "view": {
+        "kind": "text",
+        "text": [
+          "Operations console: block done"
+        ],
+        "parseMode": "plain",
+        "keyboard": [
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: back to menu"
+                ],
+                "press": "backToMenu",
+                "durable": false
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "blockFailed": {
+      "kind": "state",
+      "render": "edit",
+      "view": {
+        "kind": "text",
+        "text": [
+          "Operations console: block failed"
+        ],
+        "parseMode": "plain",
+        "keyboard": [
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: back to menu"
+                ],
+                "press": "backToMenu",
+                "durable": false
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "unblockChanging": {
+      "kind": "state",
+      "render": "keep",
+      "entry": [
+        {
+          "kind": "run",
+          "effect": "unblockUser",
+          "input": {
+            "targetUser": {
+              "context": "targetUser"
+            }
+          },
+          "outcomes": {
+            "done": {
+              "assign": {},
+              "do": [
+                {
+                  "target": "unblockDone"
+                }
+              ]
+            },
+            "failed": {
+              "assign": {},
+              "do": [
+                {
+                  "target": "unblockFailed"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "unblockDone": {
+      "kind": "state",
+      "render": "edit",
+      "view": {
+        "kind": "text",
+        "text": [
+          "Operations console: unblock done"
+        ],
+        "parseMode": "plain",
+        "keyboard": [
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: back to menu"
+                ],
+                "press": "backToMenu",
+                "durable": false
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "unblockFailed": {
+      "kind": "state",
+      "render": "edit",
+      "view": {
+        "kind": "text",
+        "text": [
+          "Operations console: unblock failed"
+        ],
+        "parseMode": "plain",
+        "keyboard": [
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: back to menu"
+                ],
+                "press": "backToMenu",
+                "durable": false
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "purchasesLoading": {
+      "kind": "state",
+      "render": "keep",
+      "entry": [
+        {
+          "kind": "run",
+          "effect": "loadPurchases",
+          "input": {
+            "targetUser": {
+              "context": "targetUser"
+            },
+            "page": {
+              "context": "page"
+            }
+          },
+          "outcomes": {
+            "loaded": {
+              "assign": {
+                "rows": {
+                  "from": "rows"
+                },
+                "pageLabel": {
+                  "from": "pageLabel"
+                },
+                "hasPrev": {
+                  "from": "hasPrev"
+                },
+                "hasNext": {
+                  "from": "hasNext"
+                }
+              },
+              "do": [
+                {
+                  "target": "purchasesList"
+                }
+              ]
+            },
+            "empty": {
+              "assign": {},
+              "do": [
+                {
+                  "target": "purchasesEmpty"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "purchasesList": {
+      "kind": "state",
+      "render": "edit",
+      "view": {
+        "kind": "text",
+        "text": [
+          "Operations console: purchases list",
+          "\nValue: ",
+          {
+            "context": "pageLabel",
+            "escape": "text"
+          }
+        ],
+        "parseMode": "plain",
+        "keyboard": [
+          {
+            "kind": "project",
+            "source": {
+              "context": "rows"
+            },
+            "maxItems": 20,
+            "rows": [
+              {
+                "kind": "row",
+                "buttons": [
+                  {
+                    "kind": "button",
+                    "label": [
+                      "Select ",
+                      {
+                        "item": "label",
+                        "escape": "text"
+                      }
+                    ],
+                    "press": "dummy",
+                    "durable": false
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: purchases prev"
+                ],
+                "press": "purchasesPrev",
+                "durable": false,
+                "when": {
+                  "compare": {
+                    "left": {
+                      "context": "hasPrev"
+                    },
+                    "op": "eq",
+                    "right": true
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: purchases next"
+                ],
+                "press": "purchasesNext",
+                "durable": false,
+                "when": {
+                  "compare": {
+                    "left": {
+                      "context": "hasNext"
+                    },
+                    "op": "eq",
+                    "right": true
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: back to menu"
+                ],
+                "press": "backToMenu",
+                "durable": false
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "purchasesEmpty": {
+      "kind": "state",
+      "render": "edit",
+      "view": {
+        "kind": "text",
+        "text": [
+          "Operations console: purchases empty"
+        ],
+        "parseMode": "plain",
+        "keyboard": [
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: back to menu"
+                ],
+                "press": "backToMenu",
+                "durable": false
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "referralsLoading": {
+      "kind": "state",
+      "render": "keep",
+      "entry": [
+        {
+          "kind": "run",
+          "effect": "loadReferrals",
+          "input": {
+            "targetUser": {
+              "context": "targetUser"
+            },
+            "page": {
+              "context": "page"
+            }
+          },
+          "outcomes": {
+            "loaded": {
+              "assign": {
+                "rows": {
+                  "from": "rows"
+                },
+                "pageLabel": {
+                  "from": "pageLabel"
+                },
+                "hasPrev": {
+                  "from": "hasPrev"
+                },
+                "hasNext": {
+                  "from": "hasNext"
+                }
+              },
+              "do": [
+                {
+                  "target": "referralsList"
+                }
+              ]
+            },
+            "empty": {
+              "assign": {},
+              "do": [
+                {
+                  "target": "referralsEmpty"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "referralsList": {
+      "kind": "state",
+      "render": "edit",
+      "view": {
+        "kind": "text",
+        "text": [
+          "Operations console: referrals list",
+          "\nValue: ",
+          {
+            "context": "pageLabel",
+            "escape": "text"
+          }
+        ],
+        "parseMode": "plain",
+        "keyboard": [
+          {
+            "kind": "project",
+            "source": {
+              "context": "rows"
+            },
+            "maxItems": 20,
+            "rows": [
+              {
+                "kind": "row",
+                "buttons": [
+                  {
+                    "kind": "button",
+                    "label": [
+                      "Select ",
+                      {
+                        "item": "label",
+                        "escape": "text"
+                      }
+                    ],
+                    "press": "refEarnings",
+                    "durable": false,
+                    "payload": {
+                      "targetId": {
+                        "item": "id"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: refs prev"
+                ],
+                "press": "refsPrev",
+                "durable": false,
+                "when": {
+                  "compare": {
+                    "left": {
+                      "context": "hasPrev"
+                    },
+                    "op": "eq",
+                    "right": true
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: refs next"
+                ],
+                "press": "refsNext",
+                "durable": false,
+                "when": {
+                  "compare": {
+                    "left": {
+                      "context": "hasNext"
+                    },
+                    "op": "eq",
+                    "right": true
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: back to menu"
+                ],
+                "press": "backToMenu",
+                "durable": false
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "referralsEmpty": {
+      "kind": "state",
+      "render": "edit",
+      "view": {
+        "kind": "text",
+        "text": [
+          "Operations console: referrals empty"
+        ],
+        "parseMode": "plain",
+        "keyboard": [
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: back to menu"
+                ],
+                "press": "backToMenu",
+                "durable": false
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "referralEarningsCaller": {
+      "kind": "state",
+      "render": "keep",
+      "entry": [
+        {
+          "kind": "call",
+          "unit": "earningBrowser",
+          "input": {
+            "targetUser": {
+              "context": "targetUser"
+            },
+            "source": {
+              "context": "earningSource"
+            }
+          },
+          "onReturn": {
+            "assign": {},
+            "do": [
+              {
+                "target": "referralsList"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "earningsCaller": {
+      "kind": "state",
+      "render": "keep",
+      "entry": [
+        {
+          "kind": "call",
+          "unit": "earningBrowser",
+          "input": {
+            "targetUser": {
+              "context": "targetUser"
+            },
+            "source": {
+              "context": "earningSource"
+            }
+          },
+          "onReturn": {
+            "assign": {},
+            "do": [
+              {
+                "target": "userProfile"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "rolesLoading": {
+      "kind": "state",
+      "render": "keep",
+      "entry": [
+        {
+          "kind": "run",
+          "effect": "loadRoles",
+          "input": {
+            "callerPerms": {
+              "context": "callerPerms"
+            }
+          },
+          "outcomes": {
+            "loaded": {
+              "assign": {
+                "roles": {
+                  "from": "roles"
+                }
+              },
+              "do": [
+                {
+                  "target": "rolesList"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "rolesList": {
+      "kind": "state",
+      "render": "edit",
+      "view": {
+        "kind": "text",
+        "text": [
+          "Operations console: roles list"
+        ],
+        "parseMode": "plain",
+        "keyboard": [
+          {
+            "kind": "project",
+            "source": {
+              "context": "roles"
+            },
+            "maxItems": 50,
+            "rows": [
+              {
+                "kind": "row",
+                "buttons": [
+                  {
+                    "kind": "button",
+                    "label": [
+                      "Select ",
+                      {
+                        "item": "label",
+                        "escape": "text"
+                      }
+                    ],
+                    "press": "roleView",
+                    "durable": false,
+                    "payload": {
+                      "roleId": {
+                        "item": "id"
+                      }
+                    },
+                    "when": {
+                      "compare": {
+                        "left": {
+                          "item": "visible"
+                        },
+                        "op": "eq",
+                        "right": true
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: role new"
+                ],
+                "press": "roleNew",
+                "durable": false
+              }
+            ]
+          },
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: back to menu"
+                ],
+                "press": "backToMenu",
+                "durable": false
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "roleLoading": {
+      "kind": "state",
+      "render": "keep",
+      "entry": [
+        {
+          "kind": "run",
+          "effect": "loadRoleDetail",
+          "input": {
+            "roleId": {
+              "context": "roleId"
+            },
+            "callerPerms": {
+              "context": "callerPerms"
+            }
+          },
+          "outcomes": {
+            "loaded": {
+              "assign": {
+                "roleName": {
+                  "from": "roleName"
+                },
+                "rolePerms": {
+                  "from": "rolePerms"
+                },
+                "roleUserCount": {
+                  "from": "roleUserCount"
+                },
+                "permissions": {
+                  "from": "permissions"
+                }
+              },
+              "do": [
+                {
+                  "target": "roleDetail"
+                }
+              ]
+            },
+            "denied": {
+              "assign": {},
+              "do": [
+                {
+                  "target": "roleDenied"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "roleDetail": {
+      "kind": "state",
+      "render": "edit",
+      "view": {
+        "kind": "text",
+        "text": [
+          "Operations console: role detail",
+          "\nValue: ",
+          {
+            "context": "roleName",
+            "escape": "text"
+          },
+          "\nValue: ",
+          {
+            "context": "rolePerms",
+            "escape": "text"
+          },
+          "\nValue: ",
+          {
+            "context": "roleUserCount",
+            "escape": "text"
+          }
+        ],
+        "parseMode": "HTML",
+        "keyboard": [
+          {
+            "kind": "project",
+            "source": {
+              "context": "permissions"
+            },
+            "maxItems": 10,
+            "rows": [
+              {
+                "kind": "row",
+                "buttons": [
+                  {
+                    "kind": "button",
+                    "label": [
+                      "Select ",
+                      {
+                        "item": "label",
+                        "escape": "text"
+                      }
+                    ],
+                    "press": "permToggle",
+                    "durable": false,
+                    "payload": {
+                      "bit": {
+                        "item": "bit"
+                      }
+                    },
+                    "when": {
+                      "compare": {
+                        "left": {
+                          "item": "allowed"
+                        },
+                        "op": "eq",
+                        "right": true
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: role edit"
+                ],
+                "press": "roleEdit",
+                "durable": false,
+                "payload": {
+                  "roleId": {
+                    "context": "roleId"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: role delete"
+                ],
+                "press": "roleDelete",
+                "durable": false,
+                "payload": {
+                  "roleId": {
+                    "context": "roleId"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: perm done"
+                ],
+                "press": "permDone",
+                "durable": false
+              }
+            ]
+          },
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: back to menu"
+                ],
+                "press": "backToMenu",
+                "durable": false
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "roleDenied": {
+      "kind": "state",
+      "render": "edit",
+      "view": {
+        "kind": "text",
+        "text": [
+          "Operations console: role denied"
+        ],
+        "parseMode": "plain",
+        "keyboard": [
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: back to menu"
+                ],
+                "press": "backToMenu",
+                "durable": false
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "rolePermissionChanging": {
+      "kind": "state",
+      "render": "keep",
+      "entry": [
+        {
+          "kind": "run",
+          "effect": "togglePermBit",
+          "input": {
+            "roleId": {
+              "context": "roleId"
+            },
+            "bit": {
+              "context": "selectedBit"
+            },
+            "callerPerms": {
+              "context": "callerPerms"
+            }
+          },
+          "outcomes": {
+            "toggled": {
+              "assign": {
+                "permissions": {
+                  "from": "permissions"
+                },
+                "rolePerms": {
+                  "from": "rolePerms"
+                }
+              },
+              "do": [
+                {
+                  "target": "roleDetail"
+                }
+              ]
+            },
+            "denied": {
+              "assign": {},
+              "do": [
+                {
+                  "target": "roleDenied"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "roleCreatePrompt": {
+      "kind": "state",
+      "render": "edit",
+      "view": {
+        "kind": "text",
+        "text": [
+          "Operations console: role create prompt"
+        ],
+        "parseMode": "plain"
+      },
+      "on": {
+        "text": [
+          {
+            "do": [
+              {
+                "assign": {
+                  "roleName": {
+                    "from": "value"
+                  }
+                },
+                "target": "roleCreating"
+              }
+            ],
+            "pattern": "^(?<value>.+)$"
+          }
+        ]
+      }
+    },
+    "roleCreating": {
+      "kind": "state",
+      "render": "keep",
+      "entry": [
+        {
+          "kind": "run",
+          "effect": "createRole",
+          "input": {
+            "name": {
+              "context": "roleName"
+            },
+            "permissions": {
+              "context": "rolePerms"
+            }
+          },
+          "outcomes": {
+            "created": {
+              "assign": {
+                "roleId": {
+                  "from": "roleId"
+                }
+              },
+              "do": [
+                {
+                  "target": "roleCreated"
+                }
+              ]
+            },
+            "nameExists": {
+              "assign": {},
+              "do": [
+                {
+                  "target": "roleCreateFailed"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "roleCreated": {
+      "kind": "state",
+      "render": "edit",
+      "view": {
+        "kind": "text",
+        "text": [
+          "Operations console: role created",
+          "\nValue: ",
+          {
+            "context": "roleName",
+            "escape": "text"
+          }
+        ],
+        "parseMode": "plain",
+        "keyboard": [
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: back to menu"
+                ],
+                "press": "backToMenu",
+                "durable": false
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "roleCreateFailed": {
+      "kind": "state",
+      "render": "edit",
+      "view": {
+        "kind": "text",
+        "text": [
+          "Operations console: role create failed"
+        ],
+        "parseMode": "plain",
+        "keyboard": [
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: back to menu"
+                ],
+                "press": "backToMenu",
+                "durable": false
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "roleEditPrompt": {
+      "kind": "state",
+      "render": "edit",
+      "view": {
+        "kind": "text",
+        "text": [
+          "Operations console: role edit prompt"
+        ],
+        "parseMode": "plain"
+      },
+      "on": {
+        "text": [
+          {
+            "do": [
+              {
+                "assign": {
+                  "roleName": {
+                    "from": "value"
+                  }
+                },
+                "target": "roleEditing"
+              }
+            ],
+            "pattern": "^(?<value>.+)$"
+          }
+        ]
+      }
+    },
+    "roleEditing": {
+      "kind": "state",
+      "render": "keep",
+      "entry": [
+        {
+          "kind": "run",
+          "effect": "updateRole",
+          "input": {
+            "roleId": {
+              "context": "roleId"
+            },
+            "name": {
+              "context": "roleName"
+            },
+            "permissions": {
+              "context": "rolePerms"
+            }
+          },
+          "outcomes": {
+            "updated": {
+              "assign": {},
+              "do": [
+                {
+                  "target": "roleUpdated"
+                }
+              ]
+            },
+            "nameExists": {
+              "assign": {},
+              "do": [
+                {
+                  "target": "roleEditFailed"
+                }
+              ]
+            },
+            "failed": {
+              "assign": {},
+              "do": [
+                {
+                  "target": "roleEditFailed"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "roleUpdated": {
+      "kind": "state",
+      "render": "edit",
+      "view": {
+        "kind": "text",
+        "text": [
+          "Operations console: role updated"
+        ],
+        "parseMode": "plain",
+        "keyboard": [
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: back to menu"
+                ],
+                "press": "backToMenu",
+                "durable": false
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "roleEditFailed": {
+      "kind": "state",
+      "render": "edit",
+      "view": {
+        "kind": "text",
+        "text": [
+          "Operations console: role edit failed"
+        ],
+        "parseMode": "plain",
+        "keyboard": [
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: back to menu"
+                ],
+                "press": "backToMenu",
+                "durable": false
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "roleDeleteConfirm": {
+      "kind": "state",
+      "render": "edit",
+      "view": {
+        "kind": "text",
+        "text": [
+          "Operations console: role delete confirm"
+        ],
+        "parseMode": "plain",
+        "keyboard": [
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: role delete yes"
+                ],
+                "press": "roleDeleteYes",
+                "durable": false,
+                "payload": {
+                  "roleId": {
+                    "context": "roleId"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: back to menu"
+                ],
+                "press": "backToMenu",
+                "durable": false
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "roleDeleting": {
+      "kind": "state",
+      "render": "keep",
+      "entry": [
+        {
+          "kind": "run",
+          "effect": "deleteRole",
+          "input": {
+            "roleId": {
+              "context": "roleId"
+            }
+          },
+          "outcomes": {
+            "deleted": {
+              "assign": {},
+              "do": [
+                {
+                  "target": "roleDeleted"
+                }
+              ]
+            },
+            "failed": {
+              "assign": {},
+              "do": [
+                {
+                  "target": "roleDeleteFailed"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "roleDeleted": {
+      "kind": "state",
+      "render": "edit",
+      "view": {
+        "kind": "text",
+        "text": [
+          "Operations console: role deleted"
+        ],
+        "parseMode": "plain",
+        "keyboard": [
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: back to menu"
+                ],
+                "press": "backToMenu",
+                "durable": false
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "roleDeleteFailed": {
+      "kind": "state",
+      "render": "edit",
+      "view": {
+        "kind": "text",
+        "text": [
+          "Operations console: role delete failed"
+        ],
+        "parseMode": "plain",
+        "keyboard": [
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: back to menu"
+                ],
+                "press": "backToMenu",
+                "durable": false
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "assignRoleLoading": {
+      "kind": "state",
+      "render": "keep",
+      "entry": [
+        {
+          "kind": "run",
+          "effect": "loadRoles",
+          "input": {
+            "callerPerms": {
+              "context": "callerPerms"
+            }
+          },
+          "outcomes": {
+            "loaded": {
+              "assign": {
+                "roles": {
+                  "from": "roles"
+                }
+              },
+              "do": [
+                {
+                  "target": "assignRoleList"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "assignRoleList": {
+      "kind": "state",
+      "render": "edit",
+      "view": {
+        "kind": "text",
+        "text": [
+          "Operations console: assign role list",
+          "\nValue: ",
+          {
+            "context": "targetUser",
+            "escape": "text"
+          }
+        ],
+        "parseMode": "plain",
+        "keyboard": [
+          {
+            "kind": "project",
+            "source": {
+              "context": "roles"
+            },
+            "maxItems": 50,
+            "rows": [
+              {
+                "kind": "row",
+                "buttons": [
+                  {
+                    "kind": "button",
+                    "label": [
+                      "Select ",
+                      {
+                        "item": "label",
+                        "escape": "text"
+                      }
+                    ],
+                    "press": "assignRole",
+                    "durable": false,
+                    "payload": {
+                      "roleId": {
+                        "item": "id"
+                      },
+                      "targetId": {
+                        "context": "targetUser"
+                      }
+                    },
+                    "when": {
+                      "compare": {
+                        "left": {
+                          "item": "visible"
+                        },
+                        "op": "eq",
+                        "right": true
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: back to menu"
+                ],
+                "press": "backToMenu",
+                "durable": false
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "assignRoleApplying": {
+      "kind": "state",
+      "render": "keep",
+      "entry": [
+        {
+          "kind": "run",
+          "effect": "setRole",
+          "input": {
+            "targetUser": {
+              "context": "targetUser"
+            },
+            "roleId": {
+              "context": "roleId"
+            }
+          },
+          "outcomes": {
+            "done": {
+              "assign": {
+                "roleName": {
+                  "from": "roleName"
+                }
+              },
+              "do": [
+                {}
+              ]
+            },
+            "isOwner": {
+              "assign": {},
+              "do": [
+                {
+                  "target": "assignRoleFailed"
+                }
+              ]
+            },
+            "failed": {
+              "assign": {},
+              "do": [
+                {
+                  "target": "assignRoleFailed"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "kind": "run",
+          "effect": "invalidateAuthCaches",
+          "input": {
+            "targetUser": {
+              "context": "targetUser"
+            }
+          },
+          "outcomes": {
+            "done": {
+              "assign": {},
+              "do": [
+                {}
+              ]
+            }
+          }
+        },
+        {
+          "kind": "run",
+          "effect": "logAudit",
+          "input": {},
+          "outcomes": {
+            "done": {
+              "assign": {},
+              "do": [
+                {}
+              ]
+            }
+          }
+        },
+        {
+          "kind": "run",
+          "effect": "notifyRoleAssigned",
+          "input": {
+            "targetUser": {
+              "context": "targetUser"
+            },
+            "roleName": {
+              "context": "roleName"
+            }
+          },
+          "outcomes": {
+            "sent": {
+              "assign": {},
+              "do": [
+                {
+                  "target": "assignRoleDone"
+                }
+              ]
+            },
+            "failed": {
+              "assign": {},
+              "do": [
+                {
+                  "target": "assignRoleDone"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "assignRoleDone": {
+      "kind": "state",
+      "render": "edit",
+      "view": {
+        "kind": "text",
+        "text": [
+          "Operations console: assign role done",
+          "\nValue: ",
+          {
+            "context": "roleName",
+            "escape": "text"
+          }
+        ],
+        "parseMode": "plain",
+        "keyboard": [
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: back to menu"
+                ],
+                "press": "backToMenu",
+                "durable": false
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "assignRoleFailed": {
+      "kind": "state",
+      "render": "edit",
+      "view": {
+        "kind": "text",
+        "text": [
+          "Operations console: assign role failed"
+        ],
+        "parseMode": "plain",
+        "keyboard": [
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: back to menu"
+                ],
+                "press": "backToMenu",
+                "durable": false
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "broadcastPrompt": {
+      "kind": "state",
+      "render": "edit",
+      "view": {
+        "kind": "text",
+        "text": [
+          "Operations console: broadcast prompt"
+        ],
+        "parseMode": "plain"
+      },
+      "on": {
+        "text": [
+          {
+            "do": [
+              {
+                "assign": {
+                  "broadcastText": {
+                    "from": "value"
+                  },
+                  "bcProgress": 0
+                },
+                "target": "broadcastRunning"
+              }
+            ],
+            "pattern": "^(?<value>.+)$"
+          }
+        ]
+      }
+    },
+    "broadcastRunning": {
+      "kind": "state",
+      "render": "edit",
+      "view": {
+        "kind": "text",
+        "text": [
+          "Operations console: broadcast running",
+          "\nValue: ",
+          {
+            "context": "bcProgress",
+            "escape": "text"
+          }
+        ],
+        "parseMode": "plain",
+        "keyboard": [
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: cancel broadcast press"
+                ],
+                "press": "cancelBroadcastPress",
+                "durable": false
+              }
+            ]
+          }
+        ]
+      },
+      "entry": [
+        {
+          "kind": "run",
+          "effect": "runBroadcast",
+          "input": {
+            "message": {
+              "context": "broadcastText"
+            }
+          },
+          "onProgress": {
+            "assign": {
+              "bcProgress": {
+                "from": "sent"
+              }
+            }
+          },
+          "outcomes": {
+            "done": {
+              "assign": {
+                "bcTotal": {
+                  "from": "total"
+                },
+                "bcSent": {
+                  "from": "sent"
+                },
+                "bcFailed": {
+                  "from": "failed"
+                },
+                "bcBlocked": {
+                  "from": "blocked"
+                },
+                "bcSuccess": {
+                  "from": "success"
+                },
+                "bcDuration": {
+                  "from": "duration"
+                }
+              },
+              "do": [
+                {
+                  "target": "broadcastDone"
+                }
+              ]
+            },
+            "cancelled": {
+              "assign": {},
+              "do": [
+                {
+                  "target": "broadcastCancelled"
+                }
+              ]
+            },
+            "failed": {
+              "assign": {},
+              "do": [
+                {
+                  "target": "broadcastFailed"
+                }
+              ]
+            },
+            "timeout": {
+              "assign": {},
+              "do": [
+                {
+                  "target": "broadcastFailed"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "broadcastDone": {
+      "kind": "state",
+      "render": "edit",
+      "view": {
+        "kind": "text",
+        "text": [
+          "Operations console: broadcast done",
+          "\nValue: ",
+          {
+            "context": "bcSent",
+            "escape": "text"
+          },
+          "\nValue: ",
+          {
+            "context": "bcTotal",
+            "escape": "text"
+          }
+        ],
+        "parseMode": "plain",
+        "keyboard": [
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: back to menu"
+                ],
+                "press": "backToMenu",
+                "durable": false
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "broadcastFailed": {
+      "kind": "state",
+      "render": "edit",
+      "view": {
+        "kind": "text",
+        "text": [
+          "Operations console: broadcast failed"
+        ],
+        "parseMode": "plain",
+        "keyboard": [
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: back to menu"
+                ],
+                "press": "backToMenu",
+                "durable": false
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "broadcastCancelled": {
+      "kind": "state",
+      "render": "keep",
+      "entry": [
+        {
+          "kind": "run",
+          "effect": "cancelBroadcast",
+          "input": {},
+          "outcomes": {
+            "cancelled": {
+              "assign": {},
+              "do": [
+                {
+                  "target": "broadcastPrompt"
+                }
+              ]
+            },
+            "nothingRunning": {
+              "assign": {},
+              "do": [
+                {
+                  "target": "broadcastPrompt"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "stockAddedBoundary": {
+      "kind": "state",
+      "render": "edit",
+      "view": {
+        "kind": "text",
+        "text": [
+          "Operations console: stock added boundary"
+        ],
+        "parseMode": "plain",
+        "keyboard": [
+          {
+            "kind": "row",
+            "buttons": [
+              {
+                "kind": "button",
+                "label": [
+                  "Action: back to menu"
+                ],
+                "press": "backToMenu",
+                "durable": false
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "restockNotifying": {
+      "kind": "state",
+      "render": "keep",
+      "entry": [
+        {
+          "kind": "run",
+          "effect": "notifyRestock",
+          "input": {},
+          "outcomes": {
+            "sent": {
+              "assign": {},
+              "do": [
+                {
+                  "target": "stockAddedBoundary"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  }
+}

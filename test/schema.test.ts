@@ -1,5 +1,6 @@
 import { expect, test } from "bun:test";
 import Ajv2020 from "ajv/dist/2020";
+import adminSurfaceSpec from "botchart/conformance/specs/admin-surface.json" with { type: "json" };
 import callbackCleanupSpec from "botchart/conformance/specs/callback-cleanup.json" with { type: "json" };
 import compoundSpec from "botchart/conformance/specs/compound-history-and-units.json" with { type: "json" };
 import effectSpec from "botchart/conformance/specs/effects-and-feedback.json" with { type: "json" };
@@ -117,6 +118,10 @@ test("published schema accepts the visual menu derived asset", () => {
 
 test("published schema accepts the streaming effect derived asset", () => {
   expect(validate(streamingEffectSpec), JSON.stringify(validate.errors)).toBe(true);
+});
+
+test("published schema accepts the admin surface derived asset", () => {
+  expect(validate(adminSurfaceSpec), JSON.stringify(validate.errors)).toBe(true);
 });
 
 const completeSpec = {

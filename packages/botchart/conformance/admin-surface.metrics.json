@@ -1,0 +1,25 @@
+{
+  "source": {
+    "repository": "https://github.com/interlumpen/Telegram-shop",
+    "commit": "3b354f924edfdea547d2f4e1c6234a391024130f",
+    "rewrite": "https://github.com/svyatov/botchart-docs/commit/4d069eb",
+    "emittedBytes": 51564,
+    "typeInstantiations": 260623
+  },
+  "costs": {
+    "states": 86,
+    "buttons": 92,
+    "projections": 7,
+    "effects": 33,
+    "guardRefs": 3,
+    "guardUses": 138,
+    "gateCopies": 46,
+    "entryLists": 4,
+    "entryStates": 28,
+    "blindEntryStates": 27,
+    "unwrittenViewKeys": 0,
+    "unreachableStates": 0,
+    "parameterizedChecks": 2,
+    "crossSessionEffects": 5
+  }
+}
