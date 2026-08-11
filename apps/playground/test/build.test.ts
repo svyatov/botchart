@@ -20,3 +20,19 @@ test("the playground build keeps ELK and its notices separate", async () => {
   expect(await Bun.file(`${appRoot}/dist/starters/visual-menu/spec.json`).exists()).toBe(true);
   expect(await Bun.file(`${appRoot}/dist/starters/dynamic-list/preview.json`).exists()).toBe(true);
 });
+
+test("the built playground exposes deterministic transcript controls", async () => {
+  const build = Bun.spawnSync(["bun", "run", "build"], {
+    cwd: appRoot,
+    stdout: "pipe",
+    stderr: "pipe",
+  });
+
+  expect(build.exitCode, build.stderr.toString()).toBe(0);
+  const page = await Bun.file(`${appRoot}/dist/index.html`).text();
+  expect(page).toContain('aria-label="Conversation replay"');
+  expect(page).toContain('id="replay-previous"');
+  expect(page).toContain('id="replay-next"');
+  expect(page).toContain('id="replay-reset"');
+  expect(page).toContain('id="replay-status"');
+});

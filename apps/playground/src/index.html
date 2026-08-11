@@ -59,6 +59,18 @@
               <ul id="transition-list"></ul>
             </section>
           </div>
+          <section class="replay-panel" aria-label="Conversation replay">
+            <div class="replay-controls">
+              <button id="replay-previous" type="button" disabled>Previous</button>
+              <button id="replay-next" type="button" disabled>Next</button>
+              <button id="replay-reset" type="button" disabled>Reset</button>
+            </div>
+            <div class="replay-readout">
+              <output id="replay-step" aria-live="polite">Initial session</output>
+              <span id="replay-session">Session loading</span>
+            </div>
+            <output id="replay-status" aria-live="polite">Step 0 of 0</output>
+          </section>
         </section>
 
         <aside id="inspector-pane" class="pane inspector-pane" aria-labelledby="inspector-heading">

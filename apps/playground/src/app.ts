@@ -1,8 +1,11 @@
 import type { BotchartSpec } from "botchart";
+import type { GoldenTranscript } from "botchart/simulator";
 import {
   deriveStatechart,
   layoutStatechart,
   renderViewPreview,
+  transcriptFrame,
+  transcriptPreviewSidecar,
   type ElkGraph,
   type PreviewSidecar,
   type PreviewView,
@@ -61,13 +64,22 @@ const selectedKind = required<HTMLElement>("selected-kind");
 const inspector = required<HTMLElement>("inspector-content");
 const transitionList = required<HTMLUListElement>("transition-list");
 const sourceCredit = required<HTMLElement>("source-credit");
+const replayPrevious = required<HTMLButtonElement>("replay-previous");
+const replayNext = required<HTMLButtonElement>("replay-next");
+const replayReset = required<HTMLButtonElement>("replay-reset");
+const replayStep = required<HTMLOutputElement>("replay-step");
+const replaySession = required<HTMLElement>("replay-session");
+const replayStatus = required<HTMLOutputElement>("replay-status");
 
 let mode = initialMode();
 let spec: BotchartSpec;
 let sidecar: StarterSidecar;
+let transcript: GoldenTranscript;
 let graph: StatechartGraph;
 let selectedId = "";
 let initialId = "";
+let activeId = "";
+let replayCursor = 0;
 let loadGeneration = 0;
 let renderGeneration = 0;
 
@@ -113,7 +125,10 @@ function firstLeaf(value: BotchartSpec): string {
 }
 
 function createPreview(view: PreviewView): HTMLElement {
-  const preview = renderViewPreview(view, sidecar);
+  const preview = renderViewPreview(
+    view,
+    transcriptPreviewSidecar(transcript, replayCursor, sidecar),
+  );
   const wrapper = document.createElement("div");
   wrapper.className = "telegram-preview";
 
@@ -363,6 +378,7 @@ async function renderDiagram(): Promise<void> {
       title.textContent = position.id;
       title.addEventListener("click", () => selectNode(position.id));
       group.append(title);
+      group.classList.toggle("is-active", position.id === activeId);
       canvas.append(group);
       continue;
     }
@@ -375,6 +391,7 @@ async function renderDiagram(): Promise<void> {
       height: `${position.height}px`,
     });
     element.classList.toggle("is-initial", position.id === initialId);
+    element.classList.toggle("is-active", position.id === activeId);
     element.addEventListener("click", () => selectNode(position.id));
     canvas.append(element);
   }
@@ -418,6 +435,27 @@ function showError(error: unknown): void {
     : "The playground failed. Reload the page and try again.";
 }
 
+function applyReplayFrame(cursor: number): void {
+  const frame = transcriptFrame(transcript, cursor);
+  replayCursor = frame.cursor;
+  activeId = frame.session?.position ?? "";
+  if (activeId !== "") selectedId = activeId;
+
+  replayPrevious.disabled = frame.cursor === 0;
+  replayNext.disabled = frame.cursor === frame.total;
+  replayReset.disabled = frame.cursor === 0;
+  replayStep.textContent = frame.stepName;
+  replayStatus.textContent = `Step ${frame.cursor} of ${frame.total}`;
+  replaySession.textContent = frame.session === null
+    ? "Session ended"
+    : `session: ${frame.session.position}, seq ${frame.session.seq}`;
+}
+
+async function moveReplay(cursor: number): Promise<void> {
+  applyReplayFrame(cursor);
+  await renderDiagram();
+}
+
 async function loadStarter(starter: Starter): Promise<void> {
   const generation = ++loadGeneration;
   starterSelect.value = starter.id;
@@ -426,13 +464,15 @@ async function loadStarter(starter: Starter): Promise<void> {
     const loaded = await Promise.all([
       getJson<BotchartSpec>(`${starter.path}/spec.json`),
       getJson<StarterSidecar>(`${starter.path}/preview.json`),
+      getJson<GoldenTranscript>(`${starter.path}/transcript.json`),
     ]);
     if (generation !== loadGeneration) return;
-    [spec, sidecar] = loaded;
+    [spec, sidecar, transcript] = loaded;
     graph = deriveStatechart(spec);
     renderTransitionSummary();
     initialId = firstLeaf(spec);
     selectedId = initialId;
+    applyReplayFrame(0);
     specJson.textContent = JSON.stringify(spec, null, 2);
     starterSummary.textContent = sidecar.name;
     graphCounts.textContent = `${graph.nodes.length} states, ${graph.edges.length} transitions`;
@@ -461,6 +501,18 @@ starterSelect.addEventListener("change", () => {
   if (!starter) return;
   setQuery("starter", starter.id);
   void loadStarter(starter);
+});
+
+replayPrevious.addEventListener("click", () => {
+  void moveReplay(replayCursor - 1).catch(showError);
+});
+
+replayNext.addEventListener("click", () => {
+  void moveReplay(replayCursor + 1).catch(showError);
+});
+
+replayReset.addEventListener("click", () => {
+  void moveReplay(0).catch(showError);
 });
 
 mobileMedia.addEventListener("change", syncPaneOrder);

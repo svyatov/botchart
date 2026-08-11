@@ -1,10 +1,17 @@
 import { expect, test } from "bun:test";
 import type { BotchartSpec } from "botchart";
+import type { GoldenTranscript } from "botchart/simulator";
 import specJson from "../../../packages/botchart/conformance/specs/visual-menu.json" with {
+  type: "json",
+};
+import transcriptJson from "../../../packages/botchart/conformance/transcripts/visual-menu.json" with {
   type: "json",
 };
 import previewJson from "../../../examples/visual-menu.preview.json" with { type: "json" };
 import dynamicSpecJson from "../../../packages/botchart/conformance/specs/dynamic-list.json" with {
+  type: "json",
+};
+import dynamicTranscriptJson from "../../../packages/botchart/conformance/transcripts/dynamic-list.json" with {
   type: "json",
 };
 import dynamicPreviewJson from "../../../examples/dynamic-list.preview.json" with { type: "json" };
@@ -12,10 +19,40 @@ import {
   deriveStatechart,
   layoutStatechart,
   renderViewPreview,
+  transcriptFrame,
+  transcriptPreviewSidecar,
   type ElkGraph,
 } from "../src/model.js";
 
 const spec = specJson as BotchartSpec;
+const transcript = transcriptJson as GoldenTranscript;
+const dynamicTranscript = dynamicTranscriptJson as GoldenTranscript;
+
+test("transcript replay exposes the initial session and each completed step", () => {
+  expect(transcriptFrame(transcript, 0)).toMatchObject({
+    cursor: 0,
+    total: transcript.steps.length,
+    stepName: "Initial session",
+    session: {
+      position: "home",
+      seq: 0,
+    },
+  });
+
+  expect(transcriptFrame(transcript, 3)).toMatchObject({
+    cursor: 3,
+    total: transcript.steps.length,
+    stepName: "enter the atlas",
+    session: {
+      position: "atlas.directory",
+      seq: 2,
+    },
+  });
+
+  expect(transcriptFrame(transcript, -1).cursor).toBe(0);
+  expect(transcriptFrame(transcript, transcript.steps.length + 1).cursor)
+    .toBe(transcript.steps.length);
+});
 
 test("the visual menu becomes one nested statechart", () => {
   const graph = deriveStatechart(spec);
@@ -76,6 +113,25 @@ test("a preview sidecar expands projections and filters conditional buttons", ()
     ["Close"],
   ]);
   expect(preview.usesSampleData).toBe(true);
+});
+
+test("a replay frame renders the preview from its recorded session context", () => {
+  const dynamicSpec = dynamicSpecJson as BotchartSpec;
+  const entries = dynamicSpec.states.entriesList;
+  if (!entries || !("view" in entries)) {
+    throw new Error("The dynamic-list entries state needs a view.");
+  }
+
+  const sidecar = transcriptPreviewSidecar(dynamicTranscript, 2, dynamicPreviewJson);
+  const preview = renderViewPreview(entries.view, sidecar);
+
+  expect(preview.text).toBe("Coastal weather log\nField notes\nPage 2 of 2");
+  expect(preview.rows.map((row) => row.map((button) => button.label))).toEqual([
+    ["Shelf cloud"],
+    ["Gull movement"],
+    ["Prior page"],
+    ["Close"],
+  ]);
 });
 
 test("layout sends measured nodes and nested groups to ELK", async () => {
