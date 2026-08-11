@@ -380,7 +380,7 @@ async function renderDiagram(): Promise<void> {
   }
   loading.hidden = true;
   selectNode(selectedId);
-  const selected = [...canvas.querySelectorAll<HTMLElement>("[data-node-id]")]
+  const selected = Array.from(canvas.querySelectorAll<HTMLElement>("[data-node-id]"))
     .find((element) => element.dataset.nodeId === selectedId);
   if (selected) {
     viewport.scrollLeft = Math.max(
