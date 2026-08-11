@@ -392,6 +392,11 @@ test("a moving effect outcome maps output before it selects a transition", () =>
       loading: {
         kind: "state",
         render: "keep",
+        on: {
+          after: {
+            timeout: { delay: "1m", do: [{ target: "failure" }] },
+          },
+        },
         entry: [
           {
             kind: "run",
@@ -453,7 +458,11 @@ test("a moving effect outcome maps output before it selects a transition", () =>
       position: "success",
       seq: 2,
     },
-    intents: [],
+    intents: [{
+      kind: "timer",
+      operation: "cancel",
+      id: "chat:42:loading:1:timeout",
+    }],
   });
 });
 
@@ -2627,13 +2636,267 @@ test("a timer routes through its named after handler", () => {
       origin: "scheduler",
       source: "timer",
       name: "remind",
-      payload: { timerId: "timer:1" },
+      payload: {
+        id: "chat:42:main:0:remind",
+        token: { sessionKey: "chat:42", stateId: "main", seq: 0 },
+      },
     },
     now: "2026-08-10T14:01:00Z",
   })).toEqual({
     kind: "ok",
     session: { ...current, position: "done", seq: 1 },
+    intents: [{
+      kind: "timer",
+      operation: "cancel",
+      id: "chat:42:main:0:remind",
+    }],
+  });
+});
+
+test("a stale timer is dropped before routing", () => {
+  const spec = {
+    initial: "main",
+    context: { default: {} },
+    parameters: {},
+    on: {},
+    states: {
+      main: {
+        kind: "state",
+        render: "keep",
+        on: {
+          after: {
+            remind: { delay: "1m", do: [{ target: "done" }] },
+          },
+        },
+      },
+      done: { kind: "state", render: "keep" },
+    },
+  } as unknown as BotchartSpec;
+  const current = { ...createSession({ spec }), seq: 1 };
+
+  expect(step({
+    spec,
+    session: current,
+    input: {
+      origin: "scheduler",
+      source: "timer",
+      name: "remind",
+      payload: {
+        id: "chat:42:main:0:remind",
+        token: { sessionKey: "chat:42", stateId: "main", seq: 0 },
+      },
+    },
+    now: "2026-08-10T14:01:00Z",
+  })).toEqual({
+    kind: "ok",
+    session: current,
     intents: [],
+  });
+});
+
+test("a fresh timer requires the active intent id", () => {
+  const spec = {
+    initial: "main",
+    context: { default: {} },
+    parameters: {},
+    on: {},
+    states: {
+      main: {
+        kind: "state",
+        render: "keep",
+        on: {
+          after: {
+            remind: { delay: "1m", do: [{ target: "done" }] },
+          },
+        },
+      },
+      done: { kind: "state", render: "keep" },
+    },
+  } as unknown as BotchartSpec;
+  const current = createSession({ spec });
+
+  expect(step({
+    spec,
+    session: current,
+    input: {
+      origin: "scheduler",
+      source: "timer",
+      name: "remind",
+      payload: {
+        id: "wrong",
+        token: { sessionKey: "chat:42", stateId: "main", seq: 0 },
+      },
+    },
+    now: "2026-08-10T14:01:00Z",
+  })).toEqual({
+    kind: "error",
+    session: current,
+    intents: [],
+    error: {
+      code: "invalid_timer_input",
+      path: "$.input.payload.id",
+      message: "Use the id from the active timer intent.",
+    },
+  });
+});
+
+test("entering a state schedules its named timers", () => {
+  const spec = {
+    initial: "start",
+    context: { default: {} },
+    parameters: {},
+    on: {},
+    states: {
+      start: {
+        kind: "state",
+        render: "keep",
+        on: { message: { photo: [{ target: "waiting" }] } },
+      },
+      waiting: {
+        kind: "state",
+        render: "keep",
+        on: {
+          after: {
+            soon: { delay: "30s", do: [{ target: "done" }] },
+            later: { delay: "2m", do: [{ target: "done" }] },
+          },
+        },
+      },
+      done: { kind: "state", render: "keep" },
+    },
+  } as unknown as BotchartSpec;
+  const current = createSession({ spec });
+
+  expect(step({
+    spec,
+    session: current,
+    input: {
+      origin: "telegram",
+      source: "message",
+      name: "photo",
+      payload: { sessionKey: "chat:42" },
+    },
+    now: "2026-08-10T14:00:00Z",
+  })).toEqual({
+    kind: "ok",
+    session: { ...current, position: "waiting", seq: 1 },
+    intents: [
+      {
+        kind: "timer",
+        operation: "schedule",
+        id: "chat:42:waiting:1:soon",
+        timer: "soon",
+        fireAt: "2026-08-10T14:00:30.000Z",
+        token: { sessionKey: "chat:42", stateId: "waiting", seq: 1 },
+      },
+      {
+        kind: "timer",
+        operation: "schedule",
+        id: "chat:42:waiting:1:later",
+        timer: "later",
+        fireAt: "2026-08-10T14:02:00.000Z",
+        token: { sessionKey: "chat:42", stateId: "waiting", seq: 1 },
+      },
+    ],
+  });
+});
+
+test("an invalid timer delay fails state entry atomically", () => {
+  const spec = {
+    initial: "start",
+    context: { default: {} },
+    parameters: {},
+    on: {},
+    states: {
+      start: {
+        kind: "state",
+        render: "keep",
+        on: { message: { photo: [{ target: "waiting" }] } },
+      },
+      waiting: {
+        kind: "state",
+        render: "keep",
+        on: {
+          after: {
+            remind: { delay: "01s", do: [{ target: "done" }] },
+          },
+        },
+      },
+      done: { kind: "state", render: "keep" },
+    },
+  } as unknown as BotchartSpec;
+  const current = createSession({ spec });
+
+  expect(step({
+    spec,
+    session: current,
+    input: {
+      origin: "telegram",
+      source: "message",
+      name: "photo",
+      payload: { sessionKey: "chat:42" },
+    },
+    now: "2026-08-10T14:00:00Z",
+  })).toEqual({
+    kind: "error",
+    session: current,
+    intents: [],
+    error: {
+      code: "invalid_timer_delay",
+      path: "$.states.waiting.on.after.remind.delay",
+      message: "Use one positive delay with an ms, s, m, h, or d unit.",
+    },
+  });
+});
+
+test("exiting a state cancels its named timers", () => {
+  const spec = {
+    initial: "waiting",
+    context: { default: {} },
+    parameters: {},
+    on: {},
+    states: {
+      waiting: {
+        kind: "state",
+        render: "keep",
+        on: {
+          message: { photo: [{ target: "done" }] },
+          after: {
+            soon: { delay: "30s", do: [{ target: "done" }] },
+            later: { delay: "2m", do: [{ target: "done" }] },
+          },
+        },
+      },
+      done: { kind: "state", render: "keep" },
+    },
+  } as unknown as BotchartSpec;
+  const current = { ...createSession({ spec }), seq: 4 };
+
+  expect(step({
+    spec,
+    session: current,
+    input: {
+      origin: "telegram",
+      source: "message",
+      name: "photo",
+      payload: { sessionKey: "chat:42" },
+    },
+    now: "2026-08-10T14:00:10Z",
+  })).toEqual({
+    kind: "ok",
+    session: { ...current, position: "done", seq: 5 },
+    intents: [
+      {
+        kind: "timer",
+        operation: "cancel",
+        id: "chat:42:waiting:4:soon",
+      },
+      {
+        kind: "timer",
+        operation: "cancel",
+        id: "chat:42:waiting:4:later",
+      },
+    ],
   });
 });
 

@@ -438,6 +438,77 @@ test("replay maps stable effect feedback ids to runtime ids", () => {
   expect(feedbackIds).toEqual(["chat:42:loading:1:0"]);
 });
 
+test("replay maps stable timer firing ids to runtime ids", () => {
+  const active = { ...session, position: "waiting", seq: 1 } as const;
+  const token = { sessionKey: "chat:42", stateId: "waiting", seq: 1 } as const;
+  const scenario = {
+    ...transcript,
+    steps: [
+      {
+        name: "schedule the timer",
+        input: {
+          origin: "telegram",
+          source: "message",
+          name: "photo",
+          payload: { sessionKey: "chat:42" },
+        },
+        covers: ["runtime.timer.schedule"],
+        result: {
+          kind: "ok",
+          session: active,
+          intents: [{
+            kind: "timer",
+            operation: "schedule",
+            id: "timer:1",
+            timer: "remind",
+            fireAt: "2026-08-10T14:01:00.000Z",
+            token,
+          }],
+        },
+      },
+      {
+        name: "fire the timer",
+        advance: "1m",
+        input: {
+          origin: "scheduler",
+          source: "timer",
+          name: "remind",
+          payload: { id: "timer:1", token },
+        },
+        covers: ["runtime.event.timer"],
+        result: { kind: "ok", session: active, intents: [] },
+      },
+    ],
+  } satisfies GoldenTranscript;
+  const firingIds: string[] = [];
+  const runner: CoreRunner = (request) => {
+    if (request.input.origin === "scheduler") {
+      const payload = request.input.payload as { id: string };
+      firingIds.push(payload.id);
+      return { kind: "ok", session: active, intents: [] };
+    }
+    return {
+      kind: "ok",
+      session: active,
+      intents: [{
+        kind: "timer",
+        operation: "schedule",
+        id: "chat:42:waiting:1:remind",
+        timer: "remind",
+        fireAt: "2026-08-10T14:01:00.000Z",
+        token,
+      }],
+    };
+  };
+
+  expect(replayTranscript({
+    transcript: scenario,
+    spec: {} as BotchartSpec,
+    runner,
+  }).issues).toEqual([]);
+  expect(firingIds).toEqual(["chat:42:waiting:1:remind"]);
+});
+
 test("replay maps stable callback ids across views, sessions, and press inputs", () => {
   const record = {
     sessionKey: "chat:42",

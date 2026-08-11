@@ -1,0 +1,87 @@
+{
+  "$schema": "https://svyatov.github.io/botchart/schema/0.1.0.json",
+  "version": 1,
+  "schemaRevision": "0.1.0",
+  "packs": [],
+  "scope": "chat+user",
+  "context": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {},
+    "additionalProperties": false,
+    "default": {}
+  },
+  "parameters": {},
+  "guards": {},
+  "effects": {},
+  "presses": {},
+  "units": {},
+  "stalePress": {
+    "action": "ignore"
+  },
+  "initial": "start",
+  "on": {},
+  "states": {
+    "start": {
+      "kind": "state",
+      "render": "keep",
+      "on": {
+        "message": {
+          "photo": [
+            {
+              "target": "waiting"
+            }
+          ]
+        }
+      }
+    },
+    "waiting": {
+      "kind": "state",
+      "render": "keep",
+      "on": {
+        "after": {
+          "soon": {
+            "delay": "30s",
+            "do": [
+              {
+                "target": "followup"
+              }
+            ]
+          },
+          "later": {
+            "delay": "2m",
+            "do": [
+              {
+                "target": "expired"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "followup": {
+      "kind": "state",
+      "render": "keep",
+      "on": {
+        "after": {
+          "cleanup": {
+            "delay": "1m",
+            "do": [
+              {
+                "target": "done"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "expired": {
+      "kind": "state",
+      "render": "keep"
+    },
+    "done": {
+      "kind": "state",
+      "render": "keep"
+    }
+  }
+}

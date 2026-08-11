@@ -1,0 +1,245 @@
+{
+  "$schema": "https://svyatov.github.io/botchart/conformance/0.1.0/transcript.schema.json",
+  "initial": {
+    "now": "2026-08-10T14:00:00Z",
+    "session": {
+      "callStack": [],
+      "callbacks": {},
+      "context": {},
+      "history": {},
+      "position": "start",
+      "seq": 0,
+      "viewSlots": {}
+    }
+  },
+  "name": "timer intents and virtual time",
+  "schemaRevision": "0.1.0",
+  "spec": {
+    "path": "../specs/timer-intents.json",
+    "sha256": "541602c2c9b8d3c447ca3515754bf0205af0aabf4b0dcc239978f5dff59e1006"
+  },
+  "steps": [
+    {
+      "covers": [
+        "runtime.timer.delayGrammar",
+        "runtime.timer.identifier",
+        "runtime.timer.schedule",
+        "runtime.timer.scheduleFields",
+        "runtime.timer.scheduleOrder"
+      ],
+      "input": {
+        "name": "photo",
+        "origin": "telegram",
+        "payload": {
+          "sessionKey": "chat:42"
+        },
+        "source": "message"
+      },
+      "name": "schedule named timers in declaration order",
+      "result": {
+        "intents": [
+          {
+            "fireAt": "2026-08-10T14:00:30.000Z",
+            "id": "timer:1",
+            "kind": "timer",
+            "operation": "schedule",
+            "timer": "soon",
+            "token": {
+              "seq": 1,
+              "sessionKey": "chat:42",
+              "stateId": "waiting"
+            }
+          },
+          {
+            "fireAt": "2026-08-10T14:02:00.000Z",
+            "id": "timer:2",
+            "kind": "timer",
+            "operation": "schedule",
+            "timer": "later",
+            "token": {
+              "seq": 1,
+              "sessionKey": "chat:42",
+              "stateId": "waiting"
+            }
+          }
+        ],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {},
+          "history": {},
+          "position": "waiting",
+          "seq": 1,
+          "viewSlots": {}
+        }
+      }
+    },
+    {
+      "advance": "30s",
+      "covers": [
+        "runtime.event.timer",
+        "runtime.timer.cancel",
+        "runtime.timer.cancelFields",
+        "runtime.timer.cancelOrder"
+      ],
+      "input": {
+        "name": "soon",
+        "origin": "scheduler",
+        "payload": {
+          "id": "timer:1",
+          "token": {
+            "seq": 1,
+            "sessionKey": "chat:42",
+            "stateId": "waiting"
+          }
+        },
+        "source": "timer"
+      },
+      "name": "fire the first timer and cancel the old set",
+      "result": {
+        "intents": [
+          {
+            "id": "timer:1",
+            "kind": "timer",
+            "operation": "cancel"
+          },
+          {
+            "id": "timer:2",
+            "kind": "timer",
+            "operation": "cancel"
+          },
+          {
+            "fireAt": "2026-08-10T14:01:30.000Z",
+            "id": "timer:3",
+            "kind": "timer",
+            "operation": "schedule",
+            "timer": "cleanup",
+            "token": {
+              "seq": 2,
+              "sessionKey": "chat:42",
+              "stateId": "followup"
+            }
+          }
+        ],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {},
+          "history": {},
+          "position": "followup",
+          "seq": 2,
+          "viewSlots": {}
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.timer.duplicate",
+        "runtime.timer.stalenessToken"
+      ],
+      "input": {
+        "name": "soon",
+        "origin": "scheduler",
+        "payload": {
+          "id": "timer:1",
+          "token": {
+            "seq": 1,
+            "sessionKey": "chat:42",
+            "stateId": "waiting"
+          }
+        },
+        "source": "timer"
+      },
+      "name": "drop a duplicate firing",
+      "result": {
+        "intents": [],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {},
+          "history": {},
+          "position": "followup",
+          "seq": 2,
+          "viewSlots": {}
+        }
+      }
+    },
+    {
+      "advance": "1m",
+      "covers": [
+        "runtime.timer.firingOrder",
+        "runtime.timer.virtualTime"
+      ],
+      "input": {
+        "name": "cleanup",
+        "origin": "scheduler",
+        "payload": {
+          "id": "timer:3",
+          "token": {
+            "seq": 2,
+            "sessionKey": "chat:42",
+            "stateId": "followup"
+          }
+        },
+        "source": "timer"
+      },
+      "name": "fire the next timer on the virtual clock",
+      "result": {
+        "intents": [
+          {
+            "id": "timer:3",
+            "kind": "timer",
+            "operation": "cancel"
+          }
+        ],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {},
+          "history": {},
+          "position": "done",
+          "seq": 3,
+          "viewSlots": {}
+        }
+      }
+    },
+    {
+      "advance": "30s",
+      "covers": [
+        "runtime.timer.late"
+      ],
+      "input": {
+        "name": "later",
+        "origin": "scheduler",
+        "payload": {
+          "id": "timer:2",
+          "token": {
+            "seq": 1,
+            "sessionKey": "chat:42",
+            "stateId": "waiting"
+          }
+        },
+        "source": "timer"
+      },
+      "name": "drop a late firing",
+      "result": {
+        "intents": [],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {},
+          "history": {},
+          "position": "done",
+          "seq": 3,
+          "viewSlots": {}
+        }
+      }
+    }
+  ],
+  "transcriptVersion": 1
+}

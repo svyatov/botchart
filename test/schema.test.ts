@@ -9,6 +9,7 @@ import markdownV2Spec from "botchart/conformance/specs/markdown-v2-escaping.json
 import pressFreshnessSpec from "botchart/conformance/specs/press-freshness.json" with { type: "json" };
 import staleAnswerSpec from "botchart/conformance/specs/stale-press-answer.json" with { type: "json" };
 import staleIgnoreSpec from "botchart/conformance/specs/stale-press-ignore.json" with { type: "json" };
+import timerIntentsSpec from "botchart/conformance/specs/timer-intents.json" with { type: "json" };
 import viewSpec from "botchart/conformance/specs/view-rendering.json" with { type: "json" };
 import schema from "botchart/schema" with { type: "json" };
 
@@ -92,6 +93,7 @@ test.each([
   ["callback cleanup", callbackCleanupSpec],
   ["stale press answer", staleAnswerSpec],
   ["stale press ignore", staleIgnoreSpec],
+  ["timer intents", timerIntentsSpec],
 ])("published schema accepts the %s conformance spec", (_name, spec) => {
   expect(validate(spec), JSON.stringify(validate.errors)).toBe(true);
 });
