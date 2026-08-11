@@ -1,0 +1,244 @@
+{
+  "$schema": "https://svyatov.github.io/botchart/conformance/0.1.0/transcript.schema.json",
+  "initial": {
+    "now": "2026-08-11T12:00:00Z",
+    "session": {
+      "callStack": [],
+      "callbacks": {},
+      "context": {},
+      "history": {},
+      "position": "main",
+      "seq": 0,
+      "viewSlots": {
+        "main": {
+          "revision": 0,
+          "target": {
+            "chatId": 42,
+            "kind": "chat"
+          }
+        }
+      }
+    }
+  },
+  "name": "lifecycle and error semantics",
+  "schemaRevision": "0.1.0",
+  "spec": {
+    "path": "../specs/lifecycle-and-errors.json",
+    "sha256": "aa910d1f26794cd380c13220467cd16cf0873bc926d4552dfff05d3da118579a"
+  },
+  "steps": [
+    {
+      "covers": [
+        "runtime.lifecycle.blocked"
+      ],
+      "input": {
+        "name": "blocked",
+        "origin": "adapter",
+        "payload": {
+          "chainId": "failure:1",
+          "failures": [
+            {
+              "code": "http_error",
+              "intent": {
+                "callbackQueryId": "query:1",
+                "kind": "pressAnswer"
+              },
+              "message": "The request failed."
+            }
+          ]
+        },
+        "source": "lifecycle"
+      },
+      "name": "route the first blocked failure",
+      "result": {
+        "intents": [
+          {
+            "kind": "view",
+            "operation": "send",
+            "slot": "main",
+            "target": {
+              "chatId": 42,
+              "kind": "chat"
+            },
+            "view": {
+              "kind": "text",
+              "parseMode": "plain",
+              "text": "Blocked"
+            }
+          }
+        ],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {},
+          "history": {},
+          "position": "blocked",
+          "seq": 1,
+          "viewSlots": {
+            "main": {
+              "revision": 0,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.lifecycle.failureChain",
+        "runtime.lifecycle.secondFailure",
+        "runtime.lifecycle.blockedOnce",
+        "runtime.error.terminalIntentFailure"
+      ],
+      "input": {
+        "name": "blocked",
+        "origin": "adapter",
+        "payload": {
+          "chainId": "failure:1",
+          "failures": [
+            {
+              "code": "http_error",
+              "intent": {
+                "callbackQueryId": "query:1",
+                "kind": "pressAnswer"
+              },
+              "message": "The request failed."
+            },
+            {
+              "code": "recipient_blocked",
+              "intent": {
+                "kind": "view",
+                "operation": "send",
+                "slot": "main",
+                "target": {
+                  "chatId": 42,
+                  "kind": "chat"
+                },
+                "view": {
+                  "kind": "text",
+                  "parseMode": "plain",
+                  "text": "Blocked"
+                }
+              },
+              "message": "The recipient blocked the bot."
+            }
+          ]
+        },
+        "source": "lifecycle"
+      },
+      "name": "stop the second failure in the chain",
+      "result": {
+        "error": {
+          "code": "terminal_intent_failure",
+          "message": "Stop this failure chain after its lifecycle intent fails.",
+          "path": "$.input.payload.failures[1]"
+        },
+        "intents": [],
+        "kind": "error",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {},
+          "history": {},
+          "position": "blocked",
+          "seq": 1,
+          "viewSlots": {
+            "main": {
+              "revision": 0,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.lifecycle.error",
+        "runtime.lifecycle.classification"
+      ],
+      "input": {
+        "name": "error",
+        "origin": "adapter",
+        "payload": {
+          "chainId": "failure:2",
+          "failures": [
+            {
+              "code": "recipient_blocked",
+              "intent": {
+                "callbackQueryId": "query:2",
+                "kind": "pressAnswer"
+              },
+              "message": "The recipient blocked the bot."
+            }
+          ]
+        },
+        "source": "lifecycle"
+      },
+      "name": "route the first general failure",
+      "result": {
+        "intents": [],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {},
+          "history": {},
+          "position": "error",
+          "seq": 2,
+          "viewSlots": {
+            "main": {
+              "revision": 0,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "covers": [
+        "runtime.lifecycle.unhandled"
+      ],
+      "input": {
+        "name": "photo",
+        "origin": "telegram",
+        "payload": {
+          "fileId": "photo:1"
+        },
+        "source": "message"
+      },
+      "name": "route one generated unhandled event",
+      "result": {
+        "intents": [],
+        "kind": "ok",
+        "session": {
+          "callStack": [],
+          "callbacks": {},
+          "context": {},
+          "history": {},
+          "position": "unhandled",
+          "seq": 3,
+          "viewSlots": {
+            "main": {
+              "revision": 0,
+              "target": {
+                "chatId": 42,
+                "kind": "chat"
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "transcriptVersion": 1
+}

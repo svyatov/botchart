@@ -4,6 +4,8 @@ import callbackCleanupSpec from "botchart/conformance/specs/callback-cleanup.jso
 import compoundSpec from "botchart/conformance/specs/compound-history-and-units.json" with { type: "json" };
 import effectSpec from "botchart/conformance/specs/effects-and-feedback.json" with { type: "json" };
 import guardSpec from "botchart/conformance/specs/guards-and-assignments.json" with { type: "json" };
+import lifecycleErrorSpec from "botchart/conformance/specs/lifecycle-and-errors.json" with { type: "json" };
+import lifecycleIgnoreSpec from "botchart/conformance/specs/lifecycle-ignore.json" with { type: "json" };
 import lifecycleSpec from "botchart/conformance/specs/session-lifecycle.json" with { type: "json" };
 import markdownV2Spec from "botchart/conformance/specs/markdown-v2-escaping.json" with { type: "json" };
 import pressFreshnessSpec from "botchart/conformance/specs/press-freshness.json" with { type: "json" };
@@ -70,6 +72,11 @@ test("published schema accepts a minimal canonical spec", () => {
 
 test("published schema accepts the session lifecycle conformance spec", () => {
   expect(validate(lifecycleSpec), JSON.stringify(validate.errors)).toBe(true);
+});
+
+test("published schema accepts the lifecycle error conformance specs", () => {
+  expect(validate(lifecycleErrorSpec), JSON.stringify(validate.errors)).toBe(true);
+  expect(validate(lifecycleIgnoreSpec), JSON.stringify(validate.errors)).toBe(true);
 });
 
 test("published schema accepts the guards and assignments conformance spec", () => {

@@ -1,6 +1,11 @@
 import { expect, test } from "bun:test";
 import { createRunner, createSession, step } from "botchart";
-import type { BotchartSpec, CoreResult, Session } from "botchart";
+import type {
+  BotchartSpec,
+  CoreResult,
+  LifecycleFailureInput,
+  Session,
+} from "botchart";
 import assignmentSpecJson from "botchart/conformance/specs/guards-and-assignments.json" with { type: "json" };
 import lifecycleSpec from "botchart/conformance/specs/session-lifecycle.json" with { type: "json" };
 import lifecycleTranscript from "botchart/conformance/transcripts/session-lifecycle.json" with { type: "json" };
@@ -2922,13 +2927,147 @@ test("a lifecycle event routes through its distinct source", () => {
       origin: "adapter",
       source: "lifecycle",
       name: "blocked",
-      payload: { chainId: "failure:1" },
+      payload: {
+        chainId: "failure:1",
+        failures: [{
+          intent: { kind: "pressAnswer", callbackQueryId: "query:1" },
+          code: "recipient_blocked",
+          message: "The recipient blocked the bot.",
+        }],
+      },
     },
     now: "2026-08-10T14:01:00Z",
   })).toEqual({
     kind: "ok",
     session: { ...current, position: "done", seq: 1 },
     intents: [],
+  });
+});
+
+test("an error lifecycle event routes its first intent failure", () => {
+  const spec = {
+    initial: "main",
+    context: { default: {} },
+    parameters: {},
+    on: {
+      lifecycle: { error: [{ target: "done" }] },
+    },
+    states: {
+      main: { kind: "state", render: "keep" },
+      done: { kind: "state", render: "keep" },
+    },
+  } as unknown as BotchartSpec;
+  const current = createSession({ spec });
+
+  expect(step({
+    spec,
+    session: current,
+    input: {
+      origin: "adapter",
+      source: "lifecycle",
+      name: "error",
+      payload: {
+        chainId: "failure:1",
+        failures: [{
+          intent: { kind: "pressAnswer", callbackQueryId: "query:1" },
+          code: "telegram_error",
+          message: "The callback query expired.",
+        }],
+      },
+    },
+    now: "2026-08-10T14:01:00Z",
+  })).toEqual({
+    kind: "ok",
+    session: { ...current, position: "done", seq: 1 },
+    intents: [],
+  });
+});
+
+test("a second intent failure in one lifecycle chain is terminal", () => {
+  const spec = {
+    initial: "main",
+    context: { default: {} },
+    parameters: {},
+    on: {
+      lifecycle: { error: [{ target: "wrong" }] },
+    },
+    states: {
+      main: { kind: "state", render: "keep" },
+      wrong: { kind: "state", render: "keep" },
+    },
+  } as unknown as BotchartSpec;
+  const current = createSession({ spec });
+
+  expect(step({
+    spec,
+    session: current,
+    input: {
+      origin: "adapter",
+      source: "lifecycle",
+      name: "error",
+      payload: {
+        chainId: "failure:1",
+        failures: [
+          {
+            intent: { kind: "pressAnswer", callbackQueryId: "query:1" },
+            code: "telegram_error",
+            message: "The callback query expired.",
+          },
+          {
+            intent: { kind: "pressAnswer", callbackQueryId: "query:2" },
+            code: "telegram_error",
+            message: "The lifecycle response failed.",
+          },
+        ],
+      },
+    },
+    now: "2026-08-10T14:01:00Z",
+  })).toEqual({
+    kind: "error",
+    session: current,
+    intents: [],
+    error: {
+      code: "terminal_intent_failure",
+      path: "$.input.payload.failures[1]",
+      message: "Stop this failure chain after its lifecycle intent fails.",
+    },
+  });
+});
+
+test("a failure lifecycle input requires a portable failure chain", () => {
+  const spec = {
+    initial: "main",
+    context: { default: {} },
+    parameters: {},
+    on: {
+      lifecycle: { blocked: [{ target: "wrong" }] },
+    },
+    states: {
+      main: { kind: "state", render: "keep" },
+      wrong: { kind: "state", render: "keep" },
+    },
+  } as unknown as BotchartSpec;
+  const current = createSession({ spec });
+
+  expect(step({
+    spec,
+    session: current,
+    input: {
+      origin: "adapter",
+      source: "lifecycle",
+      name: "blocked",
+      payload: { chainId: "failure:1" },
+    },
+    now: "2026-08-10T14:01:00Z",
+  })).toEqual({
+    kind: "error",
+    session: current,
+    intents: [],
+    error: {
+      code: "invalid_lifecycle_input",
+      path: "$.input.payload.failures",
+      message: "Provide the failed intents in this lifecycle chain.",
+    },
   });
 });
 
@@ -3041,6 +3180,35 @@ test("an unmatched normal event emits one unhandled lifecycle event", () => {
   })).toEqual({
     kind: "ok",
     session: { ...current, position: "done", seq: 1 },
+    intents: [],
+  });
+});
+
+test("an unmatched normal event is ignored without an unhandled handler", () => {
+  const spec = {
+    initial: "main",
+    context: { default: {} },
+    parameters: {},
+    on: {},
+    states: {
+      main: { kind: "state", render: "keep" },
+    },
+  } as unknown as BotchartSpec;
+  const current = createSession({ spec });
+
+  expect(step({
+    spec,
+    session: current,
+    input: {
+      origin: "telegram",
+      source: "message",
+      name: "photo",
+      payload: { fileId: "photo:1" },
+    },
+    now: "2026-08-10T14:01:00Z",
+  })).toEqual({
+    kind: "ok",
+    session: current,
     intents: [],
   });
 });
@@ -3360,6 +3528,24 @@ test("public runtime data survives a JSON round trip", () => {
   } satisfies CoreResult;
 
   expect(JSON.parse(JSON.stringify(result))).toEqual(result);
+});
+
+test("a public lifecycle failure input survives a JSON round trip", () => {
+  const input = {
+    origin: "adapter",
+    source: "lifecycle",
+    name: "blocked",
+    payload: {
+      chainId: "failure:1",
+      failures: [{
+        intent: { kind: "pressAnswer", callbackQueryId: "query:1" },
+        code: "recipient_blocked",
+        message: "The recipient blocked the bot.",
+      }],
+    },
+  } satisfies LifecycleFailureInput;
+
+  expect(JSON.parse(JSON.stringify(input))).toEqual(input);
 });
 
 test("a failed result preserves the session and has no intents", () => {
