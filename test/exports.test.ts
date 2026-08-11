@@ -16,3 +16,10 @@ test.each([
     expect(await import(specifier)).toBeDefined();
   },
 );
+
+test("the simulator subpath exports the conversation player", async () => {
+  const simulator = await import("botchart/simulator");
+
+  expect(simulator.simulateConversation).toBeFunction();
+  expect(simulator.replayTranscript).toBeFunction();
+});
