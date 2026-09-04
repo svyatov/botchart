@@ -24,7 +24,7 @@
   },
   "devDependencies": {
     "botchart": "workspace:*",
-    "grammy": "^1.45.1"
+    "grammy": "^1.46.0"
   },
   "repository": {
     "type": "git",
